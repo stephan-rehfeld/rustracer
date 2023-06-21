@@ -15,6 +15,22 @@ impl<T> Vector3<T> {
     }
 }
 
+impl<T: ops::Add> ops::Add for Vector3<T> {
+    type Output = Vector3<<T as ops::Add>::Output>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Vector3::new( self.x + rhs.x, self.y + rhs.y, self.z + rhs.z )
+    }
+}
+
+impl<T: ops::Sub> ops::Sub for Vector3<T> {
+    type Output = Vector3<<T as ops::Sub>::Output>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Vector3::new( self.x - rhs.x, self.y - rhs.y, self.z - rhs.z )
+    }
+}
+
 impl<T: ops::Mul<Output = T> + Clone + Copy> ops::Mul<T> for Vector3<T> {
     type Output = Vector3<T>;
 
@@ -26,7 +42,7 @@ impl<T: ops::Mul<Output = T> + Clone + Copy> ops::Mul<T> for Vector3<T> {
 impl<T: ops::Mul<Output = T> + ops::Add<Output = T> + Copy + Clone> ops::Mul for Vector3<T> {
     type Output = T;
 
-    fn mul<'a, 'b>(self, rhs: Vector3<T>) -> Self::Output {
+    fn mul(self, rhs: Vector3<T>) -> Self::Output {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
 }
@@ -102,23 +118,81 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn new_vector3_f32() {
-        let vec = Vector3::new( 1.0f32, 2.0f32, 3.0f32 );
+    macro_rules! new_vector3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let vec = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
 
-        assert_eq!(vec.x, 1.0f32);
-        assert_eq!(vec.y, 2.0f32);
-        assert_eq!(vec.z, 3.0f32);
+                assert_eq!(vec.x, 1 as $type);
+                assert_eq!(vec.y, 2 as $type);
+                assert_eq!(vec.z, 3 as $type);
+            }
+        }
     }
 
-    #[test]
-    fn new_vector3_f64() {
-        let vec = Vector3::new( 1.0f64, 2.0f64, 3.0f64 );
+    new_vector3! { u8, new_vector3_u8 }
+    new_vector3! { u16, new_vector3_u16 }
+    new_vector3! { u32, new_vector3_u32 }
+    new_vector3! { u64, new_vector3_u64 }
+    new_vector3! { u128, new_vector3_u128 }
+    new_vector3! { i8, new_vector3_i8 }
+    new_vector3! { i16, new_vector3_i16 }
+    new_vector3! { i32, new_vector3_i32 }
+    new_vector3! { i64, new_vector3_i64 }
+    new_vector3! { i128, new_vector3_i128 }
+    new_vector3! { f32, new_vector3_f32 }
+    new_vector3! { f64, new_vector3_f64 }
 
-        assert_eq!(vec.x, 1.0f64);
-        assert_eq!(vec.y, 2.0f64);
-        assert_eq!(vec.z, 3.0f64);
+    macro_rules! add_vector3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let v1 = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+                let v2 = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
+
+                assert_eq!(v1 + v2, Vector3::new(5 as $type, 7 as $type, 9 as $type));
+            }
+        }
     }
+
+    add_vector3! { u8, add_vector3_u8 }
+    add_vector3! { u16, add_vector3_u16 }
+    add_vector3! { u32, add_vector3_u32 }
+    add_vector3! { u64, add_vector3_u64 }
+    add_vector3! { u128, add_vector3_u128 }
+    add_vector3! { i8, add_vector3_i8 }
+    add_vector3! { i16, add_vector3_i16 }
+    add_vector3! { i32, add_vector3_i32 }
+    add_vector3! { i64, add_vector3_i64 }
+    add_vector3! { i128, add_vector3_i128 }
+    add_vector3! { f32, add_vector3_f32 }
+    add_vector3! { f64, add_vector3_f64 }
+
+    macro_rules! sub_vector3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let v1 = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
+                let v2 = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+
+                assert_eq!(v1 - v2, Vector3::new(3 as $type, 3 as $type, 3 as $type));
+            }
+        }
+    }
+
+    sub_vector3! { u8, sub_vector3_u8 }
+    sub_vector3! { u16, sub_vector3_u16 }
+    sub_vector3! { u32, sub_vector3_u32 }
+    sub_vector3! { u64, sub_vector3_u64 }
+    sub_vector3! { u128, sub_vector3_u128 }
+    sub_vector3! { i8, sub_vector3_i8 }
+    sub_vector3! { i16, sub_vector3_i16 }
+    sub_vector3! { i32, sub_vector3_i32 }
+    sub_vector3! { i64, sub_vector3_i64 }
+    sub_vector3! { i128, sub_vector3_i128 }
+    sub_vector3! { f32, sub_vector3_f32 }
+    sub_vector3! { f64, sub_vector3_f64 }
 
     #[test]
     fn dot_product_vector3_f32() {

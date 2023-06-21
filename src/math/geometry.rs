@@ -43,11 +43,11 @@ pub trait Intersect<T> {
     fn intersect(self, other: T) -> Vec<Self::Output>;
 }
 
-impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + ops::Div<Output = T>+ std::cmp::PartialEq<f64> + Clone + Copy> Intersect<Plane3<T>> for ParametricLine<T> {
+impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + ops::Div<Output = T> + std::cmp::PartialEq<T> + Default + Clone + Copy> Intersect<Plane3<T>> for ParametricLine<T> {
     type Output = T;
 
     fn intersect(self, plane: Plane3<T>) -> Vec<Self::Output> {
-        if self.direction * plane.normal == 0.0 {
+        if self.direction * plane.normal == Default::default() {
             Vec::new()
         } else {
             vec![((plane.anchor - self.origin) * plane.normal) / (self.direction * plane.normal)]
@@ -149,5 +149,29 @@ mod tests {
 
         assert_eq!(ray2.intersect(plane), vec![1.0]);
     }
+
+    #[test]
+    fn parametric_line_intersect_plane_f32() {
+        let ray1 = ParametricLine::new(
+            Point3::new(0.0f32, 1.0f32, 0.0f32),
+            Vector3::new(0.0f32, 0.0f32, -1.0f32)
+        );
+
+        let plane = Plane3::new(
+            Point3::new(0.0f32, 0.0f32, 0.0f32),
+            Vector3::new(0.0f32, 1.0f32, 0.0f32)
+        );
+
+        assert_eq!(ray1.intersect(plane), Vec::new());
+
+        let ray2 = ParametricLine::new(
+            Point3::new(0.0f32, 1.0f32, 0.0f32),
+            Vector3::new(0.0f32, -1.0f32, 0.0f32)
+        );
+
+        assert_eq!(ray2.intersect(plane), vec![1.0]);
+    }
+
+
 }
 
