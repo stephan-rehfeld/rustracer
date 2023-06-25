@@ -13,6 +13,19 @@ impl<T> Vector3<T> {
     pub fn new( x: T, y: T, z: T) -> Vector3<T> {
         Vector3 { x, y, z }
     }
+
+    pub fn cross(a: Vector3<T>, b: Vector3<T>) -> Vector3<<<T as ops::Mul>::Output as ops::Sub>::Output>
+    where
+        T: ops::Mul,
+        <T as ops::Mul>::Output: ops::Sub,
+        T: Copy + Clone,
+    {
+        Vector3::new(
+            a.y * b.z - a.z * b.y,
+            a.z * b.x - a.x * b.z,
+            a.x * b.y - a.y * b.x
+        )
+    }
 }
 
 impl<T: ops::Add> ops::Add for Vector3<T> {
@@ -31,12 +44,21 @@ impl<T: ops::Sub> ops::Sub for Vector3<T> {
     }
 }
 
-impl<T: ops::Mul<Output = T> + Clone + Copy> ops::Mul<T> for Vector3<T> {
-    type Output = Vector3<T>;
+impl<T: ops::Mul + Clone + Copy> ops::Mul<T> for Vector3<T> {
+    type Output = Vector3<<T as ops::Mul>::Output>;
 
     fn mul(self, rhs: T) -> Self::Output {
         Vector3::new( self.x * rhs, self.y * rhs, self.z * rhs )
     }
+}
+
+impl ops::Mul<Vector3<f32>> for f32 {
+    type Output = Vector3<<f32 as ops::Mul>::Output>;
+
+    fn mul(self, rhs: Vector3<f32>) -> Self::Output {
+        Vector3::new( self * rhs.x, self * rhs.x, self * rhs.z )
+    }
+
 }
 
 impl<T: ops::Mul<Output = T> + ops::Add<Output = T> + Copy + Clone> ops::Mul for Vector3<T> {
@@ -63,6 +85,14 @@ impl<T: ops::DivAssign + Copy + Clone> ops::DivAssign<T> for Vector3<T> {
     }
 }
 
+impl<T: ops::Neg> ops::Neg for Vector3<T> {
+    type Output = Vector3<<T as ops::Neg>::Output>;
+
+    fn neg(self) -> Self::Output {
+        Vector3::new( -self.x, -self.y, -self.z)
+    }
+}
+
 impl Vector3<f32> {
     pub fn magnitude(self) -> f32 {
         (self * self).sqrt()
@@ -70,6 +100,10 @@ impl Vector3<f32> {
 
     pub fn normalize(&mut self) {
         *self /= self.magnitude();
+    }
+
+    pub fn normalized(self) -> Vector3<f32> {
+        self / self.magnitude()
     }
 }
 
@@ -80,6 +114,10 @@ impl Vector3<f64> {
 
     pub fn normalize(&mut self) {
         *self /= self.magnitude();
+    }
+ 
+    pub fn normalized(self) -> Vector3<f64> {
+        self / self.magnitude()
     }
 }
 
@@ -263,6 +301,46 @@ mod tests {
         assert_eq!(z_vec.magnitude(), 4.0f64);
     }
 
+    macro_rules! vector3_normalize {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let mut x_vec = Vector3::new( 2 as $type, 0 as $type, 0 as $type );
+                let mut y_vec = Vector3::new( 0 as $type, 3 as $type, 0 as $type );
+                let mut z_vec = Vector3::new( 0 as $type, 0 as $type, 4 as $type );
+
+                &x_vec.normalize();
+                &y_vec.normalize();
+                &z_vec.normalize();
+
+                assert_eq!(x_vec.magnitude(), 1 as $type);
+                assert_eq!(y_vec.magnitude(), 1 as $type);
+                assert_eq!(z_vec.magnitude(), 1 as $type);
+            }
+        }
+    }
+
+    vector3_normalize! { f32, vector3_normalize_f32 }
+    vector3_normalize! { f64, vector3_normalize_f64 }
+
+    macro_rules! vector3_normalized {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let x_vec = Vector3::new( 2 as $type, 0 as $type, 0 as $type );
+                let y_vec = Vector3::new( 0 as $type, 3 as $type, 0 as $type );
+                let z_vec = Vector3::new( 0 as $type, 0 as $type, 4 as $type );
+
+                assert_eq!(x_vec.normalized().magnitude(), 1 as $type);
+                assert_eq!(y_vec.normalized().magnitude(), 1 as $type);
+                assert_eq!(z_vec.normalized().magnitude(), 1 as $type);
+            }
+        }
+    }
+
+    vector3_normalized! { f32, vector3_normalized_f32 }
+    vector3_normalized! { f64, vector3_normalized_f64 }
+
     #[test]
     fn new_point3_f32() {
         let p = Point3::new( 1.0f32, 2.0f32, 3.0f32 );
@@ -306,4 +384,54 @@ mod tests {
         assert_eq!(p1 - p3, Vector3::new(1.0f64, 0.0f64, 3.0f64));
         assert_eq!(p1 - p4, Vector3::new(1.0f64, 2.0f64, 0.0f64));
     }
+
+    macro_rules! vector3_neg {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let v1 = Vector3::new( 1 as $type, 2 as $type, -3 as $type);
+                let v2 = -v1;
+
+                assert_eq!(v2.x, -1 as $type);
+                assert_eq!(v2.y, -2 as $type);
+                assert_eq!(v2.z, 3 as $type);
+            }
+        }
+    }
+
+    add_vector3! { i8, vector3_neg_i8 }
+    add_vector3! { i16, vector3_neg_i16 }
+    add_vector3! { i32, vector3_neg_i32 }
+    add_vector3! { i64, vector3_neg_i64 }
+    add_vector3! { i128, vector3_neg_i128 }
+    add_vector3! { f32, vector3_neg_f32 }
+    add_vector3! { f64, vector3_neg_f64 }
+
+    macro_rules! vector3_cross {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let xAxis = Vector3::new(1 as $type, 0 as $type, 0 as $type);
+                let yAxis = Vector3::new(0 as $type, 1 as $type, 0 as $type);
+                let zAxis = Vector3::new(0 as $type, 0 as $type, 1 as $type);
+
+                assert_eq!(xAxis, Vector3::cross(yAxis, zAxis));
+                assert_eq!(-xAxis, Vector3::cross(zAxis, yAxis));
+
+                assert_eq!(yAxis, Vector3::cross(zAxis, xAxis));
+                assert_eq!(-yAxis, Vector3::cross(xAxis, zAxis));
+
+                assert_eq!(zAxis, Vector3::cross(xAxis, yAxis));
+                assert_eq!(-zAxis, Vector3::cross(yAxis, xAxis));
+            }
+        }
+    }
+
+    vector3_cross! { i8, vector3_cross_i8 }
+    vector3_cross! { i16, vector3_cross_i16 }
+    vector3_cross! { i32, vector3_cross_i32 }
+    vector3_cross! { i64, vector3_cross_i64 }
+    vector3_cross! { i128, vector3_cross_i128 }
+    vector3_cross! { f32, vector3_cross_f32 }
+    vector3_cross! { f64, vector3_cross_f64 }
 }
