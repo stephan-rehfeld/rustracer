@@ -26,7 +26,7 @@ fn main() {
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-        let ray = cam.ray_for(x, y);
+        let ray = cam.ray_for(x, height - y - 1);
         let intersects = ray.intersect(plane);
         
         if intersects.len() != 0 && intersects[0] > 0.0 {

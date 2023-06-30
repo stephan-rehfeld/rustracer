@@ -39,7 +39,6 @@ impl Orthographic<f32> {
         let o = self.e + self.aspectRatio * self.scale * x_factor * self.u + self.scale * y_factor * self.v;
 
         ParametricLine::new(o, d)
-
     }
 }
 
@@ -59,6 +58,7 @@ impl Perspective<f32> {
         let u = Vector3::cross(t, w).normalized();
         let v = Vector3::cross(w, u);
 
+
         Perspective { e, u, v, w, angle, width, height }
     }
 
@@ -71,8 +71,11 @@ impl Perspective<f32> {
         let width = self.width as f32;
         let height = self.height as f32;
 
-        let r = -self.w * (height/2.0)/self.angle.tan() + (x - (width - 1.0)/2.0) * self.u + (y - (height-1.0)/2.0) * self.v;
+        let a = -self.w * (height/2.0)/self.angle.tan(); 
+        let b = (x - (width-1.0)/2.0) * self.u;
+        let c = (y - (height-1.0)/2.0) * self.v;
 
+        let r = a + b + c; 
         let d = r.normalized();
 
         ParametricLine::new(o, d)

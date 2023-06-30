@@ -56,9 +56,8 @@ impl ops::Mul<Vector3<f32>> for f32 {
     type Output = Vector3<<f32 as ops::Mul>::Output>;
 
     fn mul(self, rhs: Vector3<f32>) -> Self::Output {
-        Vector3::new( self * rhs.x, self * rhs.x, self * rhs.z )
+        Vector3::new( self * rhs.x, self * rhs.y, self * rhs.z )
     }
-
 }
 
 impl<T: ops::Mul<Output = T> + ops::Add<Output = T> + Copy + Clone> ops::Mul for Vector3<T> {
