@@ -28,18 +28,18 @@ impl<T> Vector3<T> {
     }
 }
 
-impl<T: ops::Add> ops::Add for Vector3<T> {
-    type Output = Vector3<<T as ops::Add>::Output>;
+impl<T: ops::Add<U>, U> ops::Add<Vector3<U>> for Vector3<T> {
+    type Output = Vector3<<T as ops::Add<U>>::Output>;
 
-    fn add(self, rhs: Self) -> Self::Output {
+    fn add(self, rhs: Vector3<U>) -> Self::Output {
         Vector3::new( self.x + rhs.x, self.y + rhs.y, self.z + rhs.z )
     }
 }
 
-impl<T: ops::Sub> ops::Sub for Vector3<T> {
-    type Output = Vector3<<T as ops::Sub>::Output>;
+impl<T: ops::Sub<U>, U> ops::Sub<Vector3<U>> for Vector3<T> {
+    type Output = Vector3<<T as ops::Sub<U>>::Output>;
 
-    fn sub(self, rhs: Self) -> Self::Output {
+    fn sub(self, rhs: Vector3<U>) -> Self::Output {
         Vector3::new( self.x - rhs.x, self.y - rhs.y, self.z - rhs.z )
     }
 }
@@ -52,13 +52,19 @@ impl<T: ops::Mul + Clone + Copy> ops::Mul<T> for Vector3<T> {
     }
 }
 
-impl ops::Mul<Vector3<f32>> for f32 {
-    type Output = Vector3<<f32 as ops::Mul>::Output>;
+macro_rules! mul_scalar_with_vector3 {
+    ($($type: ty)* ) => ($(
+        impl ops::Mul<Vector3<$type>> for $type  {
+            type Output = Vector3<<$type as ops::Mul>::Output>;
 
-    fn mul(self, rhs: Vector3<f32>) -> Self::Output {
-        Vector3::new( self * rhs.x, self * rhs.y, self * rhs.z )
-    }
+            fn mul(self, rhs: Vector3<$type>) -> Self::Output {
+                Vector3::new( self * rhs.x, self * rhs.y, self * rhs.z )
+            }
+        }
+    )*)
 }
+
+mul_scalar_with_vector3! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
 impl<T: ops::Mul<Output = T> + ops::Add<Output = T> + Copy + Clone> ops::Mul for Vector3<T> {
     type Output = T;
@@ -68,10 +74,10 @@ impl<T: ops::Mul<Output = T> + ops::Add<Output = T> + Copy + Clone> ops::Mul for
     }
 }
 
-impl<T: ops::Div<Output = T> + Copy + Clone> ops::Div<T> for Vector3<T> {
-    type Output = Vector3<T>;
+impl<T: ops::Div<U> + Copy + Clone, U: Copy + Clone> ops::Div<U> for Vector3<T> {
+    type Output = Vector3<<T as ops::Div<U>>::Output>;
 
-    fn div(self, rhs: T) -> Self::Output {
+    fn div(self, rhs: U) -> Self::Output {
         Vector3::new(self.x / rhs, self.y / rhs, self.z / rhs)
     }
 }
@@ -181,6 +187,34 @@ mod tests {
     new_vector3! { f32, new_vector3_f32 }
     new_vector3! { f64, new_vector3_f64 }
 
+    macro_rules! vector3_cross {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let xAxis = Vector3::new(1 as $type, 0 as $type, 0 as $type);
+                let yAxis = Vector3::new(0 as $type, 1 as $type, 0 as $type);
+                let zAxis = Vector3::new(0 as $type, 0 as $type, 1 as $type);
+
+                assert_eq!(xAxis, Vector3::cross(yAxis, zAxis));
+                assert_eq!(-xAxis, Vector3::cross(zAxis, yAxis));
+
+                assert_eq!(yAxis, Vector3::cross(zAxis, xAxis));
+                assert_eq!(-yAxis, Vector3::cross(xAxis, zAxis));
+
+                assert_eq!(zAxis, Vector3::cross(xAxis, yAxis));
+                assert_eq!(-zAxis, Vector3::cross(yAxis, xAxis));
+            }
+        }
+    }
+
+    vector3_cross! { i8, vector3_cross_i8 }
+    vector3_cross! { i16, vector3_cross_i16 }
+    vector3_cross! { i32, vector3_cross_i32 }
+    vector3_cross! { i64, vector3_cross_i64 }
+    vector3_cross! { i128, vector3_cross_i128 }
+    vector3_cross! { f32, vector3_cross_f32 }
+    vector3_cross! { f64, vector3_cross_f64 }
+
     macro_rules! add_vector3 {
         ($type: ty, $name: ident) => {
             #[test]
@@ -231,51 +265,95 @@ mod tests {
     sub_vector3! { f32, sub_vector3_f32 }
     sub_vector3! { f64, sub_vector3_f64 }
 
-    #[test]
-    fn dot_product_vector3_f32() {
-        let x_vec1 = Vector3::new( 1.0f32, 0.0f32, 0.0f32 );
-        let y_vec1 = Vector3::new( 0.0f32, 1.0f32, 0.0f32 );
-        let z_vec1 = Vector3::new( 0.0f32, 0.0f32, 1.0f32 );
+    macro_rules! mul_vector3_scalar {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let v = Vector3::new( 2 as $type, 3 as $type, 4 as $type );
+                let r = Vector3::new( 4 as $type, 6 as $type, 8 as $type );
 
-        assert_eq!(x_vec1 * y_vec1, 0.0f32);
-        assert_eq!(x_vec1 * z_vec1, 0.0f32);
-        assert_eq!(y_vec1 * z_vec1, 0.0f32);
-
-        let x_vec2 = x_vec1 * 2.0f32;
-        let y_vec2 = y_vec1 * 2.0f32;
-        let z_vec2 = x_vec1 * 2.0f32;
-
-        let x_vec3 = x_vec1 * 3.0f32;
-        let y_vec3 = y_vec1 * 3.0f32;
-        let z_vec3 = x_vec1 * 3.0f32;
-
-        assert_eq!(x_vec2 * x_vec3, 6.0f32); 
-        assert_eq!(y_vec2 * y_vec3, 6.0f32); 
-        assert_eq!(z_vec2 * z_vec3, 6.0f32); 
+                assert_eq!( v * 2 as $type, r);
+            }
+        }
     }
 
-    #[test]
-    fn dot_product_vector3_f64() {
-        let x_vec1 = Vector3::new( 1.0f64, 0.0f64, 0.0f64 );
-        let y_vec1 = Vector3::new( 0.0f64, 1.0f64, 0.0f64 );
-        let z_vec1 = Vector3::new( 0.0f64, 0.0f64, 1.0f64 );
+    mul_vector3_scalar! { u8, mul_vector3_scalar_u8 }
+    mul_vector3_scalar! { u16, mul_vector3_scalar_u16 }
+    mul_vector3_scalar! { u32, mul_vector3_scalar_u32 }
+    mul_vector3_scalar! { u64, mul_vector3_scalar_u64 }
+    mul_vector3_scalar! { u128, mul_vector3_scalar_u128 }
+    mul_vector3_scalar! { i8, mul_vector3_scalar_i8 }
+    mul_vector3_scalar! { i16, mul_vector3_scalar_i16 }
+    mul_vector3_scalar! { i32, mul_vector3_scalar_i32 }
+    mul_vector3_scalar! { i64, mul_vector3_scalar_i64 }
+    mul_vector3_scalar! { i128, mul_vector3_scalar_i128 }
+    mul_vector3_scalar! { f32, mul_vector3_scalar_f32 }
+    mul_vector3_scalar! { f64, mul_vector3_scalar_f64 }
 
-        assert_eq!(x_vec1 * y_vec1, 0.0f64);
-        assert_eq!(x_vec1 * z_vec1, 0.0f64);
-        assert_eq!(y_vec1 * z_vec1, 0.0f64);
+    macro_rules! mul_scalar_vector3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let v = Vector3::new( 2 as $type, 3 as $type, 4 as $type );
+                let r = Vector3::new( 4 as $type, 6 as $type, 8 as $type );
 
-        let x_vec2 = x_vec1 * 2.0f64;
-        let y_vec2 = y_vec1 * 2.0f64;
-        let z_vec2 = x_vec1 * 2.0f64;
-
-        let x_vec3 = x_vec1 * 3.0f64;
-        let y_vec3 = y_vec1 * 3.0f64;
-        let z_vec3 = x_vec1 * 3.0f64;
-
-        assert_eq!(x_vec2 * x_vec3, 6.0f64);
-        assert_eq!(y_vec2 * y_vec3, 6.0f64);
-        assert_eq!(z_vec2 * z_vec3, 6.0f64);
+                assert_eq!( 2 as $type * v, r);
+            }
+        }
     }
+
+    mul_scalar_vector3! { u8, mul_scalar_vector3_u8 }
+    mul_scalar_vector3! { u16, mul_scalar_vector3_u16 }
+    mul_scalar_vector3! { u32, mul_scalar_vector3_u32 }
+    mul_scalar_vector3! { u64, mul__scalar_vector3_u64 }
+    mul_scalar_vector3! { u128, mul_scalar_vector3_u128 }
+    mul_scalar_vector3! { i8, mul_scalar_vector3_i8 }
+    mul_scalar_vector3! { i16, mul_scalar_vector3_i16 }
+    mul_scalar_vector3! { i32, mul_scalar_vector3_i32 }
+    mul_scalar_vector3! { i64, mul_scalar_vector3_i64 }
+    mul_scalar_vector3! { i128, mul_scalar_vector3_i128 }
+    mul_scalar_vector3! { f32, mul_scalar_vector3_f32 }
+    mul_scalar_vector3! { f64, mul_scalar_vector3_f64 }
+
+    macro_rules! dot_product_vector3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let x_vec1 = Vector3::new( 1 as $type, 0 as $type, 0 as $type );
+                let y_vec1 = Vector3::new( 0 as $type, 1 as $type, 0 as $type );
+                let z_vec1 = Vector3::new( 0 as $type, 0 as $type, 1 as $type );
+
+                assert_eq!(x_vec1 * y_vec1, 0 as $type);
+                assert_eq!(x_vec1 * z_vec1, 0 as $type);
+                assert_eq!(y_vec1 * z_vec1, 0 as $type);
+
+                let x_vec2 = x_vec1 * 2 as $type;
+                let y_vec2 = y_vec1 * 2 as $type;
+                let z_vec2 = x_vec1 * 2 as $type;
+
+                let x_vec3 = x_vec1 * 3 as $type;
+                let y_vec3 = y_vec1 * 3 as $type;
+                let z_vec3 = x_vec1 * 3 as $type;
+
+                assert_eq!(x_vec2 * x_vec3, 6 as $type); 
+                assert_eq!(y_vec2 * y_vec3, 6 as $type); 
+                assert_eq!(z_vec2 * z_vec3, 6 as $type); 
+            }
+        }
+    }
+
+    dot_product_vector3! { u8, dot_product_vector3_u8 }
+    dot_product_vector3! { u16, dot_product_vector3_u16 }
+    dot_product_vector3! { u32, dot_product_vector3_u32 }
+    dot_product_vector3! { u64, dot_product_vector3_u64 }
+    dot_product_vector3! { u128, dot_product_vector3_u128 }
+    dot_product_vector3! { i8, dot_product_vector3_i8 }
+    dot_product_vector3! { i16, dot_product_vector3_i16 }
+    dot_product_vector3! { i32, dot_product_vector3_i32 }
+    dot_product_vector3! { i64, dot_product_vector3_i64 }
+    dot_product_vector3! { i128, dot_product_vector3_i128 }
+    dot_product_vector3! { f32, dot_product_vector3_f32 }
+    dot_product_vector3! { f64, dot_product_vector3_f64 }
 
     #[test]
     fn vector3_magnitude_f32() {
@@ -287,7 +365,6 @@ mod tests {
         assert_eq!(y_vec.magnitude(), 3.0f64);
         assert_eq!(z_vec.magnitude(), 4.0f64);
     }
-
 
     #[test]
     fn vector3_magnitude_f64() {
@@ -405,32 +482,4 @@ mod tests {
     add_vector3! { i128, vector3_neg_i128 }
     add_vector3! { f32, vector3_neg_f32 }
     add_vector3! { f64, vector3_neg_f64 }
-
-    macro_rules! vector3_cross {
-        ($type: ty, $name: ident) => {
-            #[test]
-            fn $name() {
-                let xAxis = Vector3::new(1 as $type, 0 as $type, 0 as $type);
-                let yAxis = Vector3::new(0 as $type, 1 as $type, 0 as $type);
-                let zAxis = Vector3::new(0 as $type, 0 as $type, 1 as $type);
-
-                assert_eq!(xAxis, Vector3::cross(yAxis, zAxis));
-                assert_eq!(-xAxis, Vector3::cross(zAxis, yAxis));
-
-                assert_eq!(yAxis, Vector3::cross(zAxis, xAxis));
-                assert_eq!(-yAxis, Vector3::cross(xAxis, zAxis));
-
-                assert_eq!(zAxis, Vector3::cross(xAxis, yAxis));
-                assert_eq!(-zAxis, Vector3::cross(yAxis, xAxis));
-            }
-        }
-    }
-
-    vector3_cross! { i8, vector3_cross_i8 }
-    vector3_cross! { i16, vector3_cross_i16 }
-    vector3_cross! { i32, vector3_cross_i32 }
-    vector3_cross! { i64, vector3_cross_i64 }
-    vector3_cross! { i128, vector3_cross_i128 }
-    vector3_cross! { f32, vector3_cross_f32 }
-    vector3_cross! { f64, vector3_cross_f64 }
 }
