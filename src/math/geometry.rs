@@ -52,7 +52,40 @@ impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + ops
         } else {
             vec![((plane.anchor - self.origin) * plane.normal) / (self.direction * plane.normal)]
         }
+    }
+}
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct Sphere<T> {
+    center: Point3<T>,
+    radius: T,
+}
+
+impl<T> Sphere<T> {
+    pub fn new(center: Point3<T>, radius: T) -> Sphere<T> {
+        Sphere { center, radius }
+    }
+}
+
+impl Intersect<Sphere<f32>> for ParametricLine<f32> {
+    type Output = f32;
+
+    fn intersect(self, sphere: Sphere<f32>) -> Vec<Self::Output> {
+        let a = self.direction * self.direction;
+        let b = self.direction * (2.0 * (self.origin - sphere.center));
+        let c = (self.origin - sphere.center) * (self.origin - sphere.center) - sphere.radius * sphere.radius;
+
+        let helper = b * b - 4.0 * a * c;
+        
+        if helper < 0.0 {
+            Vec::new()
+        } else if helper == 0.0 {
+            vec![ (-b / (2.0 * a) ) ]
+        } else {
+            let helper = helper.sqrt();
+
+            vec![ ((-b - helper) / (2.0 * a) ), ((-b + helper) / (2.0 * a) ) ]
+        }
     }
 }
 

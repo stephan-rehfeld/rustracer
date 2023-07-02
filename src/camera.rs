@@ -10,7 +10,7 @@ pub struct Orthographic<T> {
     scale: T,
     width: u32,
     height: u32,
-    aspectRatio: T,
+    aspect_ratio: T,
 }
 
 impl Orthographic<f32> {
@@ -19,9 +19,9 @@ impl Orthographic<f32> {
         let u = Vector3::cross(t, w).normalized();
         let v = Vector3::cross(w, u);
 
-        let aspectRatio = (width as f32)/(height as f32);
+        let aspect_ratio = (width as f32)/(height as f32);
 
-        Orthographic { e, u, v, w, width, height, scale, aspectRatio }
+        Orthographic { e, u, v, w, width, height, scale, aspect_ratio }
     }
 
     pub fn ray_for(&self, x: u32, y: u32) -> ParametricLine<f32> {
@@ -36,7 +36,7 @@ impl Orthographic<f32> {
         let x_factor = x - ((width-1.0)/2.0) / (width-1.0);
         let y_factor = y - ((height-1.0)/2.0) / (height-1.0);
 
-        let o = self.e + self.aspectRatio * self.scale * x_factor * self.u + self.scale * y_factor * self.v;
+        let o = self.e + self.aspect_ratio * self.scale * x_factor * self.u + self.scale * y_factor * self.v;
 
         ParametricLine::new(o, d)
     }

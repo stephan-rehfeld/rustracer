@@ -475,11 +475,11 @@ mod tests {
         }
     }
 
-    add_vector3! { i8, vector3_neg_i8 }
-    add_vector3! { i16, vector3_neg_i16 }
-    add_vector3! { i32, vector3_neg_i32 }
-    add_vector3! { i64, vector3_neg_i64 }
-    add_vector3! { i128, vector3_neg_i128 }
-    add_vector3! { f32, vector3_neg_f32 }
-    add_vector3! { f64, vector3_neg_f64 }
+    vector3_neg! { i8, vector3_neg_i8 }
+    vector3_neg! { i16, vector3_neg_i16 }
+    vector3_neg! { i32, vector3_neg_i32 }
+    vector3_neg! { i64, vector3_neg_i64 }
+    vector3_neg! { i128, vector3_neg_i128 }
+    vector3_neg! { f32, vector3_neg_f32 }
+    vector3_neg! { f64, vector3_neg_f64 }
 }
