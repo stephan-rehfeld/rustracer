@@ -1,6 +1,7 @@
 pub mod geometry;
 
 use std::ops;
+use crate::traits;
 
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct Vector3<T> {
@@ -98,6 +99,30 @@ impl<T: ops::Neg> ops::Neg for Vector3<T> {
     }
 }
 
+impl<T> Vector3<T> where 
+    T: traits::Sqrt<Output = T>,
+    T: ops::Add<Output = T>,
+    T: ops::Mul<Output = T>,
+    T: ops::Div,
+    T: ops::DivAssign,
+    T: Copy + Clone 
+{
+    pub fn magnitude(self) -> <T as traits::Sqrt>::Output {
+        (self * self).sqrt()
+    }
+
+    pub fn normalize(&mut self) {
+        *self /= self.magnitude();
+    }
+
+    pub fn normalized(self) -> Vector3<<T as ops::Div>::Output> {
+        self / self.magnitude()
+    }
+}
+
+
+
+/*
 impl Vector3<f32> {
     pub fn magnitude(self) -> f32 {
         (self * self).sqrt()
@@ -124,7 +149,7 @@ impl Vector3<f64> {
     pub fn normalized(self) -> Vector3<f64> {
         self / self.magnitude()
     }
-}
+}*/
 
 
 #[derive(Debug,PartialEq,Clone,Copy)]
