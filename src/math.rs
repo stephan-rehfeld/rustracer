@@ -191,18 +191,18 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let xAxis = Vector3::new(1 as $type, 0 as $type, 0 as $type);
-                let yAxis = Vector3::new(0 as $type, 1 as $type, 0 as $type);
-                let zAxis = Vector3::new(0 as $type, 0 as $type, 1 as $type);
+                let x_axis = Vector3::new(1 as $type, 0 as $type, 0 as $type);
+                let y_axis = Vector3::new(0 as $type, 1 as $type, 0 as $type);
+                let z_axis = Vector3::new(0 as $type, 0 as $type, 1 as $type);
 
-                assert_eq!(xAxis, Vector3::cross(yAxis, zAxis));
-                assert_eq!(-xAxis, Vector3::cross(zAxis, yAxis));
+                assert_eq!(x_axis, Vector3::cross(y_axis, z_axis));
+                assert_eq!(-x_axis, Vector3::cross(z_axis, y_axis));
 
-                assert_eq!(yAxis, Vector3::cross(zAxis, xAxis));
-                assert_eq!(-yAxis, Vector3::cross(xAxis, zAxis));
+                assert_eq!(y_axis, Vector3::cross(z_axis, x_axis));
+                assert_eq!(-y_axis, Vector3::cross(x_axis, z_axis));
 
-                assert_eq!(zAxis, Vector3::cross(xAxis, yAxis));
-                assert_eq!(-zAxis, Vector3::cross(yAxis, xAxis));
+                assert_eq!(z_axis, Vector3::cross(x_axis, y_axis));
+                assert_eq!(-z_axis, Vector3::cross(y_axis, x_axis));
             }
         }
     }
@@ -305,7 +305,7 @@ mod tests {
     mul_scalar_vector3! { u8, mul_scalar_vector3_u8 }
     mul_scalar_vector3! { u16, mul_scalar_vector3_u16 }
     mul_scalar_vector3! { u32, mul_scalar_vector3_u32 }
-    mul_scalar_vector3! { u64, mul__scalar_vector3_u64 }
+    mul_scalar_vector3! { u64, mul_scalar_vector3_u64 }
     mul_scalar_vector3! { u128, mul_scalar_vector3_u128 }
     mul_scalar_vector3! { i8, mul_scalar_vector3_i8 }
     mul_scalar_vector3! { i16, mul_scalar_vector3_i16 }
@@ -354,6 +354,81 @@ mod tests {
     dot_product_vector3! { i128, dot_product_vector3_i128 }
     dot_product_vector3! { f32, dot_product_vector3_f32 }
     dot_product_vector3! { f64, dot_product_vector3_f64 }
+    
+    macro_rules! vector3_div {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let v = Vector3::new( 2 as $type, 4 as $type, 8 as $type );
+                let r = Vector3::new( 1 as $type, 2 as $type, 4 as $type );
+
+                assert_eq!(v / 2 as $type, r);
+
+            }
+        }
+    }
+
+    vector3_div! { u8, vector3_div_u8 }
+    vector3_div! { u16, vector3_div_u16 }
+    vector3_div! { u32, vector3_div_u32 }
+    vector3_div! { u64, vector3_div_u64 }
+    vector3_div! { u128, vector3_div_u128 }
+    vector3_div! { i8, vector3_div_i8 }
+    vector3_div! { i16, vector3_div_i16 }
+    vector3_div! { i32, vector3_div_i32 }
+    vector3_div! { i64, vector3_div_i64 }
+    vector3_div! { i128, vector3_div_i128 }
+    vector3_div! { f32, vector3_div_f32 }
+    vector3_div! { f64, vector3_div_f64 }
+
+    macro_rules! vector3_div_assign {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let mut v = Vector3::new( 2 as $type, 4 as $type, 8 as $type );
+                let r = Vector3::new( 1 as $type, 2 as $type, 4 as $type );
+
+                v /= 2.0 as $type;
+
+                assert_eq!(v, r);
+
+            }
+        }
+    }
+
+    vector3_div_assign! { u16, vector3_div_assign_u16 }
+    vector3_div_assign! { u32, vector3_div_assign_u32 }
+    vector3_div_assign! { u64, vector3_div_assign_u64 }
+    vector3_div_assign! { u128, vector3_div_assign_u128 }
+    vector3_div_assign! { i8, vector3_div_assign_i8 }
+    vector3_div_assign! { i16, vector3_div_assign_i16 }
+    vector3_div_assign! { i32, vector3_div_assign_i32 }
+    vector3_div_assign! { i64, vector3_div_assign_i64 }
+    vector3_div_assign! { i128, vector3_div_assign_i128 }
+    vector3_div_assign! { f32, vector3_div_assign_f32 }
+    vector3_div_assign! { f64, vector3_div_assign_f64 }
+
+    macro_rules! vector3_neg {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let v1 = Vector3::new( 1 as $type, 2 as $type, -3 as $type);
+                let v2 = -v1;
+
+                assert_eq!(v2.x, -1 as $type);
+                assert_eq!(v2.y, -2 as $type);
+                assert_eq!(v2.z, 3 as $type);
+            }
+        }
+    }
+
+    vector3_neg! { i8, vector3_neg_i8 }
+    vector3_neg! { i16, vector3_neg_i16 }
+    vector3_neg! { i32, vector3_neg_i32 }
+    vector3_neg! { i64, vector3_neg_i64 }
+    vector3_neg! { i128, vector3_neg_i128 }
+    vector3_neg! { f32, vector3_neg_f32 }
+    vector3_neg! { f64, vector3_neg_f64 }
 
     #[test]
     fn vector3_magnitude_f32() {
@@ -385,9 +460,9 @@ mod tests {
                 let mut y_vec = Vector3::new( 0 as $type, 3 as $type, 0 as $type );
                 let mut z_vec = Vector3::new( 0 as $type, 0 as $type, 4 as $type );
 
-                &x_vec.normalize();
-                &y_vec.normalize();
-                &z_vec.normalize();
+                x_vec.normalize();
+                y_vec.normalize();
+                z_vec.normalize();
 
                 assert_eq!(x_vec.magnitude(), 1 as $type);
                 assert_eq!(y_vec.magnitude(), 1 as $type);
@@ -461,25 +536,4 @@ mod tests {
         assert_eq!(p1 - p4, Vector3::new(1.0f64, 2.0f64, 0.0f64));
     }
 
-    macro_rules! vector3_neg {
-        ($type: ty, $name: ident) => {
-            #[test]
-            fn $name() {
-                let v1 = Vector3::new( 1 as $type, 2 as $type, -3 as $type);
-                let v2 = -v1;
-
-                assert_eq!(v2.x, -1 as $type);
-                assert_eq!(v2.y, -2 as $type);
-                assert_eq!(v2.z, 3 as $type);
-            }
-        }
-    }
-
-    vector3_neg! { i8, vector3_neg_i8 }
-    vector3_neg! { i16, vector3_neg_i16 }
-    vector3_neg! { i32, vector3_neg_i32 }
-    vector3_neg! { i64, vector3_neg_i64 }
-    vector3_neg! { i128, vector3_neg_i128 }
-    vector3_neg! { f32, vector3_neg_f32 }
-    vector3_neg! { f64, vector3_neg_f64 }
 }

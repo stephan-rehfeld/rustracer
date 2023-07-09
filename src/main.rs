@@ -2,7 +2,7 @@ use rustracer::math::Vector3;
 use rustracer::math::Point3;
 use rustracer::math::geometry::Sphere;
 use rustracer::math::geometry::Plane3;
-use rustracer::math::geometry::ParametricLine;
+//use rustracer::math::geometry::ParametricLine;
 use rustracer::math::geometry::Intersect;
 use rustracer::camera;
 
