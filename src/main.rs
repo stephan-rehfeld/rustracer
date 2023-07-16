@@ -1,7 +1,7 @@
 use rustracer::math::Vector3;
 use rustracer::math::Point3;
 use rustracer::math::geometry::Sphere;
-use rustracer::math::geometry::Plane3;
+use rustracer::math::geometry::ImplicitPlane3;
 use rustracer::math::geometry::AxisAlignedBox;
 //use rustracer::math::geometry::ParametricLine;
 use rustracer::math::geometry::Intersect;
@@ -11,7 +11,7 @@ fn main() {
     let width = 640;
     let height = 480;
 
-    let _plane = Plane3::new(
+    let _plane = ImplicitPlane3::new(
         Point3::new(0.0f32, 0.0, 0.0),
         Vector3::new(0.0f32, 1.0, 0.0)
     );

@@ -4,36 +4,35 @@ use crate::math::vector::Vector3;
 use crate::math::point::Point3;
 
 #[derive(Debug,PartialEq,Clone,Copy)]
-pub struct ParametricLine<T> {
-    origin: Point3<T>,
-    direction: Vector3<T>
+pub struct ParametricLine<P,V> {
+    origin: P,
+    direction: V
 }
 
-impl<T> ParametricLine<T> {
-    pub fn new( origin: Point3<T>, direction: Vector3<T> ) -> ParametricLine<T> {
+impl<P,V> ParametricLine<P,V> {
+    pub fn new( origin: P, direction: V ) -> ParametricLine<P,V> {
         ParametricLine { origin, direction }
     }
 
-    pub fn at(&self, t: T) -> Point3<T>
+    pub fn at<T>(self, t: T) -> <P as ops::Add<<V as ops::Mul<T>>::Output>>::Output
     where
-        T: Clone,
-        T: Copy,
-        T: ops::Add<Output = T>,
-        T: ops::Mul<Output = T>,
+        V: ops::Mul<T>,
+        P: ops::Add<<V as ops::Mul<T>>::Output>
+
     {
        self.origin + self.direction * t
     }
 }
 
 #[derive(Debug,PartialEq,Clone,Copy)]
-pub struct Plane3<T> {
+pub struct ImplicitPlane3<T> {
     anchor: Point3<T>,
     normal: Vector3<T>
 }
 
-impl<T> Plane3<T> {
-    pub fn new(anchor: Point3<T>, normal: Vector3<T>) -> Plane3<T> {
-        Plane3 { anchor, normal }
+impl<T> ImplicitPlane3<T> {
+    pub fn new(anchor: Point3<T>, normal: Vector3<T>) -> ImplicitPlane3<T> {
+        ImplicitPlane3 { anchor, normal }
     }
 }
 
@@ -43,10 +42,10 @@ pub trait Intersect<T> {
     fn intersect(self, other: T) -> Vec<Self::Output>;
 }
 
-impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + ops::Div<Output = T> + std::cmp::PartialEq<T> + Default + Clone + Copy> Intersect<Plane3<T>> for ParametricLine<T> {
+impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + ops::Div<Output = T> + PartialEq + Default + Clone + Copy> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>> {
     type Output = T;
 
-    fn intersect(self, plane: Plane3<T>) -> Vec<Self::Output> {
+    fn intersect(self, plane: ImplicitPlane3<T>) -> Vec<Self::Output> {
         if self.direction * plane.normal == Default::default() {
             Vec::new()
         } else {
@@ -67,7 +66,7 @@ impl<T> Sphere<T> {
     }
 }
 
-impl Intersect<Sphere<f32>> for ParametricLine<f32> {
+impl Intersect<Sphere<f32>> for ParametricLine<Point3<f32>, Vector3<f32>> {
     type Output = f32;
 
     fn intersect(self, sphere: Sphere<f32>) -> Vec<Self::Output> {
@@ -101,17 +100,17 @@ impl<T> AxisAlignedBox<T> {
     }
 }
 
-impl Intersect<AxisAlignedBox<f32>> for ParametricLine<f32> {
+impl Intersect<AxisAlignedBox<f32>> for ParametricLine<Point3<f32>, Vector3<f32>> {
     type Output = f32;
 
     fn intersect(self, aab: AxisAlignedBox<f32>) -> Vec<f32> {
-        let left = Plane3::new( aab.lower_left_far, Vector3::new( -1.0, 0.0, 0.0 ));
-        let lower = Plane3::new( aab.lower_left_far, Vector3::new( 0.0, -1.0, 0.0 ));
-        let far = Plane3::new( aab.lower_left_far, Vector3::new( 0.0, 0.0, -1.0 ));
+        let left = ImplicitPlane3::new( aab.lower_left_far, Vector3::new( -1.0, 0.0, 0.0 ));
+        let lower = ImplicitPlane3::new( aab.lower_left_far, Vector3::new( 0.0, -1.0, 0.0 ));
+        let far = ImplicitPlane3::new( aab.lower_left_far, Vector3::new( 0.0, 0.0, -1.0 ));
 
-        let right = Plane3::new( aab.upper_right_near, Vector3::new( 1.0, 0.0, 0.0 ));
-        let upper = Plane3::new( aab.upper_right_near, Vector3::new( 0.0, 1.0, 0.0 ));
-        let near = Plane3::new( aab.upper_right_near, Vector3::new( 0.0, 0.0, 1.0 ));
+        let right = ImplicitPlane3::new( aab.upper_right_near, Vector3::new( 1.0, 0.0, 0.0 ));
+        let upper = ImplicitPlane3::new( aab.upper_right_near, Vector3::new( 0.0, 1.0, 0.0 ));
+        let near = ImplicitPlane3::new( aab.upper_right_near, Vector3::new( 0.0, 0.0, 1.0 ));
 
         let mut results: Vec<f32> = Vec::new();
 
@@ -237,35 +236,35 @@ mod tests {
     }
 
     #[test]
-    fn new_plane3_f32() {
+    fn new_implicit_plane3_f32() {
         let anchor = Point3::new( 1.0f32, 2.0f32, 3.0f32 );
         let normal = Vector3::new( 4.0f32, 5.0f32, 6.0f32 );
 
-        let plane = Plane3::new(anchor, normal);
+        let plane = ImplicitPlane3::new(anchor, normal);
 
         assert_eq!(plane.anchor, anchor);
         assert_eq!(plane.normal, normal);
     }
 
     #[test]
-    fn new_plane3_f64() {
+    fn new_implicit_plane3_f64() {
         let anchor = Point3::new( 1.0f64, 2.0f64, 3.0f64 );
         let normal = Vector3::new( 4.0f64, 5.0f64, 6.0f64);
 
-        let plane = Plane3::new(anchor, normal);
+        let plane = ImplicitPlane3::new(anchor, normal);
 
         assert_eq!(plane.anchor, anchor);
         assert_eq!(plane.normal, normal);
     }
 
     #[test]
-    fn parametric_line_intersect_plane_f64() {
+    fn parametric_line_intersect_implicit_plane_f64() {
         let ray1 = ParametricLine::new(
             Point3::new(0.0f64, 1.0f64, 0.0f64),
             Vector3::new(0.0f64, 0.0f64, -1.0f64)
         );
 
-        let plane = Plane3::new(
+        let plane = ImplicitPlane3::new(
             Point3::new(0.0f64, 0.0f64, 0.0f64),
             Vector3::new(0.0f64, 1.0f64, 0.0f64)
         );
@@ -281,13 +280,13 @@ mod tests {
     }
 
     #[test]
-    fn parametric_line_intersect_plane_f32() {
+    fn parametric_line_intersect_implicit_plane_f32() {
         let ray1 = ParametricLine::new(
             Point3::new(0.0f32, 1.0f32, 0.0f32),
             Vector3::new(0.0f32, 0.0f32, -1.0f32)
         );
 
-        let plane = Plane3::new(
+        let plane = ImplicitPlane3::new(
             Point3::new(0.0f32, 0.0f32, 0.0f32),
             Vector3::new(0.0f32, 1.0f32, 0.0f32)
         );

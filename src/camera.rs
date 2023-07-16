@@ -24,7 +24,7 @@ impl Orthographic<f32> {
         Orthographic { e, u, v, w, width, height, scale, aspect_ratio }
     }
 
-    pub fn ray_for(&self, x: u32, y: u32) -> ParametricLine<f32> {
+    pub fn ray_for(&self, x: u32, y: u32) -> ParametricLine<Point3<f32>, Vector3<f32>> {
         let d = -self.w;
 
         let x = x as f32;
@@ -63,7 +63,7 @@ impl Perspective<f32> {
         Perspective { e, u, v, w, vertical_field_of_view, width, height }
     }
 
-    pub fn ray_for(&self, x: u32, y: u32 ) -> ParametricLine<f32> {
+    pub fn ray_for(&self, x: u32, y: u32 ) -> ParametricLine<Point3<f32>, Vector3<f32>> {
         let o = self.e;
 
         let x = x as f32;

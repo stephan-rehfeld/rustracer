@@ -1,11 +1,19 @@
 use std::ops;
 use crate::math::vector::Vector3;
 
+pub trait Point {
+    type ValueType;
+}
+
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct Point3<T> {
     pub(super) x: T,
     pub(super) y: T,
     pub(super) z: T
+}
+
+impl<T> Point for Point3<T> {
+    type ValueType = T;
 }
 
 impl<T> Point3<T> {
