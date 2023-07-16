@@ -29,11 +29,19 @@ impl<T> Vector3<T> {
     }
 }
 
-impl<T: ops::Add<U>, U> ops::Add<Vector3<U>> for Vector3<T> {
+impl<T: ops::Add<U> , U> ops::Add<Vector3<U>> for Vector3<T> {
     type Output = Vector3<<T as ops::Add<U>>::Output>;
 
     fn add(self, rhs: Vector3<U>) -> Self::Output {
         Vector3::new( self.x + rhs.x, self.y + rhs.y, self.z + rhs.z )
+    }
+}
+
+impl<T: ops::AddAssign<U> , U> ops::AddAssign<Vector3<U>> for Vector3<T> {
+    fn add_assign(&mut self, rhs: Vector3<U>) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
     }
 }
 
@@ -42,6 +50,14 @@ impl<T: ops::Sub<U>, U> ops::Sub<Vector3<U>> for Vector3<T> {
 
     fn sub(self, rhs: Vector3<U>) -> Self::Output {
         Vector3::new( self.x - rhs.x, self.y - rhs.y, self.z - rhs.z )
+    }
+}
+
+impl<T: ops::SubAssign<U>, U> ops::SubAssign<Vector3<U>> for Vector3<T> {
+    fn sub_assign(&mut self, rhs: Vector3<U>) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
     }
 }
 
@@ -82,7 +98,15 @@ impl<T> ops::Mul for Vector3<T>
     }
 }
 
-impl<T: ops::Div<U> + Copy + Clone, U: Copy + Clone> ops::Div<U> for Vector3<T> {
+impl<T: ops::MulAssign<U>, U: Copy + Clone> ops::MulAssign<U> for Vector3<T> {
+    fn mul_assign(&mut self, rhs: U) {
+        self.x *= rhs;
+        self.y *= rhs;
+        self.z *= rhs;
+    }
+}
+
+impl<T: ops::Div<U>, U: Copy + Clone> ops::Div<U> for Vector3<T> {
     type Output = Vector3<<T as ops::Div<U>>::Output>;
 
     fn div(self, rhs: U) -> Self::Output {
@@ -90,8 +114,8 @@ impl<T: ops::Div<U> + Copy + Clone, U: Copy + Clone> ops::Div<U> for Vector3<T> 
     }
 }
 
-impl<T: ops::DivAssign + Copy + Clone> ops::DivAssign<T> for Vector3<T> {
-    fn div_assign(&mut self, rhs: T) {
+impl<T: ops::DivAssign<U>, U: Copy + Clone> ops::DivAssign<U> for Vector3<T> {
+    fn div_assign(&mut self, rhs: U) {
         self.x /= rhs;
         self.y /= rhs;
         self.z /= rhs;
@@ -191,8 +215,6 @@ impl<T> Mat3x3<T> {
                      self.m21, self.m22, v.y,
                      self.m31, self.m32, v.z )
     }
-
-
 }
 
 #[cfg(test)]
@@ -279,6 +301,33 @@ mod tests {
     add_vector3! { f32, add_vector3_f32 }
     add_vector3! { f64, add_vector3_f64 }
 
+    macro_rules! add_assign_vector3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let mut v1 = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+                let v2 = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
+
+                v1 += v2;
+
+                assert_eq!(v1, Vector3::new(5 as $type, 7 as $type, 9 as $type));
+            }
+        }
+    }
+
+    add_assign_vector3! { u8, add_assign_vector3_u8 }
+    add_assign_vector3! { u16, add_assign_vector3_u16 }
+    add_assign_vector3! { u32, add_assign_vector3_u32 }
+    add_assign_vector3! { u64, add_assign_vector3_u64 }
+    add_assign_vector3! { u128, add_assign_vector3_u128 }
+    add_assign_vector3! { i8, add_assign_vector3_i8 }
+    add_assign_vector3! { i16, add_assign_vector3_i16 }
+    add_assign_vector3! { i32, add_assign_vector3_i32 }
+    add_assign_vector3! { i64, add_assign_vector3_i64 }
+    add_assign_vector3! { i128, add_assign_vector3_i128 }
+    add_assign_vector3! { f32, add_assign_vector3_f32 }
+    add_assign_vector3! { f64, add_assign_vector3_f64 }
+
     macro_rules! sub_vector3 {
         ($type: ty, $name: ident) => {
             #[test]
@@ -303,6 +352,33 @@ mod tests {
     sub_vector3! { i128, sub_vector3_i128 }
     sub_vector3! { f32, sub_vector3_f32 }
     sub_vector3! { f64, sub_vector3_f64 }
+
+    macro_rules! sub_assign_vector3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let mut v1 = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
+                let v2 = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+
+                v1 -= v2;
+
+                assert_eq!(v1, Vector3::new(3 as $type, 3 as $type, 3 as $type));
+            }
+        }
+    }
+
+    sub_assign_vector3! { u8, sub_assign_vector3_u8 }
+    sub_assign_vector3! { u16, sub_assign_vector3_u16 }
+    sub_assign_vector3! { u32, sub_assign_vector3_u32 }
+    sub_assign_vector3! { u64, sub_assign_vector3_u64 }
+    sub_assign_vector3! { u128, sub_assign_vector3_u128 }
+    sub_assign_vector3! { i8, sub_assign_vector3_i8 }
+    sub_assign_vector3! { i16, sub_assign_vector3_i16 }
+    sub_assign_vector3! { i32, sub_assign_vector3_i32 }
+    sub_assign_vector3! { i64, sub_assign_vector3_i64 }
+    sub_assign_vector3! { i128, sub_assign_vector3_i128 }
+    sub_assign_vector3! { f32, sub_assign_vector3_f32 }
+    sub_assign_vector3! { f64, sub_assign_vector3_f64 }
 
     macro_rules! mul_vector3_scalar {
         ($type: ty, $name: ident) => {
@@ -394,6 +470,33 @@ mod tests {
     dot_product_vector3! { f32, dot_product_vector3_f32 }
     dot_product_vector3! { f64, dot_product_vector3_f64 }
     
+    macro_rules! vector3_mul_assign {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let mut v = Vector3::new( 2 as $type, 4 as $type, 8 as $type );
+                let r = Vector3::new( 4 as $type, 8 as $type, 16 as $type );
+
+                v *= 2.0 as $type;
+
+                assert_eq!(v, r);
+
+            }
+        }
+    }
+
+    vector3_mul_assign! { u16, vector3_mul_assign_u16 }
+    vector3_mul_assign! { u32, vector3_mul_assign_u32 }
+    vector3_mul_assign! { u64, vector3_mul_assign_u64 }
+    vector3_mul_assign! { u128, vector3_mul_assign_u128 }
+    vector3_mul_assign! { i8, vector3_mul_assign_i8 }
+    vector3_mul_assign! { i16, vector3_mul_assign_i16 }
+    vector3_mul_assign! { i32, vector3_mul_assign_i32 }
+    vector3_mul_assign! { i64, vector3_mul_assign_i64 }
+    vector3_mul_assign! { i128, vector3_mul_assign_i128 }
+    vector3_mul_assign! { f32, vector3_mul_assign_f32 }
+    vector3_mul_assign! { f64, vector3_mul_assign_f64 }
+
     macro_rules! vector3_div {
         ($type: ty, $name: ident) => {
             #[test]
