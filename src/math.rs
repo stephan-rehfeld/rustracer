@@ -140,10 +140,10 @@ impl<T> Point3<T> {
     }
 }
 
-impl<T: ops::Add<Output = T> + Clone + Copy> ops::Add<Vector3<T>> for Point3<T> {
-    type Output = Point3<T>;
+impl<T: ops::Add<U> + Clone + Copy, U> ops::Add<Vector3<U>> for Point3<T> {
+    type Output = Point3<<T as ops::Add<U>>::Output>;
 
-    fn add(self, rhs: Vector3<T>) -> Self::Output {
+    fn add(self, rhs: Vector3<U>) -> Self::Output {
          Point3::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
