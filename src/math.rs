@@ -67,8 +67,15 @@ macro_rules! mul_scalar_with_vector3 {
 
 mul_scalar_with_vector3! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
-impl<T: ops::Mul<Output = T> + ops::Add<Output = T> + Copy + Clone> ops::Mul for Vector3<T> {
-    type Output = T;
+impl<T> ops::Mul for Vector3<T> 
+    where
+        T: ops::Mul,
+        <T as ops::Mul>::Output: ops::Add,
+        <<T as ops::Mul>::Output as ops::Add>::Output: ops::Add,
+        <<T as ops::Mul>::Output as ops::Add>::Output: ops::Add<<T as ops::Mul>::Output>,
+        T: Copy + Clone
+{
+    type Output = <<<T as ops::Mul>::Output as ops::Add>::Output as ops::Add<<T as ops::Mul>::Output>>::Output;
 
     fn mul(self, rhs: Vector3<T>) -> Self::Output {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
