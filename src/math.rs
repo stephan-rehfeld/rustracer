@@ -120,38 +120,6 @@ impl<T> Vector3<T> where
     }
 }
 
-
-
-/*
-impl Vector3<f32> {
-    pub fn magnitude(self) -> f32 {
-        (self * self).sqrt()
-    }
-
-    pub fn normalize(&mut self) {
-        *self /= self.magnitude();
-    }
-
-    pub fn normalized(self) -> Vector3<f32> {
-        self / self.magnitude()
-    }
-}
-
-impl Vector3<f64> {
-    pub fn magnitude(self) -> f64 {
-        (self * self).sqrt()
-    }
-
-    pub fn normalize(&mut self) {
-        *self /= self.magnitude();
-    }
- 
-    pub fn normalized(self) -> Vector3<f64> {
-        self / self.magnitude()
-    }
-}*/
-
-
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct Point3<T> {
     x: T,
@@ -455,27 +423,23 @@ mod tests {
     vector3_neg! { f32, vector3_neg_f32 }
     vector3_neg! { f64, vector3_neg_f64 }
 
-    #[test]
-    fn vector3_magnitude_f32() {
-        let x_vec = Vector3::new( 2.0f64, 0.0f64, 0.0f64 );
-        let y_vec = Vector3::new( 0.0f64, 3.0f64, 0.0f64 );
-        let z_vec = Vector3::new( 0.0f64, 0.0f64, 4.0f64 );
+    macro_rules! vector3_magnitude {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let x_vec = Vector3::new( 2 as $type, 0 as $type, 0 as $type );
+                let y_vec = Vector3::new( 0 as $type, 3 as $type, 0 as $type );
+                let z_vec = Vector3::new( 0 as $type, 0 as $type, 4 as $type );
 
-        assert_eq!(x_vec.magnitude(), 2.0f64);
-        assert_eq!(y_vec.magnitude(), 3.0f64);
-        assert_eq!(z_vec.magnitude(), 4.0f64);
+                assert_eq!(x_vec.magnitude(), 2 as $type);
+                assert_eq!(y_vec.magnitude(), 3 as $type);
+                assert_eq!(z_vec.magnitude(), 4 as $type);
+            }
+        }
     }
 
-    #[test]
-    fn vector3_magnitude_f64() {
-        let x_vec = Vector3::new( 2.0f64, 0.0f64, 0.0f64 );
-        let y_vec = Vector3::new( 0.0f64, 3.0f64, 0.0f64 );
-        let z_vec = Vector3::new( 0.0f64, 0.0f64, 4.0f64 );
-
-        assert_eq!(x_vec.magnitude(), 2.0f64);
-        assert_eq!(y_vec.magnitude(), 3.0f64);
-        assert_eq!(z_vec.magnitude(), 4.0f64);
-    }
+    vector3_magnitude! { f32, vector_magnitude_f32 }
+    vector3_magnitude! { f64, vector_magnitude_f64 }
 
     macro_rules! vector3_normalize {
         ($type: ty, $name: ident) => {

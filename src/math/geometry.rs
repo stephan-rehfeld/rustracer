@@ -89,6 +89,103 @@ impl Intersect<Sphere<f32>> for ParametricLine<f32> {
     }
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct AxisAlignedBox<T> {
+    lower_left_far: Point3<T>,
+    upper_right_near: Point3<T>,
+}
+
+impl<T> AxisAlignedBox<T> {
+    pub fn new(lower_left_far: Point3<T>, upper_right_near: Point3<T>) -> AxisAlignedBox<T> {
+        AxisAlignedBox { lower_left_far, upper_right_near }
+    }
+}
+
+impl Intersect<AxisAlignedBox<f32>> for ParametricLine<f32> {
+    type Output = f32;
+
+    fn intersect(self, aab: AxisAlignedBox<f32>) -> Vec<f32> {
+        let left = Plane3::new( aab.lower_left_far, Vector3::new( -1.0, 0.0, 0.0 ));
+        let lower = Plane3::new( aab.lower_left_far, Vector3::new( 0.0, -1.0, 0.0 ));
+        let far = Plane3::new( aab.lower_left_far, Vector3::new( 0.0, 0.0, -1.0 ));
+
+        let right = Plane3::new( aab.upper_right_near, Vector3::new( 1.0, 0.0, 0.0 ));
+        let upper = Plane3::new( aab.upper_right_near, Vector3::new( 0.0, 1.0, 0.0 ));
+        let near = Plane3::new( aab.upper_right_near, Vector3::new( 0.0, 0.0, 1.0 ));
+
+        let mut results: Vec<f32> = Vec::new();
+
+        let t = self.intersect(left);
+
+        if t.len() > 0 {
+            let p = self.at(t[0]);
+
+            if p.y > aab.lower_left_far.y && p.y < aab.upper_right_near.y &&
+               p.z > aab.lower_left_far.z && p.z < aab.upper_right_near.z {
+                results.push(t[0]);
+            }
+        }
+        
+        let t = self.intersect(right);
+
+        if t.len() > 0 {
+            let p = self.at(t[0]);
+
+            if p.y > aab.lower_left_far.y && p.y < aab.upper_right_near.y &&
+               p.z > aab.lower_left_far.z && p.z < aab.upper_right_near.z {
+                results.push(t[0]);
+            }
+        }
+
+        let t = self.intersect(lower);
+
+        if t.len() > 0 {
+            let p = self.at(t[0]);
+
+            if p.x > aab.lower_left_far.x && p.x < aab.upper_right_near.x &&
+               p.z > aab.lower_left_far.z && p.z < aab.upper_right_near.z {
+                results.push(t[0]);
+            }
+        }
+
+        let t = self.intersect(upper);
+
+        if t.len() > 0 {
+            let p = self.at(t[0]);
+
+            if p.x > aab.lower_left_far.x && p.x < aab.upper_right_near.x &&
+               p.z > aab.lower_left_far.z && p.z < aab.upper_right_near.z {
+                results.push(t[0]);
+            }
+        }
+
+        let t = self.intersect(near);
+
+        if t.len() > 0 {
+            let p = self.at(t[0]);
+
+            if p.x > aab.lower_left_far.x && p.x < aab.upper_right_near.x &&
+               p.y > aab.lower_left_far.z && p.y < aab.upper_right_near.y {
+                results.push(t[0]);
+            }
+        }
+
+        let t = self.intersect(far);
+
+        if t.len() > 0 {
+            let p = self.at(t[0]);
+
+            if p.x > aab.lower_left_far.x && p.x < aab.upper_right_near.x &&
+               p.y > aab.lower_left_far.z && p.y < aab.upper_right_near.y {
+                results.push(t[0]);
+            }
+        }
+        
+        results
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -204,7 +301,5 @@ mod tests {
 
         assert_eq!(ray2.intersect(plane), vec![1.0]);
     }
-
-
 }
 

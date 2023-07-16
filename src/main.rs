@@ -2,6 +2,7 @@ use rustracer::math::Vector3;
 use rustracer::math::Point3;
 use rustracer::math::geometry::Sphere;
 use rustracer::math::geometry::Plane3;
+use rustracer::math::geometry::AxisAlignedBox;
 //use rustracer::math::geometry::ParametricLine;
 use rustracer::math::geometry::Intersect;
 use rustracer::camera;
@@ -15,16 +16,21 @@ fn main() {
         Vector3::new(0.0f32, 1.0, 0.0)
     );
 
-    let sphere = Sphere::new(
+    let _sphere = Sphere::new(
         Point3::new(0.0f32, 1.0, -4.0),
         1.0
     );
 
+    let aab = AxisAlignedBox::new(
+        Point3::new(-0.5, -0.5, -0.5),
+        Point3::new(0.5, 0.5, 0.5)
+    );
+
     let cam = camera::Perspective::new(
-        Point3::new(0.0, 1.0, 0.0),
-        Vector3::new(0.0, 0.0, -1.0),
+        Point3::new(4.0, 4.0, 4.0),
+        Vector3::new(-1.0, -1.0, -1.0),
         Vector3::new(0.0, 1.0, 0.0),
-        45.0 / 180.0 * 3.1415,
+        90.0 / 180.0 * 3.1415,
         width,
         height
     );
@@ -34,7 +40,7 @@ fn main() {
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
         let ray = cam.ray_for(x, height - y - 1);
 
-        let intersects = ray.intersect(sphere);
+        let intersects = ray.intersect(aab);
          
         if intersects.len() != 0 {
             *pixel = image::Rgb([255u8, 0, 0]);
