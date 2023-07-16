@@ -149,11 +149,8 @@ impl<T> Vector3<T> where
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     macro_rules! new_vector3 {

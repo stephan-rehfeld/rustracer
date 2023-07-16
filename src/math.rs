@@ -18,7 +18,7 @@ impl<T> Point3<T> {
     }
 }
 
-impl<T: ops::Add<U> + Clone + Copy, U> ops::Add<Vector3<U>> for Point3<T> {
+impl<T: ops::Add<U>, U> ops::Add<Vector3<U>> for Point3<T> {
     type Output = Point3<<T as ops::Add<U>>::Output>;
 
     fn add(self, rhs: Vector3<U>) -> Self::Output {
@@ -26,10 +26,10 @@ impl<T: ops::Add<U> + Clone + Copy, U> ops::Add<Vector3<U>> for Point3<T> {
     }
 }
 
-impl<T: ops::Sub<Output = T> + Clone + Copy> ops::Sub for Point3<T> {
-    type Output = Vector3<T>;
+impl<T: ops::Sub<U>, U> ops::Sub<Point3<U>> for Point3<T> {
+    type Output = Vector3<<T as ops::Sub<U>>::Output>;
 
-    fn sub(self, rhs: Point3<T>) -> Self::Output {
+    fn sub(self, rhs: Point3<U>) -> Self::Output {
         Vector3::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }
@@ -116,7 +116,7 @@ mod tests {
                 assert_eq!(p1 + v2, Point3::new(1 as $type, 4 as $type, 3 as $type));
                 assert_eq!(p1 + v3, Point3::new(1 as $type, 2 as $type, 6 as $type));
             }
-       }
+        }
     }
 
     point3_add_vector3! { u8, point3_add_vector3_u8 }
@@ -146,7 +146,7 @@ mod tests {
                 assert_eq!(p1 - p3, Vector3::new(1 as $type, 0 as $type, 3 as $type));
                 assert_eq!(p1 - p4, Vector3::new(1 as $type, 2 as $type, 0 as $type));
             }
-       }
+        }
     }
 
     point3_sub_point3! { u8, point3_sub_point3_u8 }
