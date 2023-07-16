@@ -1,5 +1,6 @@
 use std::ops;
 use crate::traits;
+use crate::math::point::Point3;
 
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct Vector3<T> {
@@ -32,6 +33,14 @@ impl<T: ops::Add<U> , U> ops::Add<Vector3<U>> for Vector3<T> {
 
     fn add(self, rhs: Vector3<U>) -> Self::Output {
         Vector3::new( self.x + rhs.x, self.y + rhs.y, self.z + rhs.z )
+    }
+}
+
+impl<T: ops::Add<U> , U> ops::Add<Point3<U>> for Vector3<T> {
+    type Output = Point3<<T as ops::Add<U>>::Output>;
+
+    fn add(self, rhs: Point3<U>) -> Self::Output {
+        Point3::new( self.x + rhs.x, self.y + rhs.y, self.z + rhs.z )
     }
 }
 
@@ -231,6 +240,31 @@ mod tests {
     add_vector3! { i128, add_vector3_i128 }
     add_vector3! { f32, add_vector3_f32 }
     add_vector3! { f64, add_vector3_f64 }
+    
+    macro_rules! vector3_add_point3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let v = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+                let p = Point3::new( 4 as $type, 5 as $type, 6 as $type );
+
+                assert_eq!(v + p, Point3::new(5 as $type, 7 as $type, 9 as $type));
+            }
+        }
+    }
+
+    vector3_add_point3! { u8, vector3_add_point3_u8 }
+    vector3_add_point3! { u16, vector3_add_point3_u16 }
+    vector3_add_point3! { u32, vector3_add_point3_u32 }
+    vector3_add_point3! { u64, vector3_add_point3_u64 }
+    vector3_add_point3! { u128, vector3_add_point3_u128 }
+    vector3_add_point3! { i8, vector3_add_point3_i8 }
+    vector3_add_point3! { i16, vector3_add_point3_i16 }
+    vector3_add_point3! { i32, vector3_add_point3_i32 }
+    vector3_add_point3! { i64, vector3_add_point3_i64 }
+    vector3_add_point3! { i128, vector3_add_point3_i128 }
+    vector3_add_point3! { f32, vector3_add_point3_f32 }
+    vector3_add_point3! { f64, vector3_add_point3_f64 }
 
     macro_rules! add_assign_vector3 {
         ($type: ty, $name: ident) => {
@@ -283,7 +317,7 @@ mod tests {
     sub_vector3! { i128, sub_vector3_i128 }
     sub_vector3! { f32, sub_vector3_f32 }
     sub_vector3! { f64, sub_vector3_f64 }
-
+ 
     macro_rules! sub_assign_vector3 {
         ($type: ty, $name: ident) => {
             #[test]

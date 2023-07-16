@@ -1,7 +1,7 @@
 use std::ops;
 
-use crate::math::Vector3;
-use crate::math::Point3;
+use crate::math::vector::Vector3;
+use crate::math::point::Point3;
 
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct ParametricLine<T> {
