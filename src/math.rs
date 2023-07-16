@@ -488,48 +488,89 @@ mod tests {
     vector3_normalized! { f32, vector3_normalized_f32 }
     vector3_normalized! { f64, vector3_normalized_f64 }
 
-    #[test]
-    fn new_point3_f32() {
-        let p = Point3::new( 1.0f32, 2.0f32, 3.0f32 );
+    macro_rules! new_point3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let p = Point3::new( 1 as $type, 2 as $type, 3 as $type );
 
-        assert_eq!(p.x, 1.0f32);
-        assert_eq!(p.y, 2.0f32);
-        assert_eq!(p.z, 3.0f32);
+                assert_eq!(p.x, 1 as $type);
+                assert_eq!(p.y, 2 as $type);
+                assert_eq!(p.z, 3 as $type);
+            }
+        }
     }
 
-    #[test]
-    fn new_point3_f64() {
-        let p = Point3::new( 1.0f64, 2.0f64, 3.0f64 );
+    new_point3! { u8, new_point3_u8 }
+    new_point3! { u16, new_point3_u16 }
+    new_point3! { u32, new_point3_u32 }
+    new_point3! { u64, new_point3_u64 }
+    new_point3! { u128, new_point3_u128 }
+    new_point3! { i8, new_point3_i8 }
+    new_point3! { i16, new_point3_i16 }
+    new_point3! { i32, new_point3_i32 }
+    new_point3! { i64, new_point3_i64 }
+    new_point3! { i128, new_point3_i128 }
+    new_point3! { f32, new_point3_f32 }
+    new_point3! { f64, new_point3_f64 }
 
-        assert_eq!(p.x, 1.0f64);
-        assert_eq!(p.y, 2.0f64);
-        assert_eq!(p.z, 3.0f64);
+    macro_rules! point3_add_vector3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let p1 = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+
+                let v1 = Vector3::new( 1 as $type, 0 as $type, 0 as $type );
+                let v2 = Vector3::new( 0 as $type, 2 as $type, 0 as $type );
+                let v3 = Vector3::new( 0 as $type, 0 as $type, 3 as $type );
+
+                assert_eq!(p1 + v1, Point3::new(2 as $type, 2 as $type, 3 as $type));
+                assert_eq!(p1 + v2, Point3::new(1 as $type, 4 as $type, 3 as $type));
+                assert_eq!(p1 + v3, Point3::new(1 as $type, 2 as $type, 6 as $type));
+            }
+       }
     }
 
-    #[test]
-    fn point3_sub_point3_f32() {
-        let p1 = Point3::new( 1.0f32, 2.0f32, 3.0f32 );
+    point3_add_vector3! { u8, point3_add_vector3_u8 }
+    point3_add_vector3! { u16, point3_add_vector3_u16 }
+    point3_add_vector3! { u32, point3_add_vector3_u32 }
+    point3_add_vector3! { u64, point3_add_vector3_u64 }
+    point3_add_vector3! { u128, point3_add_vector3_u128 }
+    point3_add_vector3! { i8, point3_add_vector3_i8 }
+    point3_add_vector3! { i16, point3_add_vector3_i16 }
+    point3_add_vector3! { i32, point3_add_vector3_i32 }
+    point3_add_vector3! { i64, point3_add_vector3_i64 }
+    point3_add_vector3! { i128, point3_add_vector3_i128 }
+    point3_add_vector3! { f32, point3_add_vector3_f32 }
+    point3_add_vector3! { f64, point3_add_vector3_f64 }
 
-        let p2 = Point3::new( 1.0f32, 0.0f32, 0.0f32 );
-        let p3 = Point3::new( 0.0f32, 2.0f32, 0.0f32 );
-        let p4 = Point3::new( 0.0f32, 0.0f32, 3.0f32 );
+    macro_rules! point3_sub_point3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let p1 = Point3::new( 1 as $type, 2 as $type, 3 as $type );
 
-        assert_eq!(p1 - p2, Vector3::new(0.0f32, 2.0f32, 3.0f32));
-        assert_eq!(p1 - p3, Vector3::new(1.0f32, 0.0f32, 3.0f32));
-        assert_eq!(p1 - p4, Vector3::new(1.0f32, 2.0f32, 0.0f32));
+                let p2 = Point3::new( 1 as $type, 0 as $type, 0 as $type );
+                let p3 = Point3::new( 0 as $type, 2 as $type, 0 as $type );
+                let p4 = Point3::new( 0 as $type, 0 as $type, 3 as $type );
+
+                assert_eq!(p1 - p2, Vector3::new(0 as $type, 2 as $type, 3 as $type));
+                assert_eq!(p1 - p3, Vector3::new(1 as $type, 0 as $type, 3 as $type));
+                assert_eq!(p1 - p4, Vector3::new(1 as $type, 2 as $type, 0 as $type));
+            }
+       }
     }
 
-    #[test]
-    fn point3_sub_point3_f64() {
-        let p1 = Point3::new( 1.0f64, 2.0f64, 3.0f64 );
-
-        let p2 = Point3::new( 1.0f64, 0.0f64, 0.0f64 );
-        let p3 = Point3::new( 0.0f64, 2.0f64, 0.0f64 );
-        let p4 = Point3::new( 0.0f64, 0.0f64, 3.0f64 );
-
-        assert_eq!(p1 - p2, Vector3::new(0.0f64, 2.0f64, 3.0f64));
-        assert_eq!(p1 - p3, Vector3::new(1.0f64, 0.0f64, 3.0f64));
-        assert_eq!(p1 - p4, Vector3::new(1.0f64, 2.0f64, 0.0f64));
-    }
-
+    point3_sub_point3! { u8, point3_sub_point3_u8 }
+    point3_sub_point3! { u16, point3_sub_point3_u16 }
+    point3_sub_point3! { u32, point3_sub_point3_u32 }
+    point3_sub_point3! { u64, point3_sub_point3_u64 }
+    point3_sub_point3! { u128, point3_sub_point3_u128 }
+    point3_sub_point3! { i8, point3_sub_point3_i8 }
+    point3_sub_point3! { i16, point3_sub_point3_i16 }
+    point3_sub_point3! { i32, point3_sub_point3_i32 }
+    point3_sub_point3! { i64, point3_sub_point3_i64 }
+    point3_sub_point3! { i128, point3_sub_point3_i128 }
+    point3_sub_point3! { f32, point3_sub_point3_f32 }
+    point3_sub_point3! { f64, point3_sub_point3_f64 }
 }
