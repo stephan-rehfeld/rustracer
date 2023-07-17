@@ -1,9 +1,8 @@
 use rustracer::math::Vector3;
 use rustracer::math::Point3;
-use rustracer::math::geometry::Sphere;
+use rustracer::math::geometry::ImplicitNSphere;
 use rustracer::math::geometry::ImplicitPlane3;
 use rustracer::math::geometry::AxisAlignedBox;
-//use rustracer::math::geometry::ParametricLine;
 use rustracer::math::geometry::Intersect;
 use rustracer::camera;
 
@@ -16,7 +15,7 @@ fn main() {
         Vector3::new(0.0f32, 1.0, 0.0)
     );
 
-    let _sphere = Sphere::new(
+    let _sphere = ImplicitNSphere::new(
         Point3::new(0.0f32, 1.0, -4.0),
         1.0
     );

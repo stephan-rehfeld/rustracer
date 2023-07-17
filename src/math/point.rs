@@ -3,6 +3,7 @@ use crate::math::vector::Vector3;
 
 pub trait Point {
     type ValueType;
+    type VectorType;
 }
 
 #[derive(Debug,PartialEq,Clone,Copy)]
@@ -14,6 +15,7 @@ pub struct Point3<T> {
 
 impl<T> Point for Point3<T> {
     type ValueType = T;
+    type VectorType = Vector3<T>;
 }
 
 impl<T> Point3<T> {

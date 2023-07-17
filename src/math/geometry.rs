@@ -2,6 +2,7 @@ use std::ops;
 
 use crate::math::vector::Vector3;
 use crate::math::point::Point3;
+use crate::traits::Sqrt;
 
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct ParametricLine<P,V> {
@@ -55,35 +56,55 @@ impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + ops
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Sphere<T> {
-    center: Point3<T>,
+pub struct ImplicitNSphere<P,T> {
+    center: P,
     radius: T,
 }
 
-impl<T> Sphere<T> {
-    pub fn new(center: Point3<T>, radius: T) -> Sphere<T> {
-        Sphere { center, radius }
+impl<P, T> ImplicitNSphere<P, T> {
+    pub fn new(center: P, radius: T) -> ImplicitNSphere<P, T> {
+        ImplicitNSphere { center, radius }
     }
 }
 
-impl Intersect<Sphere<f32>> for ParametricLine<Point3<f32>, Vector3<f32>> {
-    type Output = f32;
+impl<P, V, T> Intersect<ImplicitNSphere<P, T>> for ParametricLine<P, V>
+where
+    V: ops::Mul,
+    P: ops::Sub<Output = V>,
+    V: ops::Add<Output = V>,
+    T: ops::Mul,
+    V: ops::Mul<Output = <T as ops::Mul>::Output>,
+    <T as ops::Mul>::Output: ops::Sub<Output = <T as ops::Mul>::Output>,
+    <T as ops::Mul>::Output: ops::Mul,
+    <<T as ops::Mul>::Output as ops::Mul>::Output: ops::Add<Output = <<T as ops::Mul>::Output as ops::Mul>::Output>,
+    <<T as ops::Mul>::Output as ops::Mul>::Output: ops::Sub<Output = <<T as ops::Mul>::Output as ops::Mul>::Output>,
+    <<T as ops::Mul>::Output as ops::Mul>::Output: Sqrt<Output = <T as ops::Mul>::Output>,
+    <<T as ops::Mul>::Output as ops::Mul>::Output: PartialEq + PartialOrd + Default,
+    <T as ops::Mul>::Output: ops::Neg<Output = <T as ops::Mul>::Output>,
+    <T as ops::Mul>::Output: ops::Add<Output = <T as ops::Mul>::Output>,
+    <T as ops::Mul>::Output: ops::Div,
+    P: Clone + Copy,
+    V: Clone + Copy,
+    T: Clone + Copy,
+    <T as ops::Mul>::Output: Clone + Copy,
+    <<T as ops::Mul>::Output as ops::Mul>::Output: Clone + Copy, 
+{
+    type Output = <<T as ops::Mul>::Output as ops::Div>::Output;
 
-    fn intersect(self, sphere: Sphere<f32>) -> Vec<Self::Output> {
+    fn intersect(self, sphere: ImplicitNSphere<P, T>) -> Vec<Self::Output> {
         let a = self.direction * self.direction;
-        let b = self.direction * (2.0 * (self.origin - sphere.center));
+        let b = self.direction * ((self.origin - sphere.center) + (self.origin - sphere.center));
         let c = (self.origin - sphere.center) * (self.origin - sphere.center) - sphere.radius * sphere.radius;
 
-        let helper = b * b - 4.0 * a * c;
+        let helper = b * b - (a * c + a * c + a * c + a * c);
         
-        if helper < 0.0 {
+        if helper < Default::default() {
             Vec::new()
-        } else if helper == 0.0 {
-            vec![ (-b / (2.0 * a) ) ]
+        } else if helper == Default::default() {
+            vec![ (-b / (a + a) ) ]
         } else {
             let helper = helper.sqrt();
-
-            vec![ ((-b - helper) / (2.0 * a) ), ((-b + helper) / (2.0 * a) ) ]
+            vec![ ((-b - helper) / (a + a) ), ((-b + helper) / (a + a) ) ]
         }
     }
 }
