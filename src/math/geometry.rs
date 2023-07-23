@@ -4,6 +4,12 @@ use crate::math::vector::Vector3;
 use crate::math::point::Point3;
 use crate::traits::Sqrt;
 
+pub trait Intersect<T> {
+    type Output;
+
+    fn intersect(self, other: T) -> Vec<Self::Output>;
+}
+
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct ParametricLine<P,V> {
     origin: P,
@@ -35,16 +41,25 @@ impl<T> ImplicitPlane3<T> {
     pub fn new(anchor: Point3<T>, normal: Vector3<T>) -> ImplicitPlane3<T> {
         ImplicitPlane3 { anchor, normal }
     }
+
+    pub fn test<U>(self, p: Point3<U>) -> <Vector3<<U as ops::Sub<T>>::Output> as ops::Mul<Vector3<T>>>::Output 
+    where
+        U: ops::Sub<T>,
+        Vector3<<U as ops::Sub<T>>::Output>: ops::Mul<Vector3<T>>  {
+        (p - self.anchor) * self.normal
+    }
 }
 
-pub trait Intersect<T> {
-    type Output;
 
-    fn intersect(self, other: T) -> Vec<Self::Output>;
-}
-
-impl<T: ops::Add<Output = T> + ops::Sub<Output = T> + ops::Mul<Output = T> + ops::Div<Output = T> + PartialEq + Default + Clone + Copy> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>> {
-    type Output = T;
+impl<T> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>> where
+    T: Clone + Copy,
+    Vector3<T> : ops::Mul,
+    <Vector3<T> as ops::Mul>::Output: PartialEq + Default,
+    Point3<T>: ops::Sub,
+    <Point3<T> as ops::Sub>::Output: ops::Mul<Vector3<T>>,
+    <<Point3<T> as ops::Sub>::Output as ops::Mul<Vector3<T>>>::Output: ops::Div<<Vector3<T> as ops::Mul>::Output>
+    {
+    type Output = <<<Point3<T> as ops::Sub>::Output as ops::Mul<Vector3<T>>>::Output as ops::Div<<Vector3<T> as ops::Mul>::Output>>::Output;
 
     fn intersect(self, plane: ImplicitPlane3<T>) -> Vec<Self::Output> {
         if self.direction * plane.normal == Default::default() {
@@ -64,6 +79,16 @@ pub struct ImplicitNSphere<P,T> {
 impl<P, T> ImplicitNSphere<P, T> {
     pub fn new(center: P, radius: T) -> ImplicitNSphere<P, T> {
         ImplicitNSphere { center, radius }
+    }
+
+    pub fn test(self, point: P) -> <<<P as ops::Sub>::Output as ops::Mul>::Output as ops::Sub<<T as ops::Mul>::Output>>::Output where 
+        P: ops::Sub,
+        <P as ops::Sub>::Output: ops::Mul + Copy + Clone,
+        T: ops::Mul + Copy + Clone,
+        <<P as ops::Sub>::Output as ops::Mul>::Output: ops::Sub<<T as ops::Mul>::Output>,
+    {
+        let d = point - self.center;
+        d * d - self.radius * self.radius
     }
 }
 
@@ -210,116 +235,242 @@ impl Intersect<AxisAlignedBox<f32>> for ParametricLine<Point3<f32>, Vector3<f32>
 mod tests {
     use super::*;
 
-    #[test]
-    fn new_parametric_line_f32() {
-        let origin = Point3::new( 1.0f32, 2.0f32, 3.0f32 );
-        let direction = Vector3::new( 4.0f32, 5.0f32, 6.0f32 );
+    macro_rules! new_parametric_line {
+        ( $type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let origin = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+                let direction = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
 
-        let ray = ParametricLine::new(origin, direction);
+                let ray = ParametricLine::new(origin, direction);
 
-        assert_eq!(ray.origin, origin);
-        assert_eq!(ray.direction, direction);
+                assert_eq!(ray.origin, origin);
+                assert_eq!(ray.direction, direction);
+            }
+        }
     }
 
-    #[test]
-    fn new_parametric_line_f64() {
-        let origin = Point3::new( 1.0f64, 2.0f64, 3.0f64 );
-        let direction = Vector3::new( 4.0f64, 5.0f64, 6.0f64);
+    new_parametric_line! { u8, new_parametric_line_u8 }
+    new_parametric_line! { u16, new_parametric_line_u16 }
+    new_parametric_line! { u32, new_parametric_line_u32 }
+    new_parametric_line! { u64, new_parametric_line_u64 }
+    new_parametric_line! { u128, new_parametric_line_u128 }
+    new_parametric_line! { i8, new_parametric_line_i8 }
+    new_parametric_line! { i16, new_parametric_line_i16 }
+    new_parametric_line! { i32, new_parametric_line_i32 }
+    new_parametric_line! { i64, new_parametric_line_i64 }
+    new_parametric_line! { i128, new_parametric_line_i128 }
+    new_parametric_line! { f32, new_parametric_line_f32 }
+    new_parametric_line! { f64, new_parametric_line_f64 }
 
-        let ray = ParametricLine::new(origin, direction);
+    macro_rules! parametric_line_at {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let origin = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+                let direction = Vector3::new( 4 as $type, 5 as $type, 6 as $type);
 
-        assert_eq!(ray.origin, origin);
-        assert_eq!(ray.direction, direction);
+                let t = 10.0 as $type;
+
+                let ray = ParametricLine::new(origin, direction);
+
+                assert_eq!(ray.at(t), origin + direction * t);
+            }    
+        }
     }
 
-    #[test]
-    fn parametric_line_at_f32() {
-        let origin = Point3::new( 1.0f32, 2.0f32, 3.0f32 );
-        let direction = Vector3::new( 4.0f32, 5.0f32, 6.0f32);
+    parametric_line_at! { u8, parametric_line_at_u8 }
+    parametric_line_at! { u16, parametric_line_at_u16 }
+    parametric_line_at! { u32, parametric_line_at_u32 }
+    parametric_line_at! { u64, parametric_line_at_u64 }
+    parametric_line_at! { u128, parametric_line_at_u128 }
+    parametric_line_at! { i8, parametric_line_at_i8 }
+    parametric_line_at! { i16, parametric_line_at_i16 }
+    parametric_line_at! { i32, parametric_line_at_i32 }
+    parametric_line_at! { i64, parametric_line_at_i64 }
+    parametric_line_at! { i128, parametric_line_at_i128 }
+    parametric_line_at! { f32, parametric_line_at_f32 }
+    parametric_line_at! { f64, parametric_line_at_f64 }
 
-        let t = 10.0f32;
+    macro_rules! new_implicit_plane3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let anchor = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+                let normal = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
 
-        let ray = ParametricLine::new(origin, direction);
+                let plane = ImplicitPlane3::new(anchor, normal);
 
-        assert_eq!(ray.at(t), origin + direction * t);
+                assert_eq!(plane.anchor, anchor);
+                assert_eq!(plane.normal, normal);
+            }
+        }
     }
 
-    #[test]
-    fn parametric_line_at_f64() {
-        let origin = Point3::new( 1.0f64, 2.0f64, 3.0f64 );
-        let direction = Vector3::new( 4.0f64, 5.0f64, 6.0f64);
+    new_implicit_plane3! { u8, new_implicit_plane3_u8 }
+    new_implicit_plane3! { u16, new_implicit_plane3_u16 }
+    new_implicit_plane3! { u32, new_implicit_plane3_u32 }
+    new_implicit_plane3! { u64, new_implicit_plane3_u64 }
+    new_implicit_plane3! { u128, new_implicit_plane3_u128 }
+    new_implicit_plane3! { i8, new_implicit_plane3_i8 }
+    new_implicit_plane3! { i16, new_implicit_plane3_i16 }
+    new_implicit_plane3! { i32, new_implicit_plane3_i32 }
+    new_implicit_plane3! { i64, new_implicit_plane3_i64 }
+    new_implicit_plane3! { i128, new_implicit_plane3_i128 }
+    new_implicit_plane3! { f32, new_implicit_plane3_f32 }
+    new_implicit_plane3! { f64, new_implicit_plane3_f64 }
 
-        let t = 10.0f64;
+    macro_rules! implicit_plane3_test_point {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let plane = ImplicitPlane3::new(
+                    Point3::new(1 as $type, 1 as $type, 1 as $type),
+                    Vector3::new(0 as $type, 1 as $type, 0 as $type)
+                );
 
-        let ray = ParametricLine::new(origin, direction);
-
-        assert_eq!(ray.at(t), origin + direction * t);
+                assert_eq!(plane.test(Point3::new(5 as $type, 1 as $type, 10 as $type)), 0 as $type);
+                assert_ne!(plane.test(Point3::new(1 as $type, 2 as $type, 1 as $type)), 0 as $type);
+            }
+        }
     }
 
-    #[test]
-    fn new_implicit_plane3_f32() {
-        let anchor = Point3::new( 1.0f32, 2.0f32, 3.0f32 );
-        let normal = Vector3::new( 4.0f32, 5.0f32, 6.0f32 );
+    implicit_plane3_test_point! { u8, implicit_plane3_test_point_u8 }
+    implicit_plane3_test_point! { u16, implicit_plane3_test_point_u16 }
+    implicit_plane3_test_point! { u32, implicit_plane3_test_point_u32 }
+    implicit_plane3_test_point! { u64, implicit_plane3_test_point_u64 }
+    implicit_plane3_test_point! { u128, implicit_plane3_test_point_u128 }
+    implicit_plane3_test_point! { i8, implicit_plane3_test_point_i8 }
+    implicit_plane3_test_point! { i16, implicit_plane3_test_point_i16 }
+    implicit_plane3_test_point! { i32, implicit_plane3_test_point_i32 }
+    implicit_plane3_test_point! { i64, implicit_plane3_test_point_i64 }
+    implicit_plane3_test_point! { i128, implicit_plane3_test_point_i128 }
+    implicit_plane3_test_point! { f32, implicit_plane3_test_point_f32 }
+    implicit_plane3_test_point! { f64, implicit_plane3_test_point_f64 }
 
-        let plane = ImplicitPlane3::new(anchor, normal);
+    macro_rules! parametric_line_intersect_implicit_plane3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let ray1 = ParametricLine::new(
+                    Point3::new(0 as $type, 1 as $type, 0 as $type),
+                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                );
 
-        assert_eq!(plane.anchor, anchor);
-        assert_eq!(plane.normal, normal);
+                let plane = ImplicitPlane3::new(
+                    Point3::new(0 as $type, 0 as $type, 0 as $type),
+                    Vector3::new(0 as $type, 1 as $type, 0 as $type)
+                );
+
+                assert_eq!(ray1.intersect(plane), Vec::new());
+
+                let ray2 = ParametricLine::new(
+                    Point3::new(0 as $type, 1 as $type, 0 as $type),
+                    Vector3::new(0 as $type, -1 as $type, 0 as $type)
+                );
+
+                assert_eq!(ray2.intersect(plane), vec![1 as $type]);
+            }
+        }
     }
 
-    #[test]
-    fn new_implicit_plane3_f64() {
-        let anchor = Point3::new( 1.0f64, 2.0f64, 3.0f64 );
-        let normal = Vector3::new( 4.0f64, 5.0f64, 6.0f64);
+    parametric_line_intersect_implicit_plane3! { i8, parametric_line_intersect_implicit_plane3_i8 }
+    parametric_line_intersect_implicit_plane3! { i16, parametric_line_intersect_implicit_plane3_i16 }
+    parametric_line_intersect_implicit_plane3! { i32, parametric_line_intersect_implicit_plane3_i32 }
+    parametric_line_intersect_implicit_plane3! { i64, parametric_line_intersect_implicit_plane3_i64 }
+    parametric_line_intersect_implicit_plane3! { i128, parametric_line_intersect_implicit_plane3_i128 }
+    parametric_line_intersect_implicit_plane3! { f32, parametric_line_intersect_implicit_plane3_f32 }
+    parametric_line_intersect_implicit_plane3! { f64, parametric_line_intersect_implicit_plane3_f64 }
 
-        let plane = ImplicitPlane3::new(anchor, normal);
+    macro_rules! new_implicit_3_sphere {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let center = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+                let radius = 4 as $type;
 
-        assert_eq!(plane.anchor, anchor);
-        assert_eq!(plane.normal, normal);
+                let sphere = ImplicitNSphere::new(center, radius);
+
+                assert_eq!(sphere.center, center);
+                assert_eq!(sphere.radius, radius);
+            }
+        }
     }
 
-    #[test]
-    fn parametric_line_intersect_implicit_plane_f64() {
-        let ray1 = ParametricLine::new(
-            Point3::new(0.0f64, 1.0f64, 0.0f64),
-            Vector3::new(0.0f64, 0.0f64, -1.0f64)
-        );
+    new_implicit_3_sphere! { u8, new_implicit_3_sphere_u8 }
+    new_implicit_3_sphere! { u16, new_implicit_3_sphere_u16 }
+    new_implicit_3_sphere! { u32, new_implicit_3_sphere_u32 }
+    new_implicit_3_sphere! { u64, new_implicit_3_sphere_u64 }
+    new_implicit_3_sphere! { u128, new_implicit_3_sphere_u128 }
+    new_implicit_3_sphere! { i8, new_implicit_3_sphere_i8 }
+    new_implicit_3_sphere! { i16, new_implicit_3_sphere_i16 }
+    new_implicit_3_sphere! { i32, new_implicit_3_sphere_i32 }
+    new_implicit_3_sphere! { i64, new_implicit_3_sphere_i64 }
+    new_implicit_3_sphere! { i128, new_implicit_3_sphere_i128 }
+    new_implicit_3_sphere! { f32, new_implicit_3_sphere_f32 }
+    new_implicit_3_sphere! { f64, new_implicit_3_sphere_f64 }
 
-        let plane = ImplicitPlane3::new(
-            Point3::new(0.0f64, 0.0f64, 0.0f64),
-            Vector3::new(0.0f64, 1.0f64, 0.0f64)
-        );
+    macro_rules! implicit_3_sphere_test {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let center = Point3::new( 2 as $type, 2 as $type, 2 as $type );
+                let radius = 2 as $type;
 
-        assert_eq!(ray1.intersect(plane), Vec::new());
+                let sphere = ImplicitNSphere::new(center, radius);
 
-        let ray2 = ParametricLine::new(
-            Point3::new(0.0f64, 1.0f64, 0.0f64),
-            Vector3::new(0.0f64, -1.0f64, 0.0f64)
-        );
-
-        assert_eq!(ray2.intersect(plane), vec![1.0]);
+                assert_ne!(sphere.test(Point3::new( 2 as $type, 2 as $type, 2 as $type )), 0 as $type);
+                assert_eq!(sphere.test(Point3::new( 0 as $type, 2 as $type, 2 as $type )), 0 as $type);
+                assert_eq!(sphere.test(Point3::new( 4 as $type, 2 as $type, 2 as $type )), 0 as $type);
+                assert_eq!(sphere.test(Point3::new( 2 as $type, 0 as $type, 2 as $type )), 0 as $type);
+                assert_eq!(sphere.test(Point3::new( 2 as $type, 4 as $type, 2 as $type )), 0 as $type);
+                assert_eq!(sphere.test(Point3::new( 2 as $type, 2 as $type, 0 as $type )), 0 as $type);
+                assert_eq!(sphere.test(Point3::new( 2 as $type, 2 as $type, 4 as $type )), 0 as $type);
+            }
+        }
     }
 
-    #[test]
-    fn parametric_line_intersect_implicit_plane_f32() {
-        let ray1 = ParametricLine::new(
-            Point3::new(0.0f32, 1.0f32, 0.0f32),
-            Vector3::new(0.0f32, 0.0f32, -1.0f32)
-        );
+    implicit_3_sphere_test! { i8, implicit_3_sphere_test_i8 }
+    implicit_3_sphere_test! { i16, implicit_3_sphere_test_i16 }
+    implicit_3_sphere_test! { i32, implicit_3_sphere_test_i32 }
+    implicit_3_sphere_test! { i64, implicit_3_sphere_test_i64 }
+    implicit_3_sphere_test! { i128, implicit_3_sphere_test_i128 }
+    implicit_3_sphere_test! { f32, implicit_3_sphere_test_f32 }
+    implicit_3_sphere_test! { f64, implicit_3_sphere_test_f64 }
 
-        let plane = ImplicitPlane3::new(
-            Point3::new(0.0f32, 0.0f32, 0.0f32),
-            Vector3::new(0.0f32, 1.0f32, 0.0f32)
-        );
+    macro_rules! parametric_line_intersect_implicit_3_sphere {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let ray1 = ParametricLine::new(
+                    Point3::new(4 as $type, 4 as $type, 4 as $type),
+                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                );
+                
+                let ray2 = ParametricLine::new(
+                    Point3::new(1 as $type, 3 as $type, 4 as $type),
+                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                );
+                
+                let ray3 = ParametricLine::new(
+                    Point3::new(1 as $type, 1 as $type, 4 as $type),
+                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                );
 
-        assert_eq!(ray1.intersect(plane), Vec::new());
+                let sphere = ImplicitNSphere::new(
+                    Point3::new(1 as $type, 1 as $type, 1 as $type),
+                    2 as $type
+                );
 
-        let ray2 = ParametricLine::new(
-            Point3::new(0.0f32, 1.0f32, 0.0f32),
-            Vector3::new(0.0f32, -1.0f32, 0.0f32)
-        );
+                assert_eq!(ray1.intersect(sphere), Vec::new());
+                assert_eq!(ray2.intersect(sphere), vec![3 as $type]);
+                assert_eq!(ray3.intersect(sphere), vec![1 as $type, 5 as $type]);
 
-        assert_eq!(ray2.intersect(plane), vec![1.0]);
+            }
+        }
     }
+
+    parametric_line_intersect_implicit_3_sphere! { f32, parametric_line_intersect_implicit_3_sphere_f32 }
+    parametric_line_intersect_implicit_3_sphere! { f64, parametric_line_intersect_implicit_3_sphere_f64 }
 }
 
