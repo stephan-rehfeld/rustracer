@@ -1,6 +1,7 @@
 use std::ops;
 
 use crate::math::vector::Vector3;
+use crate::math::vector::Orthonormal3;
 use crate::math::point::Point3;
 use crate::traits::Sqrt;
 
@@ -135,38 +136,46 @@ where
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct AxisAlignedBox<T> {
-    lower_left_far: Point3<T>,
-    upper_right_near: Point3<T>,
+pub struct AxisAlignedBox<P> {
+    a: P,
+    b: P,
 }
 
-impl<T> AxisAlignedBox<T> {
-    pub fn new(lower_left_far: Point3<T>, upper_right_near: Point3<T>) -> AxisAlignedBox<T> {
-        AxisAlignedBox { lower_left_far, upper_right_near }
+impl<P> AxisAlignedBox<P> {
+    pub fn new(a: P, b: P) -> AxisAlignedBox<P> {
+        AxisAlignedBox { a, b }
     }
 }
 
-impl Intersect<AxisAlignedBox<f32>> for ParametricLine<Point3<f32>, Vector3<f32>> {
-    type Output = f32;
+impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>>
+where
+    T: ops::Neg<Output = T> + Copy + Clone + PartialOrd,
+    Vector3<T>: Orthonormal3<T> + ops::Mul,
+    <Vector3<T> as ops::Mul>::Output: ops::Div<Output = T> + PartialEq + Default,
+    Point3<T>: ops::Sub<Output = Vector3<T>>,
+    Vector3<T>: ops::Mul<T, Output = Vector3<T>>,
+    Point3<T>: ops::Add<Vector3<T>, Output = Point3<T>>,
+    {
+    type Output = T;
 
-    fn intersect(self, aab: AxisAlignedBox<f32>) -> Vec<f32> {
-        let left = ImplicitPlane3::new( aab.lower_left_far, Vector3::new( -1.0, 0.0, 0.0 ));
-        let lower = ImplicitPlane3::new( aab.lower_left_far, Vector3::new( 0.0, -1.0, 0.0 ));
-        let far = ImplicitPlane3::new( aab.lower_left_far, Vector3::new( 0.0, 0.0, -1.0 ));
+    fn intersect(self, aab: AxisAlignedBox<Point3<T>>) -> Vec<Self::Output> {
+        let left = ImplicitPlane3::new( aab.a, -Vector3::<T>::x_axis());
+        let lower = ImplicitPlane3::new( aab.a, -Vector3::<T>::y_axis());
+        let far = ImplicitPlane3::new( aab.a, -Vector3::<T>::z_axis());
 
-        let right = ImplicitPlane3::new( aab.upper_right_near, Vector3::new( 1.0, 0.0, 0.0 ));
-        let upper = ImplicitPlane3::new( aab.upper_right_near, Vector3::new( 0.0, 1.0, 0.0 ));
-        let near = ImplicitPlane3::new( aab.upper_right_near, Vector3::new( 0.0, 0.0, 1.0 ));
+        let right = ImplicitPlane3::new( aab.b, Vector3::<T>::x_axis());
+        let upper = ImplicitPlane3::new( aab.b, Vector3::<T>::y_axis());
+        let near = ImplicitPlane3::new( aab.b, Vector3::<T>::z_axis());
 
-        let mut results: Vec<f32> = Vec::new();
+        let mut results: Vec<T> = Vec::new();
 
         let t = self.intersect(left);
 
         if t.len() > 0 {
             let p = self.at(t[0]);
 
-            if p.y > aab.lower_left_far.y && p.y < aab.upper_right_near.y &&
-               p.z > aab.lower_left_far.z && p.z < aab.upper_right_near.z {
+            if p.y > aab.a.y && p.y < aab.b.y &&
+               p.z > aab.a.z && p.z < aab.b.z {
                 results.push(t[0]);
             }
         }
@@ -176,8 +185,8 @@ impl Intersect<AxisAlignedBox<f32>> for ParametricLine<Point3<f32>, Vector3<f32>
         if t.len() > 0 {
             let p = self.at(t[0]);
 
-            if p.y > aab.lower_left_far.y && p.y < aab.upper_right_near.y &&
-               p.z > aab.lower_left_far.z && p.z < aab.upper_right_near.z {
+            if p.y > aab.a.y && p.y < aab.b.y &&
+               p.z > aab.a.z && p.z < aab.b.z {
                 results.push(t[0]);
             }
         }
@@ -187,8 +196,8 @@ impl Intersect<AxisAlignedBox<f32>> for ParametricLine<Point3<f32>, Vector3<f32>
         if t.len() > 0 {
             let p = self.at(t[0]);
 
-            if p.x > aab.lower_left_far.x && p.x < aab.upper_right_near.x &&
-               p.z > aab.lower_left_far.z && p.z < aab.upper_right_near.z {
+            if p.x > aab.a.x && p.x < aab.b.x &&
+               p.z > aab.a.z && p.z < aab.b.z {
                 results.push(t[0]);
             }
         }
@@ -198,8 +207,8 @@ impl Intersect<AxisAlignedBox<f32>> for ParametricLine<Point3<f32>, Vector3<f32>
         if t.len() > 0 {
             let p = self.at(t[0]);
 
-            if p.x > aab.lower_left_far.x && p.x < aab.upper_right_near.x &&
-               p.z > aab.lower_left_far.z && p.z < aab.upper_right_near.z {
+            if p.x > aab.a.x && p.x < aab.b.x &&
+               p.z > aab.a.z && p.z < aab.b.z {
                 results.push(t[0]);
             }
         }
@@ -209,8 +218,8 @@ impl Intersect<AxisAlignedBox<f32>> for ParametricLine<Point3<f32>, Vector3<f32>
         if t.len() > 0 {
             let p = self.at(t[0]);
 
-            if p.x > aab.lower_left_far.x && p.x < aab.upper_right_near.x &&
-               p.y > aab.lower_left_far.z && p.y < aab.upper_right_near.y {
+            if p.x > aab.a.x && p.x < aab.b.x &&
+               p.y > aab.a.z && p.y < aab.b.y {
                 results.push(t[0]);
             }
         }
@@ -220,12 +229,12 @@ impl Intersect<AxisAlignedBox<f32>> for ParametricLine<Point3<f32>, Vector3<f32>
         if t.len() > 0 {
             let p = self.at(t[0]);
 
-            if p.x > aab.lower_left_far.x && p.x < aab.upper_right_near.x &&
-               p.y > aab.lower_left_far.z && p.y < aab.upper_right_near.y {
+            if p.x > aab.a.x && p.x < aab.b.x &&
+               p.y > aab.a.z && p.y < aab.b.y {
                 results.push(t[0]);
             }
         }
-        
+      
         results
     }
 }

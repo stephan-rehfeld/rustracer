@@ -7,6 +7,12 @@ pub trait Vector {
     type PointType;
 }
 
+pub trait Orthonormal3<T> {
+    fn x_axis() -> Vector3<T>;
+    fn y_axis() -> Vector3<T>;
+    fn z_axis() -> Vector3<T>;
+}
+
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct Vector3<T> {
     pub(super) x: T,
@@ -37,6 +43,26 @@ impl<T> Vector3<T> {
         )
     }
 }
+
+macro_rules! impl_orthonormal3_for {
+    ($($type: ty)* ) => ($(
+        impl Orthonormal3<$type> for Vector3<$type> {
+            fn x_axis() -> Vector3<$type> {
+                Vector3::new( 1 as $type, 0 as $type, 0 as $type )
+            }
+
+            fn y_axis() -> Vector3<$type> {
+                Vector3::new( 0 as $type, 1 as $type, 0 as $type )
+            }
+
+            fn z_axis() -> Vector3<$type> {
+                Vector3::new( 0 as $type, 0 as $type, 1 as $type )
+            }
+        }
+    )*)
+}
+
+impl_orthonormal3_for! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
 impl<T: ops::Add<U> , U> ops::Add<Vector3<U>> for Vector3<T> {
     type Output = Vector3<<T as ops::Add<U>>::Output>;
@@ -202,9 +228,9 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let x_axis = Vector3::new(1 as $type, 0 as $type, 0 as $type);
-                let y_axis = Vector3::new(0 as $type, 1 as $type, 0 as $type);
-                let z_axis = Vector3::new(0 as $type, 0 as $type, 1 as $type);
+                let x_axis = Vector3::<$type>::x_axis();
+                let y_axis = Vector3::<$type>::y_axis();
+                let z_axis = Vector3::<$type>::z_axis();
 
                 assert_eq!(x_axis, Vector3::cross(y_axis, z_axis));
                 assert_eq!(-x_axis, Vector3::cross(z_axis, y_axis));
@@ -409,9 +435,9 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let x_vec1 = Vector3::new( 1 as $type, 0 as $type, 0 as $type );
-                let y_vec1 = Vector3::new( 0 as $type, 1 as $type, 0 as $type );
-                let z_vec1 = Vector3::new( 0 as $type, 0 as $type, 1 as $type );
+                let x_vec1 = Vector3::<$type>::x_axis();
+                let y_vec1 = Vector3::<$type>::y_axis();
+                let z_vec1 = Vector3::<$type>::z_axis();
 
                 assert_eq!(x_vec1 * y_vec1, 0 as $type);
                 assert_eq!(x_vec1 * z_vec1, 0 as $type);
