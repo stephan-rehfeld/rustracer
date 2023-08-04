@@ -1,5 +1,6 @@
 use crate::math::Vector3;
 use crate::math::Point3;
+
 use crate::math::geometry::ParametricLine;
 
 pub struct Orthographic<T> {

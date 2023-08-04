@@ -3,6 +3,7 @@ pub mod vector;
 pub mod point;
 
 pub use vector::Vector3;
+pub use vector::Orthonormal3;
 pub use point::Point3;
 
 #[derive(Debug,PartialEq,Clone,Copy)]
