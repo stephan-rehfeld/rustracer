@@ -4,7 +4,9 @@ use rustracer::math::geometry::ImplicitNSphere;
 use rustracer::math::geometry::ImplicitPlane3;
 use rustracer::math::geometry::AxisAlignedBox;
 use rustracer::math::geometry::Intersect;
+use rustracer::units;
 use rustracer::camera;
+use rustracer::traits::ToRadians;
 
 fn main() {
     let width = 640;
@@ -29,7 +31,7 @@ fn main() {
         Point3::new(4.0, 4.0, 4.0),
         Vector3::new(-1.0, -1.0, -1.0),
         Vector3::new(0.0, 1.0, 0.0),
-        90.0 / 180.0 * 3.1415,
+        units::Degrees::<f32>::new(90.0).to_radians(),
         width,
         height
     );
