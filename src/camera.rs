@@ -3,7 +3,7 @@ use crate::math::Point3;
 
 use crate::traits::Tan;
 
-use crate::units;
+use crate::units::angle;
 
 use crate::math::geometry::ParametricLine;
 
@@ -52,13 +52,13 @@ pub struct Perspective<T> {
     u: Vector3<T>,
     v: Vector3<T>,
     w: Vector3<T>,
-    vertical_field_of_view: units::Radians<T>,
+    vertical_field_of_view: angle::Radians<T>,
     width: u32,
     height: u32 
 }
 
 impl Perspective<f32> {
-    pub fn new(e: Point3<f32>, g: Vector3<f32>, t: Vector3<f32>, vertical_field_of_view: units::Radians<f32>, width: u32, height: u32) -> Perspective<f32> {
+    pub fn new(e: Point3<f32>, g: Vector3<f32>, t: Vector3<f32>, vertical_field_of_view: angle::Radians<f32>, width: u32, height: u32) -> Perspective<f32> {
         let w = -g.normalized();
         let u = Vector3::cross(t, w).normalized();
         let v = Vector3::cross(w, u);
