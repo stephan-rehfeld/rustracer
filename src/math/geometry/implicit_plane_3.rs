@@ -34,9 +34,9 @@ impl<T> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>> w
     <Point3<T> as ops::Sub>::Output: ops::Mul<Vector3<T>>,
     <<Point3<T> as ops::Sub>::Output as ops::Mul<Vector3<T>>>::Output: ops::Div<<Vector3<T> as ops::Mul>::Output>
     {
-    type Output = <<<Point3<T> as ops::Sub>::Output as ops::Mul<Vector3<T>>>::Output as ops::Div<<Vector3<T> as ops::Mul>::Output>>::Output;
+    type Output = Vec<<<<Point3<T> as ops::Sub>::Output as ops::Mul<Vector3<T>>>::Output as ops::Div<<Vector3<T> as ops::Mul>::Output>>::Output>;
 
-    fn intersect(self, plane: ImplicitPlane3<T>) -> Vec<Self::Output> {
+    fn intersect(self, plane: ImplicitPlane3<T>) -> Self::Output {
         if self.direction * plane.normal == Default::default() {
             Vec::new()
         } else {

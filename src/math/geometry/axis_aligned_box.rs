@@ -29,9 +29,9 @@ where
     Vector3<T>: ops::Mul<T, Output = Vector3<T>>,
     Point3<T>: ops::Add<Vector3<T>, Output = Point3<T>>,
     {
-    type Output = T;
+    type Output = Vec<T>;
 
-    fn intersect(self, aab: AxisAlignedBox<Point3<T>>) -> Vec<Self::Output> {
+    fn intersect(self, aab: AxisAlignedBox<Point3<T>>) -> Self::Output {
         let left = ImplicitPlane3::new( aab.a, -Vector3::<T>::x_axis());
         let lower = ImplicitPlane3::new( aab.a, -Vector3::<T>::y_axis());
         let far = ImplicitPlane3::new( aab.a, -Vector3::<T>::z_axis());

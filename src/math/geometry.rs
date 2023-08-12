@@ -11,5 +11,5 @@ pub use axis_aligned_box::AxisAlignedBox;
 pub trait Intersect<T> {
     type Output;
 
-    fn intersect(self, other: T) -> Vec<Self::Output>;
+    fn intersect(self, other: T) -> Self::Output;
 }

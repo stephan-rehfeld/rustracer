@@ -48,9 +48,9 @@ where
     <T as ops::Mul>::Output: Clone + Copy,
     <<T as ops::Mul>::Output as ops::Mul>::Output: Clone + Copy, 
 {
-    type Output = <<T as ops::Mul>::Output as ops::Div>::Output;
+    type Output = Vec<<<T as ops::Mul>::Output as ops::Div>::Output>;
 
-    fn intersect(self, sphere: ImplicitNSphere<P, T>) -> Vec<Self::Output> {
+    fn intersect(self, sphere: ImplicitNSphere<P, T>) -> Self::Output {
         let a = self.direction * self.direction;
         let b = self.direction * ((self.origin - sphere.center) + (self.origin - sphere.center));
         let c = (self.origin - sphere.center) * (self.origin - sphere.center) - sphere.radius * sphere.radius;
