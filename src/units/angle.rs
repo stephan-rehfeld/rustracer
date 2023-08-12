@@ -81,8 +81,3 @@ impl<T: traits::ToRadians> traits::ToRadians for Degrees<T> {
     }
 }
 
-
-// to_degrees
-// to_radians
-
-
