@@ -15,7 +15,6 @@ macro_rules! create_and_implement_proxy_trait {
             }
         }
         )*
-
     }
 }
 
@@ -50,12 +49,33 @@ impl Atan2 for f64 {
     }
 }
 
-
 create_and_implement_proxy_trait! { Atanh, atanh, f32 f64 }
 create_and_implement_proxy_trait! { Cos, cos, f32 f64 }
 create_and_implement_proxy_trait! { Cosh, cosh, f32 f64 }
 create_and_implement_proxy_trait! { Sin, sin, f32 f64 }
-// sin_cos
+
+pub trait SinCos {
+    type Output;
+
+    fn sin_cos(self) -> Self::Output;
+}
+
+impl SinCos for f32 {
+    type Output = (f32,f32);
+
+    fn sin_cos(self) -> Self::Output {
+        self.sin_cos()
+    }
+}
+
+impl SinCos for f64 {
+    type Output = (f64,f64);
+
+    fn sin_cos(self) -> Self::Output {
+        self.sin_cos()
+    }
+}
+
 create_and_implement_proxy_trait! { Sinh, sinh, f32 f64 }
 create_and_implement_proxy_trait! { Tan, tan, f32 f64 }
 create_and_implement_proxy_trait! { Tanh, tanh, f32 f64 }
@@ -89,15 +109,25 @@ mod tests {
     implement_test_for! { Asinh, asinh, asinh_test, 1.0, [asinh_f32, asinh_f64], [f32, f64] }
     implement_test_for! { Atan, atan, atan_test, 1.0, [atan_f32, atan_f64], [f32, f64] }
     
-    // atan2
-
+    fn atan2_helper<T: Atan2>(v: T, other: T) -> <T as Atan2>::Output {
+        v.atan2(other)
+    }
     
+    #[test]
+    fn atan2_f32() {
+        assert_eq!(atan2_helper(1 as f32, 1 as f32), (1 as f32).atan2(1 as f32));
+    }
+
+    #[test]
+    fn atan2_f64() {
+        assert_eq!(atan2_helper(1 as f64, 1 as f64), (1 as f64).atan2(1 as f64));
+    }
 
     implement_test_for! { Atanh, atanh, atanh_test, 1.0, [atanh_f32, atanh_f64], [f32, f64] }
     implement_test_for! { Cos, cos, cos_test, 1.0, [cos_f32, cos_f64], [f32, f64] }
     implement_test_for! { Cosh, cosh, cosh_test, 1.0, [cosh_f32, cosh_f64], [f32, f64] }
     implement_test_for! { Sin, sin, sin_test, 1.0, [sin_f32, sin_f64], [f32, f64] }
-    // sin_cos
+    implement_test_for! { SinCos, sin_cos, sin_cos_test, 1.0, [sin_cos_f32, sin_cos_f64], [f32, f64] }
     implement_test_for! { Sinh, sinh, sinh_test, 1.0, [sinh_f32, sinh_f64], [f32, f64] }
     implement_test_for! { Tan, tan, tan_test, 1.0, [tan_f32, tan_f64], [f32, f64] }
     implement_test_for! { Tanh, tanh, tanh_test, 1.0, [tanh_f32, tanh_f64], [f32, f64] }
