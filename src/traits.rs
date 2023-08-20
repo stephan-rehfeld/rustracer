@@ -25,7 +25,6 @@ create_and_implement_proxy_trait! { Acosh, acosh, f32 f64 }
 create_and_implement_proxy_trait! { Asin, asin, f32 f64 }
 create_and_implement_proxy_trait! { Asinh, asinh, f32 f64 }
 create_and_implement_proxy_trait! { Atan, atan, f32 f64 }
-// atan2
 
 pub trait Atan2 {
     type Output;
