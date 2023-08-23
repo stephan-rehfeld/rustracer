@@ -81,6 +81,22 @@ create_and_implement_proxy_trait! { Tanh, tanh, f32 f64 }
 create_and_implement_proxy_trait! { ToDegrees, to_degrees, f32 f64 }
 create_and_implement_proxy_trait! { ToRadians, to_radians, f32 f64 }
 
+pub trait Half {
+    fn half(self) -> Self;
+}
+
+macro_rules! implement_half_for {
+    ($($type: ty)*) => {$(
+        impl Half for $type {
+            fn half(self) -> $type {
+                self / (2 as $type)
+            }
+        }
+    )*}
+}
+
+implement_half_for! { u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize f32 f64 } 
+
 #[cfg(test)]
 mod tests {
 
@@ -132,4 +148,32 @@ mod tests {
     implement_test_for! { Tanh, tanh, tanh_test, 1.0, [tanh_f32, tanh_f64], [f32, f64] }
     implement_test_for! { ToDegrees, to_degrees, to_degrees_test, 3.1415, [to_degrees_f32, to_degrees_f64], [f32, f64] }
     implement_test_for! { ToRadians, to_radians, to_radians_test, 180.0, [to_radians_f32, to_radians_f64], [f32, f64] }
+
+    fn half_test<T: Half>(v: T) -> T {
+        v.half()
+    }
+
+    macro_rules! implement_half_test {
+        ($testValue: literal, $testName: ident, $type: ty) => {
+            #[test]
+            fn $testName() {
+                assert_eq!(half_test($testValue as $type), ($testValue as $type) / (2 as $type));
+            }
+        }
+    }
+
+    implement_half_test! { 84, half_u8, u8 } 
+    implement_half_test! { 98, half_u16, u16 } 
+    implement_half_test! { 84, half_u32, u32 } 
+    implement_half_test! { 56, half_u64, u64 } 
+    implement_half_test! { 8, half_u128, u128 } 
+    implement_half_test! { 10, half_usize, usize } 
+    implement_half_test! { 24, half_i8, i8 } 
+    implement_half_test! { 30, half_i16, i16 } 
+    implement_half_test! { 40, half_i32, i32 } 
+    implement_half_test! { 20, half_i64, i64 } 
+    implement_half_test! { 100, half_i128, i128 } 
+    implement_half_test! { 2, half_isize, isize } 
+    implement_half_test! { 5.0, half_f32, f32 } 
+    implement_half_test! { 7.0, half_f64, u8 } 
 }
