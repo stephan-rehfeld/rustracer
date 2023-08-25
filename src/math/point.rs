@@ -1,73 +1,237 @@
 use std::ops;
+use crate::math::vector::Vector2;
 use crate::math::vector::Vector3;
 
 pub trait Point {
     type ValueType;
     type VectorType;
 }
+macro_rules! create_point_type {
+    ($name: ident, [$($element: ident)*], $vectorType: ident ) => {
+        #[derive(Debug,PartialEq,Clone,Copy)]
+        pub struct $name<T> {
+            $(
+            pub(super) $element: T,
+            )*
+        }
 
-#[derive(Debug,PartialEq,Clone,Copy)]
-pub struct Point3<T> {
-    pub(super) x: T,
-    pub(super) y: T,
-    pub(super) z: T
-}
+        impl<T> $name<T> {
+            pub fn new( $( $element: T, )*) -> $name<T> {
+                $name { $( $element, )* }
+            }
+        }
 
-impl<T> Point for Point3<T> {
-    type ValueType = T;
-    type VectorType = Vector3<T>;
-}
+        impl<T> Point for $name<T> {
+            type ValueType = T;
+            type VectorType = $vectorType<T>;
+        }
 
-impl<T> Point3<T> {
-    pub fn new( x: T, y: T, z: T) -> Point3<T> {
-        Point3 { x, y, z }
+        impl<T: ops::Add<U>, U> ops::Add<$vectorType<U>> for $name<T> {
+            type Output = $name<<T as ops::Add<U>>::Output>;
+
+            fn add(self, rhs: $vectorType<U>) -> Self::Output {
+                 $name::new($(self.$element + rhs.$element, )*)
+            }
+        }
+
+        impl<T: ops::AddAssign<U>, U> ops::AddAssign<$vectorType<U>> for $name<T> {
+            fn add_assign(&mut self, rhs: $vectorType<U>) {
+                $(self.$element += rhs.$element;)*
+            }
+        }
+
+        impl<T: ops::Sub<U>, U> ops::Sub<$name<U>> for $name<T> {
+            type Output = $vectorType<<T as ops::Sub<U>>::Output>;
+
+            fn sub(self, rhs: $name<U>) -> Self::Output {
+                $vectorType::new($(self.$element - rhs.$element, )*)
+            }
+        }
+
+        impl<T: ops::Sub<U>, U> ops::Sub<$vectorType<U>> for $name<T> {
+            type Output = $name<<T as ops::Sub<U>>::Output>;
+
+            fn sub(self, rhs: $vectorType<U>) -> Self::Output {
+                $name::new($(self.$element - rhs.$element, )*)
+            }
+        }
+
+        impl<T: ops::SubAssign<U>, U> ops::SubAssign<$vectorType<U>> for $name<T> {
+            fn sub_assign(&mut self, rhs: $vectorType<U>) {
+                $(self.$element -= rhs.$element;)*
+            }
+        }
     }
 }
 
-impl<T: ops::Add<U>, U> ops::Add<Vector3<U>> for Point3<T> {
-    type Output = Point3<<T as ops::Add<U>>::Output>;
-
-    fn add(self, rhs: Vector3<U>) -> Self::Output {
-         Point3::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
-    }
-}
-
-impl<T: ops::AddAssign<U>, U> ops::AddAssign<Vector3<U>> for Point3<T> {
-    fn add_assign(&mut self, rhs: Vector3<U>) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
-    }
-}
-
-impl<T: ops::Sub<U>, U> ops::Sub<Point3<U>> for Point3<T> {
-    type Output = Vector3<<T as ops::Sub<U>>::Output>;
-
-    fn sub(self, rhs: Point3<U>) -> Self::Output {
-        Vector3::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
-    }
-}
-
-impl<T: ops::Sub<U>, U> ops::Sub<Vector3<U>> for Point3<T> {
-    type Output = Point3<<T as ops::Sub<U>>::Output>;
-
-    fn sub(self, rhs: Vector3<U>) -> Self::Output {
-        Point3::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
-    }
-}
-
-impl<T: ops::SubAssign<U>, U> ops::SubAssign<Vector3<U>> for Point3<T> {
-    fn sub_assign(&mut self, rhs: Vector3<U>) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
-    }
-}
+create_point_type! { Point2, [ x y ], Vector2 }
+create_point_type! { Point3, [ x y z ], Vector3 }
 
 #[cfg(test)]
 mod tests {
 
     use super::*;
+
+    macro_rules! new_point2 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let p = Point2::new( 1 as $type, 2 as $type );
+
+                assert_eq!(p.x, 1 as $type);
+                assert_eq!(p.y, 2 as $type);
+            }
+        }
+    }
+
+    new_point2! { u8, new_point2_u8 }
+    new_point2! { u16, new_point2_u16 }
+    new_point2! { u32, new_point2_u32 }
+    new_point2! { u64, new_point2_u64 }
+    new_point2! { u128, new_point2_u128 }
+    new_point2! { i8, new_point2_i8 }
+    new_point2! { i16, new_point2_i16 }
+    new_point2! { i32, new_point2_i32 }
+    new_point2! { i64, new_point2_i64 }
+    new_point2! { i128, new_point2_i128 }
+    new_point2! { f32, new_point2_f32 }
+    new_point2! { f64, new_point2_f64 }
+
+    macro_rules! point2_add_vector2 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let p1 = Point2::new( 1 as $type, 2 as $type );
+
+                let v1 = Vector2::new( 1 as $type, 0 as $type );
+                let v2 = Vector2::new( 0 as $type, 2 as $type );
+
+                assert_eq!(p1 + v1, Point2::new(2 as $type, 2 as $type));
+                assert_eq!(p1 + v2, Point2::new(1 as $type, 4 as $type));
+            }
+        }
+    }
+
+    point2_add_vector2! { u8, point2_add_vector2_u8 }
+    point2_add_vector2! { u16, point2_add_vector2_u16 }
+    point2_add_vector2! { u32, point2_add_vector2_u32 }
+    point2_add_vector2! { u64, point2_add_vector2_u64 }
+    point2_add_vector2! { u128, point2_add_vector2_u128 }
+    point2_add_vector2! { i8, point2_add_vector2_i8 }
+    point2_add_vector2! { i16, point2_add_vector2_i16 }
+    point2_add_vector2! { i32, point2_add_vector2_i32 }
+    point2_add_vector2! { i64, point2_add_vector2_i64 }
+    point2_add_vector2! { i128, point2_add_vector2_i128 }
+    point2_add_vector2! { f32, point2_add_vector2_f32 }
+    point2_add_vector2! { f64, point2_add_vector2_f64 }
+
+    macro_rules! point2_add_assign_vector2 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let mut p = Point2::new( 1 as $type, 2 as $type );
+
+                p += Vector2::new( 1 as $type, 2 as $type );
+
+                assert_eq!(p, Point2::new(2 as $type, 4 as $type ));
+            }
+        }
+    }
+
+    point2_add_assign_vector2! { u8, point2_add_assign_vector2_u8 }
+    point2_add_assign_vector2! { u16, point2_add_assign_vector2_u16 }
+    point2_add_assign_vector2! { u32, point2_add_assign_vector2_u32 }
+    point2_add_assign_vector2! { u64, point2_add_assign_vector2_u64 }
+    point2_add_assign_vector2! { u128, point2_add_assign_vector2_u128 }
+    point2_add_assign_vector2! { i8, point2_add_assign_vector2_i8 }
+    point2_add_assign_vector2! { i16, point2_add_assign_vector2_i16 }
+    point2_add_assign_vector2! { i32, point2_add_assign_vector2_i32 }
+    point2_add_assign_vector2! { i64, point2_add_assign_vector2_i64 }
+    point2_add_assign_vector2! { i128, point2_add_assign_vector2_i128 }
+    point2_add_assign_vector2! { f32, point2_add_assign_vector2_f32 }
+    point2_add_assign_vector2! { f64, point2_add_assign_vector2_f64 }
+
+    macro_rules! point2_sub_point2 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let p1 = Point2::new( 1 as $type, 2 as $type );
+
+                let p2 = Point2::new( 1 as $type, 0 as $type );
+                let p3 = Point2::new( 0 as $type, 2 as $type );
+
+                assert_eq!(p1 - p2, Vector2::new(0 as $type, 2 as $type));
+                assert_eq!(p1 - p3, Vector2::new(1 as $type, 0 as $type));
+            }
+        }
+    }
+
+    point2_sub_point2! { u8, point2_sub_point2_u8 }
+    point2_sub_point2! { u16, point2_sub_point2_u16 }
+    point2_sub_point2! { u32, point2_sub_point2_u32 }
+    point2_sub_point2! { u64, point2_sub_point2_u64 }
+    point2_sub_point2! { u128, point2_sub_point2_u128 }
+    point2_sub_point2! { i8, point2_sub_point2_i8 }
+    point2_sub_point2! { i16, point2_sub_point2_i16 }
+    point2_sub_point2! { i32, point2_sub_point2_i32 }
+    point2_sub_point2! { i64, point2_sub_point2_i64 }
+    point2_sub_point2! { i128, point2_sub_point2_i128 }
+    point2_sub_point2! { f32, point2_sub_point2_f32 }
+    point2_sub_point2! { f64, point2_sub_point2_f64 }
+    
+    macro_rules! point2_sub_vector2 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let p1 = Point2::new( 1 as $type, 2 as $type );
+
+                let v1 = Vector2::new( 1 as $type, 0 as $type );
+                let v2 = Vector2::new( 0 as $type, 2 as $type );
+
+                assert_eq!(p1 - v1, Point2::new(0 as $type, 2 as $type));
+                assert_eq!(p1 - v2, Point2::new(1 as $type, 0 as $type));
+            }
+        }
+    }
+
+    point2_sub_vector2! { u8, point2_sub_vector2_u8 }
+    point2_sub_vector2! { u16, point2_sub_vector2_u16 }
+    point2_sub_vector2! { u32, point2_sub_vector2_u32 }
+    point2_sub_vector2! { u64, point2_sub_vector2_u64 }
+    point2_sub_vector2! { u128, point2_sub_vector2_u128 }
+    point2_sub_vector2! { i8, point2_sub_vector2_i8 }
+    point2_sub_vector2! { i16, point2_sub_vector2_i16 }
+    point2_sub_vector2! { i32, point2_sub_vector2_i32 }
+    point2_sub_vector2! { i64, point2_sub_vector2_i64 }
+    point2_sub_vector2! { i128, point2_sub_vector2_i128 }
+    point2_sub_vector2! { f32, point2_sub_vector2_f32 }
+    point2_sub_vector2! { f64, point2_sub_vector2_f64 }
+
+    macro_rules! point2_sub_assign_vector2 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let mut p = Point2::new( 2 as $type, 4 as $type );
+
+                p -= Vector2::new( 1 as $type, 2 as $type );
+
+                assert_eq!(p, Point2::new(1 as $type, 2 as $type));
+            }
+        }
+    }
+
+    point2_sub_assign_vector2! { u8, point2_sub_assign_vector2_u8 }
+    point2_sub_assign_vector2! { u16, point2_sub_assign_vector2_u16 }
+    point2_sub_assign_vector2! { u32, point2_sub_assign_vector2_u32 }
+    point2_sub_assign_vector2! { u64, point2_sub_assign_vector2_u64 }
+    point2_sub_assign_vector2! { u128, point2_sub_assign_vector2_u128 }
+    point2_sub_assign_vector2! { i8, point2_sub_assign_vector2_i8 }
+    point2_sub_assign_vector2! { i16, point2_sub_assign_vector2_i16 }
+    point2_sub_assign_vector2! { i32, point2_sub_assign_vector2_i32 }
+    point2_sub_assign_vector2! { i64, point2_sub_assign_vector2_i64 }
+    point2_sub_assign_vector2! { i128, point2_sub_assign_vector2_i128 }
+    point2_sub_assign_vector2! { f32, point2_sub_assign_vector2_f32 }
+    point2_sub_assign_vector2! { f64, point2_sub_assign_vector2_f64 }
 
     macro_rules! new_point3 {
         ($type: ty, $name: ident) => {
