@@ -6,6 +6,7 @@ use rustracer::math::geometry::AxisAlignedBox;
 use rustracer::math::geometry::Intersect;
 use rustracer::units::angle;
 use rustracer::camera;
+use rustracer::camera::RaytracingCamera;
 use rustracer::traits::ToRadians;
 
 fn main() {
@@ -32,14 +33,14 @@ fn main() {
         Vector3::new(-1.0, -1.0, -1.0),
         Vector3::new(0.0, 1.0, 0.0),
         angle::Degrees::<f32>::new(90.0).to_radians(),
-        width,
-        height
+        width as f32,
+        height as f32
     );
 
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-        let ray = cam.ray_for(x, height - y - 1);
+        let ray = cam.ray_for(x as f32, (height - y - 1) as f32);
 
         let intersects = ray.intersect(aab);
          

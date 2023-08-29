@@ -82,13 +82,13 @@ create_and_implement_proxy_trait! { ToDegrees, to_degrees, f32 f64 }
 create_and_implement_proxy_trait! { ToRadians, to_radians, f32 f64 }
 
 pub trait Half {
-    fn half(self) -> Self;
+    fn half(&self) -> Self;
 }
 
 macro_rules! implement_half_for {
     ($($type: ty)*) => {$(
         impl Half for $type {
-            fn half(self) -> $type {
+            fn half(&self) -> $type {
                 self / (2 as $type)
             }
         }

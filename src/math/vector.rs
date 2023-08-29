@@ -1,5 +1,6 @@
 use std::ops;
 use crate::traits;
+use crate::traits::Sqrt;
 use crate::math::point::Point2;
 use crate::math::point::Point3;
 
@@ -111,22 +112,27 @@ macro_rules! create_vector_type {
         }
 
         impl<T> $name<T> where 
-            T: traits::Sqrt<Output = T>,
-            T: ops::Add<Output = T>,
-            T: ops::Mul<Output = T>,
-            T: ops::Div,
-            T: ops::DivAssign,
-            T: Copy + Clone 
+            T: ops::Mul,
+            <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
+            <T as ops::Mul>::Output: traits::Sqrt,
+            T: Copy + Clone,
         {
-            pub fn magnitude(self) -> <T as traits::Sqrt>::Output {
+            pub fn magnitude(self) -> <<T as ops::Mul>::Output as traits::Sqrt>::Output {
                 (self * self).sqrt()
             }
-
-            pub fn normalize(&mut self) {
+            
+            pub fn normalize(&mut self) where
+                T: std::ops::DivAssign<<<T as std::ops::Mul>::Output as traits::Sqrt>::Output>,
+                <<T as std::ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone
+            {
                 *self /= self.magnitude();
             }
-
-            pub fn normalized(self) -> $name<<T as ops::Div>::Output> {
+           
+            pub fn normalized(self) -> $name<<T as ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>>::Output> where
+                T: ops::Div,
+                T: ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>,
+                <<T as ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone,
+            {
                 self / self.magnitude()
             }
         }
@@ -218,11 +224,10 @@ impl_mul_scalar_with_vector3! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 
 impl<T> ops::Mul for Vector2<T> 
     where
         T: ops::Mul,
-        <T as ops::Mul>::Output: ops::Add,
-        <<T as ops::Mul>::Output as ops::Add>::Output: ops::Add,
+        <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
         T: Copy + Clone
 {
-    type Output = <<T as ops::Mul>::Output as ops::Add>::Output;
+    type Output = <T as ops::Mul>::Output;
 
     fn mul(self, rhs: Vector2<T>) -> Self::Output {
         self.x * rhs.x + self.y * rhs.y
@@ -232,12 +237,10 @@ impl<T> ops::Mul for Vector2<T>
 impl<T> ops::Mul for Vector3<T> 
     where
         T: ops::Mul,
-        <T as ops::Mul>::Output: ops::Add,
-        <<T as ops::Mul>::Output as ops::Add>::Output: ops::Add,
-        <<T as ops::Mul>::Output as ops::Add>::Output: ops::Add<<T as ops::Mul>::Output>,
+        <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
         T: Copy + Clone
 {
-    type Output = <<<T as ops::Mul>::Output as ops::Add>::Output as ops::Add<<T as ops::Mul>::Output>>::Output;
+    type Output = <T as ops::Mul>::Output;
 
     fn mul(self, rhs: Vector3<T>) -> Self::Output {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z

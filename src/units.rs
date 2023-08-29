@@ -2,6 +2,8 @@ use std::fmt;
 use std::ops;
 use std::marker::PhantomData;
 
+use crate::traits;
+
 pub mod prefix;
 pub mod angle;
 
@@ -103,5 +105,11 @@ impl<T: Default, P, U> Default for ValueWithPrefixAndUnit<T, P, U> {
 impl<T: fmt::Display, P: prefix::Prefix, U: Unit> fmt::Display for ValueWithPrefixAndUnit<T, P, U> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}{}", self.value, P::PREFIX, U::UNIT)
+    }
+}
+
+impl<T: traits::Half, P, U> traits::Half for ValueWithPrefixAndUnit<T, P, U> {
+    fn half(&self) -> ValueWithPrefixAndUnit<T, P, U> {
+        Self::new(self.value.half())
     }
 }

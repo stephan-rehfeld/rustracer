@@ -1,42 +1,64 @@
+use std::ops;
 use crate::math::Vector3;
 use crate::math::Point3;
+use crate::traits;
+use crate::traits::Half;
 use crate::traits::Tan;
 use crate::units::angle;
 use crate::math::geometry::ParametricLine;
 
-pub struct Orthographic<T> {
+pub trait RaytracingCamera<T> {
+    fn ray_for(&self, x: T, y: T) -> ParametricLine<Point3<T>, Vector3<T>>;
+}
+
+pub struct Orthographic<T> where T: ops::Div {
     e: Point3<T>,
     u: Vector3<T>,
     v: Vector3<T>,
     w: Vector3<T>,
     scale: T,
-    width: u32,
-    height: u32,
-    aspect_ratio: T,
+    width: T,
+    height: T,
+    aspect_ratio: <T as ops::Div>::Output,
 }
 
-impl Orthographic<f32> {
-    pub fn new(e: Point3<f32>, g: Vector3<f32>, t: Vector3<f32>, scale: f32, width: u32, height: u32) -> Orthographic<f32> {
-        let w = -g.normalized();
-        let u = Vector3::cross(t, w).normalized();
-        let v = Vector3::cross(w, u);
+impl<T> Orthographic<T> where
+    T: ops::Div<Output = T>,
+    T: ops::Mul<Output = T>,
+    T: ops::Add<Output = T>,
+    T: ops::Sub<Output = T>,
+    T: ops::Neg<Output = T>,
+    T: traits::Sqrt<Output = T>,
+    T: Clone + Copy,
+{
+    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, scale: T, width: T, height: T) -> Orthographic<T> 
+    {
+          let w = -g.normalized();
+          let u = Vector3::cross(t, w).normalized();
+          let v = Vector3::cross(w, u);
 
-        let aspect_ratio = (width as f32)/(height as f32);
+        let aspect_ratio = width/height;
 
         Orthographic { e, u, v, w, width, height, scale, aspect_ratio }
     }
+}
 
-    pub fn ray_for(&self, x: u32, y: u32) -> ParametricLine<Point3<f32>, Vector3<f32>> {
+impl<T> RaytracingCamera<T> for Orthographic<T> where
+    T: ops::Div<Output = T>,
+    T: ops::Mul<Vector3<T>, Output=Vector3<T>>,
+    T: ops::Mul<Output = T>,
+    T: ops::Add<Output = T>,
+    T: ops::Sub<Output = T>,
+    T: ops::Neg<Output = T>,
+    T: traits::Sqrt<Output = T>,
+    T: traits::Half,
+    T: Clone + Copy,
+{
+    fn ray_for(&self, x: T, y: T) -> ParametricLine<Point3<T>, Vector3<T>> {
         let d = -self.w;
 
-        let x = x as f32;
-        let y = y as f32;
-
-        let width = self.width as f32;
-        let height = self.height as f32;
-        
-        let x_factor = x - ((width-1.0)/2.0) / (width-1.0);
-        let y_factor = y - ((height-1.0)/2.0) / (height-1.0);
+        let x_factor = x - (self.width.half() / self.width);
+        let y_factor = y - (self.height.half() / self.height);
 
         let o = self.e + self.aspect_ratio * self.scale * x_factor * self.u + self.scale * y_factor * self.v;
 
@@ -50,33 +72,50 @@ pub struct Perspective<T> {
     v: Vector3<T>,
     w: Vector3<T>,
     vertical_field_of_view: angle::Radians<T>,
-    width: u32,
-    height: u32 
+    width: T,
+    height: T 
 }
 
-impl Perspective<f32> {
-    pub fn new(e: Point3<f32>, g: Vector3<f32>, t: Vector3<f32>, vertical_field_of_view: angle::Radians<f32>, width: u32, height: u32) -> Perspective<f32> {
+impl<T> Perspective<T> where
+    T: ops::Div<Output = T>,
+    T: ops::Mul<Vector3<T>, Output=Vector3<T>>,
+    T: ops::Mul<Output = T>,
+    T: ops::Add<Output = T>,
+    T: ops::Sub<Output = T>,
+    T: ops::Neg<Output = T>,
+    T: traits::Sqrt<Output = T>,
+    T: traits::Half,
+    T: Clone + Copy,
+{
+    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, vertical_field_of_view: angle::Radians<T>, width: T, height: T) -> Perspective<T> {
         let w = -g.normalized();
         let u = Vector3::cross(t, w).normalized();
         let v = Vector3::cross(w, u);
 
-        let vertical_field_of_view = vertical_field_of_view / 2.0;
+        let vertical_field_of_view = vertical_field_of_view.half();
 
         Perspective { e, u, v, w, vertical_field_of_view, width, height }
     }
+}
 
-    pub fn ray_for(&self, x: u32, y: u32 ) -> ParametricLine<Point3<f32>, Vector3<f32>> {
+impl<T> RaytracingCamera<T> for Perspective<T> where
+    T: ops::Add<Output = T>,
+    T: ops::Sub<Output = T>,
+    T: ops::Mul<Output = T>,
+    T: ops::Mul<Vector3<T>, Output=Vector3<T>>,
+    T: ops::Div<Output = T>,
+    T: traits::Sqrt<Output = T>,
+    T: traits::Half,
+    T: traits::Tan<Output = T>,
+    T: ops::Neg<Output = T>,
+    T: Clone + Copy,
+{
+    fn ray_for(&self, x: T, y: T ) -> ParametricLine<Point3<T>, Vector3<T>> {
         let o = self.e;
 
-        let x = x as f32;
-        let y = y as f32;
-
-        let width = self.width as f32;
-        let height = self.height as f32;
-
-        let a = -self.w * (height/2.0)/self.vertical_field_of_view.tan(); 
-        let b = (x - (width-1.0)/2.0) * self.u;
-        let c = (y - (height-1.0)/2.0) * self.v;
+        let a = -self.w * self.height.half()/self.vertical_field_of_view.tan(); 
+        let b = (x - self.width.half()) * self.u;
+        let c = (y - self.height.half()) * self.v;
 
         let r = a + b + c; 
         let d = r.normalized();
@@ -84,3 +123,4 @@ impl Perspective<f32> {
         ParametricLine::new(o, d)
     }
 }
+
