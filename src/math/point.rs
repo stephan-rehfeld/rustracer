@@ -7,7 +7,7 @@ pub trait Point {
     type VectorType;
 }
 macro_rules! create_point_type {
-    ($name: ident, [$($element: ident)*], $vectorType: ident ) => {
+    ($name: ident, [$($element: ident)+], $vectorType: ident ) => {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
             $(

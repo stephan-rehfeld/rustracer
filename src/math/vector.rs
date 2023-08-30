@@ -20,7 +20,7 @@ pub trait Orthonormal3<T> {
     fn z_axis() -> Vector3<T>;
 }
 macro_rules! create_vector_type {
-    ($name: ident, [$($element: ident)*], $pointType: ident ) => {
+    ($name: ident, [$($element: ident)+], $pointType: ident ) => {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
             $(
@@ -83,6 +83,19 @@ macro_rules! create_vector_type {
             }
         }
 
+        impl<T> ops::Mul for $name<T> where
+            T: ops::Mul,
+            <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
+            <T as ops::Mul>::Output: Default,
+            T: Copy + Clone
+        {
+            type Output = <T as ops::Mul>::Output;
+
+            fn mul(self, rhs: $name<T>) -> Self::Output {
+                $(self.$element * rhs.$element + )* Default::default()
+            }
+        }
+
         impl<T: ops::MulAssign<U>, U: Copy + Clone> ops::MulAssign<U> for $name<T> {
             fn mul_assign(&mut self, rhs: U) {
                 $( self.$element *= rhs; )*
@@ -113,6 +126,7 @@ macro_rules! create_vector_type {
 
         impl<T> $name<T> where 
             T: ops::Mul,
+            <T as ops::Mul>::Output: Default,
             <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
             <T as ops::Mul>::Output: traits::Sqrt,
             T: Copy + Clone,
@@ -194,7 +208,7 @@ macro_rules! impl_orthonormal3_for {
 impl_orthonormal3_for! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
 macro_rules! impl_mul_scalar_with_vector2 {
-    ($($type: ty)* ) => ($(
+    ($($type: ty)+ ) => ($(
         impl ops::Mul<Vector2<$type>> for $type  {
             type Output = Vector2<<$type as ops::Mul>::Output>;
 
@@ -208,7 +222,7 @@ macro_rules! impl_mul_scalar_with_vector2 {
 impl_mul_scalar_with_vector2! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
 macro_rules! impl_mul_scalar_with_vector3 {
-    ($($type: ty)* ) => ($(
+    ($($type: ty)+ ) => ($(
         impl ops::Mul<Vector3<$type>> for $type  {
             type Output = Vector3<<$type as ops::Mul>::Output>;
 
@@ -220,32 +234,6 @@ macro_rules! impl_mul_scalar_with_vector3 {
 }
 
 impl_mul_scalar_with_vector3! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
-
-impl<T> ops::Mul for Vector2<T> 
-    where
-        T: ops::Mul,
-        <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
-        T: Copy + Clone
-{
-    type Output = <T as ops::Mul>::Output;
-
-    fn mul(self, rhs: Vector2<T>) -> Self::Output {
-        self.x * rhs.x + self.y * rhs.y
-    }
-}
-
-impl<T> ops::Mul for Vector3<T> 
-    where
-        T: ops::Mul,
-        <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
-        T: Copy + Clone
-{
-    type Output = <T as ops::Mul>::Output;
-
-    fn mul(self, rhs: Vector3<T>) -> Self::Output {
-        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
-    }
-}
 
 #[cfg(test)]
 mod tests {

@@ -29,13 +29,13 @@ impl<T> Orthographic<T> where
     T: ops::Sub<Output = T>,
     T: ops::Neg<Output = T>,
     T: traits::Sqrt<Output = T>,
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, scale: T, width: T, height: T) -> Orthographic<T> 
     {
-          let w = -g.normalized();
-          let u = Vector3::cross(t, w).normalized();
-          let v = Vector3::cross(w, u);
+        let w = -g.normalized();
+        let u = Vector3::cross(t, w).normalized();
+        let v = Vector3::cross(w, u);
 
         let aspect_ratio = width/height;
 
@@ -52,7 +52,7 @@ impl<T> RaytracingCamera<T> for Orthographic<T> where
     T: ops::Neg<Output = T>,
     T: traits::Sqrt<Output = T>,
     T: traits::Half,
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     fn ray_for(&self, x: T, y: T) -> ParametricLine<Point3<T>, Vector3<T>> {
         let d = -self.w;
@@ -85,7 +85,7 @@ impl<T> Perspective<T> where
     T: ops::Neg<Output = T>,
     T: traits::Sqrt<Output = T>,
     T: traits::Half,
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, vertical_field_of_view: angle::Radians<T>, width: T, height: T) -> Perspective<T> {
         let w = -g.normalized();
@@ -108,7 +108,7 @@ impl<T> RaytracingCamera<T> for Perspective<T> where
     T: traits::Half,
     T: traits::Tan<Output = T>,
     T: ops::Neg<Output = T>,
-    T: Clone + Copy,
+    T: Clone + Copy + Default,
 {
     fn ray_for(&self, x: T, y: T ) -> ParametricLine<Point3<T>, Vector3<T>> {
         let o = self.e;
