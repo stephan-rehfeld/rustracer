@@ -292,4 +292,3 @@ impl<T: traits::ToRadians> traits::ToRadians for Degrees<T> {
         Radians::new( self.value.to_radians() )
     }
 }
-

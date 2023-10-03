@@ -1,10 +1,11 @@
 use std::ops;
 
-use crate::math::Vector3;
-use crate::math::Point3;
-
 use super::Intersect;
 use super::ParametricLine;
+
+use crate::math::Point3;
+use crate::math::Vector3;
+use crate::traits::Zero;
 
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct ImplicitPlane3<T> {
@@ -25,11 +26,10 @@ impl<T> ImplicitPlane3<T> {
     }
 }
 
-
 impl<T> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>> where
     T: Clone + Copy,
     Vector3<T> : ops::Mul,
-    <Vector3<T> as ops::Mul>::Output: PartialEq + Default,
+    <Vector3<T> as ops::Mul>::Output: PartialEq + Zero,
     Point3<T>: ops::Sub,
     <Point3<T> as ops::Sub>::Output: ops::Mul<Vector3<T>>,
     <<Point3<T> as ops::Sub>::Output as ops::Mul<Vector3<T>>>::Output: ops::Div<<Vector3<T> as ops::Mul>::Output>
@@ -37,7 +37,7 @@ impl<T> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>> w
     type Output = Vec<<<<Point3<T> as ops::Sub>::Output as ops::Mul<Vector3<T>>>::Output as ops::Div<<Vector3<T> as ops::Mul>::Output>>::Output>;
 
     fn intersect(self, plane: ImplicitPlane3<T>) -> Self::Output {
-        if self.direction * plane.normal == Default::default() {
+        if self.direction * plane.normal == Zero::zero() {
             Vec::new()
         } else {
             vec![((plane.anchor - self.origin) * plane.normal) / (self.direction * plane.normal)]

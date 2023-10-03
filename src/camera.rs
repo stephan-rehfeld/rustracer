@@ -1,11 +1,12 @@
 use std::ops;
-use crate::math::Vector3;
+
 use crate::math::Point3;
+use crate::math::Vector3;
+use crate::math::geometry::ParametricLine;
 use crate::traits;
 use crate::traits::Half;
 use crate::traits::Tan;
 use crate::units::angle;
-use crate::math::geometry::ParametricLine;
 
 pub trait RaytracingCamera<T> {
     fn ray_for(&self, x: T, y: T) -> ParametricLine<Point3<T>, Vector3<T>>;

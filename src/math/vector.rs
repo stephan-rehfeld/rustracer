@@ -1,8 +1,10 @@
 use std::ops;
+
+use super::Point2;
+use super::Point3;
+
 use crate::traits;
 use crate::traits::Sqrt;
-use crate::math::point::Point2;
-use crate::math::point::Point3;
 
 pub trait Vector {
     type ValueType;
@@ -19,6 +21,7 @@ pub trait Orthonormal3<T> {
     fn y_axis() -> Vector3<T>;
     fn z_axis() -> Vector3<T>;
 }
+
 macro_rules! create_vector_type {
     ($name: ident, [$($element: ident)+], $pointType: ident ) => {
         #[derive(Debug,PartialEq,Clone,Copy)]

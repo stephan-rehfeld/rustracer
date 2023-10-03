@@ -1,11 +1,13 @@
 use std::ops;
-use crate::math::vector::Vector2;
-use crate::math::vector::Vector3;
+
+use super::Vector2;
+use super::Vector3;
 
 pub trait Point {
     type ValueType;
     type VectorType;
 }
+
 macro_rules! create_point_type {
     ($name: ident, [$($element: ident)+], $vectorType: ident ) => {
         #[derive(Debug,PartialEq,Clone,Copy)]
@@ -69,7 +71,6 @@ create_point_type! { Point3, [ x y z ], Vector3 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     macro_rules! new_point2 {

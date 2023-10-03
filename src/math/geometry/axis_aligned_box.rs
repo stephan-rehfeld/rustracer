@@ -1,12 +1,13 @@
 use std::ops;
 
+use super::ImplicitPlane3;
 use super::Intersect;
 use super::ParametricLine;
-use super::ImplicitPlane3;
 
-use crate::math::Vector3;
 use crate::math::Orthonormal3;
 use crate::math::Point3;
+use crate::math::Vector3;
+use crate::traits::Zero;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct AxisAlignedBox<P> {
@@ -24,7 +25,7 @@ impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vecto
 where
     T: ops::Neg<Output = T> + Copy + Clone + PartialOrd,
     Vector3<T>: Orthonormal3<T> + ops::Mul,
-    <Vector3<T> as ops::Mul>::Output: ops::Div<Output = T> + PartialEq + Default,
+    <Vector3<T> as ops::Mul>::Output: ops::Div<Output = T> + PartialEq + Zero,
     Point3<T>: ops::Sub<Output = Vector3<T>>,
     Vector3<T>: ops::Mul<T, Output = Vector3<T>>,
     Point3<T>: ops::Add<Vector3<T>, Output = Point3<T>>,

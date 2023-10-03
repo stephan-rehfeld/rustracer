@@ -2,7 +2,9 @@ use std::ops;
 
 use super::Intersect;
 use super::ParametricLine;
+
 use crate::traits::Sqrt; 
+use crate::traits::Zero;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ImplicitNSphere<P,T> {
@@ -38,7 +40,7 @@ where
     <<T as ops::Mul>::Output as ops::Mul>::Output: ops::Add<Output = <<T as ops::Mul>::Output as ops::Mul>::Output>,
     <<T as ops::Mul>::Output as ops::Mul>::Output: ops::Sub<Output = <<T as ops::Mul>::Output as ops::Mul>::Output>,
     <<T as ops::Mul>::Output as ops::Mul>::Output: Sqrt<Output = <T as ops::Mul>::Output>,
-    <<T as ops::Mul>::Output as ops::Mul>::Output: PartialEq + PartialOrd + Default,
+    <<T as ops::Mul>::Output as ops::Mul>::Output: PartialEq + PartialOrd + Zero,
     <T as ops::Mul>::Output: ops::Neg<Output = <T as ops::Mul>::Output>,
     <T as ops::Mul>::Output: ops::Add<Output = <T as ops::Mul>::Output>,
     <T as ops::Mul>::Output: ops::Div,
@@ -57,9 +59,9 @@ where
 
         let helper = b * b - (a * c + a * c + a * c + a * c);
         
-        if helper < Default::default() {
+        if helper < Zero::zero() {
             Vec::new()
-        } else if helper == Default::default() {
+        } else if helper == Zero::zero() {
             vec![ (-b / (a + a) ) ]
         } else {
             let helper = helper.sqrt();
