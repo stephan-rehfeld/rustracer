@@ -41,7 +41,7 @@ fn main() {
     let aab_geometry = Box::new(rustracer::RenderableGeometry::new(aab, color::RGB::new(0.0, 0.0, 1.0)));
     let triangle_geometry = Box::new(rustracer::RenderableGeometry::new(triangle, color::RGB::new(1.0, 1.0, 0.0)));
 
-    let geometries : Vec<Box<dyn rustracer::Geometry<f64>>> = vec![plane_geometry, sphere_geometry];
+    let geometries : Vec<Box<dyn rustracer::Renderable<f64>>> = vec![plane_geometry, sphere_geometry];
 
     let cam = camera::Perspective::new(
         Point3::new(0.0, 2.0, 0.0),
