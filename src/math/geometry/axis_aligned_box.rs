@@ -4,9 +4,9 @@ use super::ImplicitPlane3;
 use super::Intersect;
 use super::ParametricLine;
 
-use crate::math::Orthonormal3;
 use crate::math::Point3;
 use crate::math::Vector3;
+use crate::math::vector::Orthonormal3;
 use crate::traits::Zero;
 
 #[derive(Debug, PartialEq, Clone, Copy)]

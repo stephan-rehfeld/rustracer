@@ -1,5 +1,7 @@
 use std::ops;
 
+use super::Normal2;
+use super::Normal3;
 use super::Point2;
 use super::Point3;
 
@@ -9,6 +11,18 @@ use crate::traits::Sqrt;
 pub trait Vector {
     type ValueType;
     type PointType;
+    type NormalType;
+    
+    fn magnitude(self) -> <<Self::ValueType as ops::Mul>::Output as traits::Sqrt>::Output where
+        <Self as Vector>::ValueType: ops::Mul ,
+        <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt;
+
+    fn normalized(self) -> Self::NormalType where
+        <Self as Vector>::ValueType: ops::Mul,
+        <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt,
+        <Self as Vector>::ValueType: ops::Div,
+        <Self as Vector>::ValueType: ops::Div<<<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output>,
+        <<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone;
 }
 
 pub trait Orthonormal2<T> {
@@ -23,7 +37,7 @@ pub trait Orthonormal3<T> {
 }
 
 macro_rules! create_vector_type {
-    ($name: ident, [$($element: ident)+], $pointType: ident ) => {
+    ($name: ident, [$($element: ident)+], $pointType: ident, $normalType: ident) => {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
             $(
@@ -37,9 +51,37 @@ macro_rules! create_vector_type {
             }
         }
 
-        impl<T> Vector for $name<T> {
+        impl<T> Vector for $name<T> where
+            T: ops::Mul,
+            <T as ops::Mul>::Output: traits::Sqrt,
+            T: ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>,
+            T: Copy + Clone,
+            <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
+            <T as ops::Mul>::Output: Default,
+
+        {
             type ValueType = T;
             type PointType = $pointType<T>;
+            type NormalType = $normalType<<T as ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>>::Output>;
+            
+            fn magnitude(self) -> <<Self::ValueType as ops::Mul>::Output as traits::Sqrt>::Output where
+                <Self as Vector>::ValueType: ops::Mul ,
+                <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt
+            {
+                (self * self).sqrt()
+            }
+
+            fn normalized(self) -> Self::NormalType where
+                <Self as Vector>::ValueType: ops::Mul,
+                <Self as Vector>::ValueType: ops::Div,
+                <Self as Vector>::ValueType: ops::Div<<<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output>,
+                <<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone
+            {
+
+                let v = self / self.magnitude();
+                $normalType::new( $( v.$element, )* )
+            }
+
         }
 
         impl<T: ops::Add<U> , U> ops::Add<$name<U>> for $name<T> {
@@ -126,38 +168,11 @@ macro_rules! create_vector_type {
                 $name::new( $(-self.$element, )*)
             }
         }
-
-        impl<T> $name<T> where 
-            T: ops::Mul,
-            <T as ops::Mul>::Output: Default,
-            <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
-            <T as ops::Mul>::Output: traits::Sqrt,
-            T: Copy + Clone,
-        {
-            pub fn magnitude(self) -> <<T as ops::Mul>::Output as traits::Sqrt>::Output {
-                (self * self).sqrt()
-            }
-            
-            pub fn normalize(&mut self) where
-                T: std::ops::DivAssign<<<T as std::ops::Mul>::Output as traits::Sqrt>::Output>,
-                <<T as std::ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone
-            {
-                *self /= self.magnitude();
-            }
-           
-            pub fn normalized(self) -> $name<<T as ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>>::Output> where
-                T: ops::Div,
-                T: ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>,
-                <<T as ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone,
-            {
-                self / self.magnitude()
-            }
-        }
     }
 }
 
-create_vector_type! { Vector2, [x y], Point2 }
-create_vector_type! { Vector3, [x y z], Point3 }
+create_vector_type! { Vector2, [x y], Point2, Normal2 }
+create_vector_type! { Vector3, [x y z], Point3, Normal3 }
 
 impl<T> Vector3<T> {
     pub fn cross(a: Vector3<T>, b: Vector3<T>) -> Vector3<<<T as ops::Mul>::Output as ops::Sub>::Output>
@@ -597,25 +612,6 @@ mod tests {
     vector2_magnitude! { f32, vector2_magnitude_f32 }
     vector2_magnitude! { f64, vector2_magnitude_f64 }
 
-    macro_rules! vector2_normalize {
-        ($type: ty, $name: ident) => {
-            #[test]
-            fn $name() {
-                let mut x_vec = Vector2::new( 2 as $type, 0 as $type );
-                let mut y_vec = Vector2::new( 0 as $type, 3 as $type );
-
-                x_vec.normalize();
-                y_vec.normalize();
-
-                assert_eq!(x_vec.magnitude(), 1 as $type);
-                assert_eq!(y_vec.magnitude(), 1 as $type);
-            }
-        }
-    }
-
-    vector2_normalize! { f32, vector2_normalize_f32 }
-    vector2_normalize! { f64, vector2_normalize_f64 }
-
     macro_rules! vector2_normalized {
         ($type: ty, $name: ident) => {
             #[test]
@@ -623,8 +619,8 @@ mod tests {
                 let x_vec = Vector2::new( 2 as $type, 0 as $type );
                 let y_vec = Vector2::new( 0 as $type, 3 as $type );
 
-                assert_eq!(x_vec.normalized().magnitude(), 1 as $type);
-                assert_eq!(y_vec.normalized().magnitude(), 1 as $type);
+                assert_eq!(x_vec.normalized(), Normal2::new(1 as $type, 0 as $type));
+                assert_eq!(y_vec.normalized(), Normal2::new(0 as $type, 1 as $type));
             }
         }
     }
@@ -1025,28 +1021,6 @@ mod tests {
     vector3_magnitude! { f32, vector3_magnitude_f32 }
     vector3_magnitude! { f64, vector3_magnitude_f64 }
 
-    macro_rules! vector3_normalize {
-        ($type: ty, $name: ident) => {
-            #[test]
-            fn $name() {
-                let mut x_vec = Vector3::new( 2 as $type, 0 as $type, 0 as $type );
-                let mut y_vec = Vector3::new( 0 as $type, 3 as $type, 0 as $type );
-                let mut z_vec = Vector3::new( 0 as $type, 0 as $type, 4 as $type );
-
-                x_vec.normalize();
-                y_vec.normalize();
-                z_vec.normalize();
-
-                assert_eq!(x_vec.magnitude(), 1 as $type);
-                assert_eq!(y_vec.magnitude(), 1 as $type);
-                assert_eq!(z_vec.magnitude(), 1 as $type);
-            }
-        }
-    }
-
-    vector3_normalize! { f32, vector3_normalize_f32 }
-    vector3_normalize! { f64, vector3_normalize_f64 }
-
     macro_rules! vector3_normalized {
         ($type: ty, $name: ident) => {
             #[test]
@@ -1055,9 +1029,9 @@ mod tests {
                 let y_vec = Vector3::new( 0 as $type, 3 as $type, 0 as $type );
                 let z_vec = Vector3::new( 0 as $type, 0 as $type, 4 as $type );
 
-                assert_eq!(x_vec.normalized().magnitude(), 1 as $type);
-                assert_eq!(y_vec.normalized().magnitude(), 1 as $type);
-                assert_eq!(z_vec.normalized().magnitude(), 1 as $type);
+                assert_eq!(x_vec.normalized(), Normal3::new( 1 as $type, 0 as $type, 0 as $type ));
+                assert_eq!(y_vec.normalized(), Normal3::new( 0 as $type, 1 as $type, 0 as $type ));
+                assert_eq!(z_vec.normalized(), Normal3::new( 0 as $type, 0 as $type, 1 as $type ));
             }
         }
     }

@@ -9,7 +9,6 @@ pub use normal::Normal2;
 pub use normal::Normal3;
 pub use point::Point2;
 pub use point::Point3;
-pub use vector::Orthonormal3;
-pub use vector::Orthonormal2;
+pub use vector::Vector;
 pub use vector::Vector2;
 pub use vector::Vector3;

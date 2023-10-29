@@ -1,5 +1,8 @@
 use std::ops;
 
+use crate::math::Vector2;
+use crate::math::Vector3;
+
 pub trait Orthonormal2<T> {
     fn x_axis() -> Normal2<T>;
     fn y_axis() -> Normal2<T>;
@@ -12,7 +15,7 @@ pub trait Orthonormal3<T> {
 }
 
 macro_rules! create_normal_type {
-    ($name: ident, [$($element: ident)+] ) => {
+    ($name: ident, [$($element: ident)+], $vectorType: ident ) => {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
             $(
@@ -23,6 +26,10 @@ macro_rules! create_normal_type {
         impl<T> $name<T> {
             pub fn new( $( $element: T, )*) -> $name<T> {
                 $name { $( $element, )* }
+            }
+
+            pub fn as_vector(self) -> $vectorType<T> {
+                $vectorType::new( $( self.$element, )* )
             }
         }
 
@@ -38,11 +45,19 @@ macro_rules! create_normal_type {
                 $(self.$element * rhs.$element + )* Default::default()
             }
         }
+
+        impl<T: ops::Neg> ops::Neg for $name<T> {
+            type Output = $name<<T as ops::Neg>::Output>;
+
+            fn neg(self) -> Self::Output {
+                $name::new( $(-self.$element, )*)
+            }
+        }
     }
 }
 
-create_normal_type! { Normal2, [x y] }
-create_normal_type! { Normal3, [x y z] }
+create_normal_type! { Normal2, [x y], Vector2 }
+create_normal_type! { Normal3, [x y z], Vector3 }
 
 macro_rules! impl_orthonormal2_for {
     ($($type: ty)* ) => ($(
@@ -135,7 +150,28 @@ mod tests {
     dot_product_normal2! { i128, dot_product_normal2_i128 }
     dot_product_normal2! { f32, dot_product_normal2_f32 }
     dot_product_normal2! { f64, dot_product_normal2_f64 }
-    
+
+    macro_rules! normal2_neg {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let n1 = Normal2::new( 1 as $type, 2 as $type);
+                let n2 = -n1;
+
+                assert_eq!(n2.x, -1 as $type);
+                assert_eq!(n2.y, -2 as $type);
+            }
+        }
+    }
+
+    normal2_neg! { i8, normal2_neg_i8 }
+    normal2_neg! { i16, normal2_neg_i16 }
+    normal2_neg! { i32, normal2_neg_i32 }
+    normal2_neg! { i64, normal2_neg_i64 }
+    normal2_neg! { i128, normal2_neg_i128 }
+    normal2_neg! { f32, normal2_neg_f32 }
+    normal2_neg! { f64, normal2_neg_f64 }
+
     macro_rules! new_normal3 {
         ($type: ty, $name: ident) => {
             #[test]
@@ -193,4 +229,26 @@ mod tests {
     dot_product_normal3! { i128, dot_product_normal3_i128 }
     dot_product_normal3! { f32, dot_product_normal3_f32 }
     dot_product_normal3! { f64, dot_product_normal3_f64 }
+
+    macro_rules! normal3_neg {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let n1 = Normal3::new( 1 as $type, 2 as $type, -3 as $type);
+                let n2 = -n1;
+
+                assert_eq!(n2.x, -1 as $type);
+                assert_eq!(n2.y, -2 as $type);
+                assert_eq!(n2.z, 3 as $type);
+            }
+        }
+    }
+
+    normal3_neg! { i8, normal3_neg_i8 }
+    normal3_neg! { i16, normal3_neg_i16 }
+    normal3_neg! { i32, normal3_neg_i32 }
+    normal3_neg! { i64, normal3_neg_i64 }
+    normal3_neg! { i128, normal3_neg_i128 }
+    normal3_neg! { f32, normal3_neg_f32 }
+    normal3_neg! { f64, normal3_neg_f64 }
 }

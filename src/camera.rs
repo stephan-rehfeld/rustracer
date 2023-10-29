@@ -1,6 +1,7 @@
 use std::ops;
 
 use crate::math::Point3;
+use crate::math::Vector;
 use crate::math::Vector3;
 use crate::math::geometry::ParametricLine;
 use crate::traits;
@@ -34,8 +35,8 @@ impl<T> Orthographic<T> where
 {
     pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, scale: T, width: T, height: T) -> Orthographic<T> 
     {
-        let w = -g.normalized();
-        let u = Vector3::cross(t, w).normalized();
+        let w = -g.normalized().as_vector();
+        let u = Vector3::cross(t, w).normalized().as_vector();
         let v = Vector3::cross(w, u);
 
         let aspect_ratio = width/height;
@@ -89,8 +90,8 @@ impl<T> Perspective<T> where
     T: Clone + Copy + Default,
 {
     pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, vertical_field_of_view: angle::Radians<T>, width: T, height: T) -> Perspective<T> {
-        let w = -g.normalized();
-        let u = Vector3::cross(t, w).normalized();
+        let w = -g.normalized().as_vector();
+        let u = Vector3::cross(t, w).normalized().as_vector();
         let v = Vector3::cross(w, u);
 
         let vertical_field_of_view = vertical_field_of_view.half();
@@ -119,7 +120,7 @@ impl<T> RaytracingCamera<T> for Perspective<T> where
         let c = (y - self.height.half()) * self.v;
 
         let r = a + b + c; 
-        let d = r.normalized();
+        let d = r.normalized().as_vector();
 
         ParametricLine::new(o, d)
     }
