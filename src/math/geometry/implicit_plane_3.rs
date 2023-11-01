@@ -3,9 +3,9 @@ use std::ops;
 use super::Intersect;
 use super::ParametricLine;
 
-use crate::math::vector::DotProduct;
 use crate::math::Point3;
 use crate::math::Vector3;
+use crate::math::vector::DotProduct;
 use crate::traits::Zero;
 
 #[derive(Debug,PartialEq,Clone,Copy)]

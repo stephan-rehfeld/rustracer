@@ -3,8 +3,8 @@ use std::ops;
 use super::Intersect;
 use super::ParametricLine;
 
+use crate::math::Point;
 use crate::math::Vector;
-use crate::math::point::Point;
 use crate::math::vector::DotProduct;
 use crate::traits::Sqrt; 
 use crate::traits::Zero;
