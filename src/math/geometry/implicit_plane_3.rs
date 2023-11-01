@@ -3,6 +3,7 @@ use std::ops;
 use super::Intersect;
 use super::ParametricLine;
 
+use crate::math::vector::DotProduct;
 use crate::math::Point3;
 use crate::math::Vector3;
 use crate::traits::Zero;
@@ -18,29 +19,27 @@ impl<T> ImplicitPlane3<T> {
         ImplicitPlane3 { anchor, normal }
     }
 
-    pub fn test<U>(self, p: Point3<U>) -> <Vector3<<U as ops::Sub<T>>::Output> as ops::Mul<Vector3<T>>>::Output 
-    where
+    pub fn test<U>(self, p: Point3<U>) -> <<U as ops::Sub<T>>::Output as ops::Mul<T>>::Output where
         U: ops::Sub<T>,
-        Vector3<<U as ops::Sub<T>>::Output>: ops::Mul<Vector3<T>>  {
-        (p - self.anchor) * self.normal
+        <U as ops::Sub<T>>::Output: ops::Mul<T> + Copy + Clone,
+        <<U as ops::Sub<T>>::Output as ops::Mul<T>>::Output: ops::Add<Output=<<U as ops::Sub<T>>::Output as ops::Mul<T>>::Output> + Zero,
+    {
+        (p - self.anchor).dot(self.normal)
     }
 }
 
 impl<T> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>> where
-    T: Clone + Copy,
-    Vector3<T> : ops::Mul,
-    <Vector3<T> as ops::Mul>::Output: PartialEq + Zero,
-    Point3<T>: ops::Sub,
-    <Point3<T> as ops::Sub>::Output: ops::Mul<Vector3<T>>,
-    <<Point3<T> as ops::Sub>::Output as ops::Mul<Vector3<T>>>::Output: ops::Div<<Vector3<T> as ops::Mul>::Output>
-    {
-    type Output = Vec<<<<Point3<T> as ops::Sub>::Output as ops::Mul<Vector3<T>>>::Output as ops::Div<<Vector3<T> as ops::Mul>::Output>>::Output>;
+    T: ops::Mul + Clone + Copy,
+    <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output> + ops::Div +  PartialEq + Zero,
+    Point3<T>: ops::Sub<Output=Vector3<T>>,
+{
+    type Output = Vec<<<T as ops::Mul>::Output as ops::Div>::Output>;
 
     fn intersect(self, plane: ImplicitPlane3<T>) -> Self::Output {
-        if self.direction * plane.normal == Zero::zero() {
+        if self.direction.dot(plane.normal) == Zero::zero() {
             Vec::new()
         } else {
-            vec![((plane.anchor - self.origin) * plane.normal) / (self.direction * plane.normal)]
+            vec![  (plane.anchor - self.origin).dot(plane.normal) / self.direction.dot(plane.normal)]
         }
     }
 }

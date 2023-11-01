@@ -3,59 +3,50 @@ use std::ops;
 use super::Intersect;
 use super::ParametricLine;
 
+use crate::math::Vector;
+use crate::math::point::Point;
+use crate::math::vector::DotProduct;
 use crate::traits::Sqrt; 
 use crate::traits::Zero;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct ImplicitNSphere<P,T> {
+pub struct ImplicitNSphere<P> where P: Point, <P as Point>::ValueType: Copy + Clone + PartialEq + std::fmt::Debug {
     center: P,
-    radius: T,
+    radius: <P as Point>::ValueType,
 }
 
-impl<P, T> ImplicitNSphere<P, T> {
-    pub fn new(center: P, radius: T) -> ImplicitNSphere<P, T> {
+impl<P> ImplicitNSphere<P> where P: Point, <P as Point>::ValueType: Copy + Clone + PartialEq + std::fmt::Debug {
+    pub fn new(center: P, radius: <P as Point>::ValueType) -> ImplicitNSphere<P> {
         ImplicitNSphere { center, radius }
     }
 
-    pub fn test(self, point: P) -> <<<P as ops::Sub>::Output as ops::Mul>::Output as ops::Sub<<T as ops::Mul>::Output>>::Output where 
+    pub fn test(self, point: P) -> <<P as Point>::ValueType as ops::Mul>::Output  where 
         P: ops::Sub,
-        <P as ops::Sub>::Output: ops::Mul + Copy + Clone,
-        T: ops::Mul + Copy + Clone,
-        <<P as ops::Sub>::Output as ops::Mul>::Output: ops::Sub<<T as ops::Mul>::Output>,
+        <P as ops::Sub>::Output: DotProduct<<P as ops::Sub>::Output, ValueType=<P as Point>::ValueType > + Copy + Clone,
+        <P as Point>::ValueType: ops::Mul,
+        <<P as Point>::ValueType as ops::Mul>::Output: ops::Sub<Output=<<P as Point>::ValueType as ops::Mul>::Output>,
     {
         let d = point - self.center;
-        d * d - self.radius * self.radius
+        d.dot(d) - self.radius * self.radius
     }
 }
 
-impl<P, V, T> Intersect<ImplicitNSphere<P, T>> for ParametricLine<P, V>
+impl<P, V> Intersect<ImplicitNSphere<P>> for ParametricLine<P, V>
 where
-    V: ops::Mul,
-    P: ops::Sub<Output = V>,
-    V: ops::Add<Output = V>,
-    T: ops::Mul,
-    V: ops::Mul<Output = <T as ops::Mul>::Output>,
-    <T as ops::Mul>::Output: ops::Sub<Output = <T as ops::Mul>::Output>,
-    <T as ops::Mul>::Output: ops::Mul,
-    <<T as ops::Mul>::Output as ops::Mul>::Output: ops::Add<Output = <<T as ops::Mul>::Output as ops::Mul>::Output>,
-    <<T as ops::Mul>::Output as ops::Mul>::Output: ops::Sub<Output = <<T as ops::Mul>::Output as ops::Mul>::Output>,
-    <<T as ops::Mul>::Output as ops::Mul>::Output: Sqrt<Output = <T as ops::Mul>::Output>,
-    <<T as ops::Mul>::Output as ops::Mul>::Output: PartialEq + PartialOrd + Zero,
-    <T as ops::Mul>::Output: ops::Neg<Output = <T as ops::Mul>::Output>,
-    <T as ops::Mul>::Output: ops::Add<Output = <T as ops::Mul>::Output>,
-    <T as ops::Mul>::Output: ops::Div,
-    P: Clone + Copy,
-    V: Clone + Copy,
-    T: Clone + Copy,
-    <T as ops::Mul>::Output: Clone + Copy,
-    <<T as ops::Mul>::Output as ops::Mul>::Output: Clone + Copy, 
+    V: DotProduct<V> + ops::Add<Output=V> + Copy + Clone,
+    <V as Vector>::ValueType: ops::Mul + Copy + Clone,
+    <<V as Vector>::ValueType as ops::Mul>::Output: ops::Sub< <<P as Point>::ValueType as ops::Mul>::Output  ,Output=<<V as Vector>::ValueType as ops::Mul>::Output> +  ops::Sub<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + ops::Div + ops::Mul + ops::Neg<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + ops::Add<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + Copy + Clone,
+    <<<V as Vector>::ValueType as ops::Mul>::Output as ops::Mul>::Output: ops::Add<Output=<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Mul>::Output> + ops::Sub<Output=<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Mul>::Output> + PartialOrd + PartialEq + Zero + Sqrt<Output=<<V as Vector>::ValueType as ops::Mul>::Output>,
+    P: Point,
+    <P as Point>::ValueType: ops::Mul + Copy + Clone + PartialEq + std::fmt::Debug,
+    P: ops::Sub<Output=V> + Copy + Clone,
 {
-    type Output = Vec<<<T as ops::Mul>::Output as ops::Div>::Output>;
+    type Output = Vec<<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Div>::Output>;
 
-    fn intersect(self, sphere: ImplicitNSphere<P, T>) -> Self::Output {
-        let a = self.direction * self.direction;
-        let b = self.direction * ((self.origin - sphere.center) + (self.origin - sphere.center));
-        let c = (self.origin - sphere.center) * (self.origin - sphere.center) - sphere.radius * sphere.radius;
+    fn intersect(self, sphere: ImplicitNSphere<P>) -> Self::Output {
+        let a = self.direction.dot(self.direction);
+        let b = self.direction.dot((self.origin - sphere.center) + (self.origin - sphere.center));
+        let c = (self.origin - sphere.center).dot(self.origin - sphere.center) - sphere.radius * sphere.radius;
 
         let helper = b * b - (a * c + a * c + a * c + a * c);
         

@@ -4,7 +4,6 @@ use rustracer::math::geometry::ImplicitNSphere;
 use rustracer::math::geometry::ImplicitPlane3;
 use rustracer::math::geometry::AxisAlignedBox;
 use rustracer::math::geometry::Triangle;
-use rustracer::math::geometry::Intersect;
 use rustracer::units::angle;
 use rustracer::camera;
 use rustracer::camera::RaytracingCamera;
@@ -31,9 +30,9 @@ fn main() {
     );
 
     let triangle = Triangle::new(
-        Point3::new(-1.0, 1.0, -3.0),
-        Point3::new(1.0, 1.0, -3.0),
-        Point3::new(1.0, -1.0, -3.0)
+        Point3::new(-3.0, 3.0, -3.0),
+        Point3::new(-1.0, 3.0, -3.0),
+        Point3::new(-1.0, 1.0, -3.0)
     );
 
     let plane_geometry = Box::new(rustracer::RenderableGeometry::new(plane, color::RGB::new(1.0, 0.0, 0.0)));
@@ -41,10 +40,10 @@ fn main() {
     let aab_geometry = Box::new(rustracer::RenderableGeometry::new(aab, color::RGB::new(0.0, 0.0, 1.0)));
     let triangle_geometry = Box::new(rustracer::RenderableGeometry::new(triangle, color::RGB::new(1.0, 1.0, 0.0)));
 
-    let geometries : Vec<Box<dyn rustracer::Renderable<f64>>> = vec![plane_geometry, sphere_geometry];
+    let geometries : Vec<Box<dyn rustracer::Renderable<f64>>> = vec![plane_geometry, aab_geometry, sphere_geometry, triangle_geometry];
 
     let cam = camera::Perspective::new(
-        Point3::new(0.0, 2.0, 0.0),
+        Point3::new(0.0, 2.0, 5.0),
         Vector3::new(0.0, 0.0, -1.0),
         Vector3::new(0.0, 1.0, 0.0),
         angle::Degrees::<f64>::new(90.0).to_radians(),
@@ -66,15 +65,8 @@ fn main() {
             let (_, color) = hits[0];
             *pixel = image::Rgb([(color.red * 255.0) as u8, (color.green * 255.0) as u8, (color.blue * 255.0) as u8,]);
         }
-
-        let intersects = ray.intersect(sphere);
-         
-        if intersects.len() != 0 {
-        } else {
-        }
     }
 
     imgbuf.save("output.png").unwrap();
-
     println!("Hello, world!");
 }

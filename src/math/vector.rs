@@ -7,22 +7,35 @@ use super::Point3;
 
 use crate::traits;
 use crate::traits::Sqrt;
+use crate::traits::Zero;
 
 pub trait Vector {
     type ValueType;
     type PointType;
+}
+
+pub trait NormalizableVector : Vector {
     type NormalType;
-    
+
     fn magnitude(self) -> <<Self::ValueType as ops::Mul>::Output as traits::Sqrt>::Output where
         <Self as Vector>::ValueType: ops::Mul ,
-        <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt;
+        <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=< <Self as Vector>::ValueType as ops::Mul>::Output>,
+        <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt + traits::Zero;
 
     fn normalized(self) -> Self::NormalType where
         <Self as Vector>::ValueType: ops::Mul,
-        <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt,
-        <Self as Vector>::ValueType: ops::Div,
+        <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt + traits::Zero,
+        <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=< <Self as Vector>::ValueType as ops::Mul>::Output>,
         <Self as Vector>::ValueType: ops::Div<<<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output>,
         <<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone;
+}
+
+
+pub trait DotProduct<T> : Vector where
+    T: Vector
+{
+    fn dot(self, v: T) -> <<Self as Vector>::ValueType as ops::Mul<T::ValueType>>::Output where
+        <Self as Vector>::ValueType: ops::Mul<<T as Vector>::ValueType>;
 }
 
 pub trait Orthonormal2<T> {
@@ -51,29 +64,42 @@ macro_rules! create_vector_type {
             }
         }
 
-        impl<T> Vector for $name<T> where
-            T: ops::Mul,
-            <T as ops::Mul>::Output: traits::Sqrt,
-            T: ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>,
-            T: Copy + Clone,
-            <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
-            <T as ops::Mul>::Output: Default,
-
+        impl<T, U> DotProduct<$name<U>> for $name<T> where
+            T: ops::Mul<U>,
+            <T as ops::Mul<U>>::Output: ops::Add<Output=<T as ops::Mul<U>>::Output> + Zero
         {
+            fn dot(self, v: $name<U>) -> <T as ops::Mul<U>>::Output where
+                T: ops::Mul<U>,
+            {
+                $(self.$element * v.$element + )* Zero::zero()
+            }
+        }
+
+        impl<T> Vector for $name<T> {
             type ValueType = T;
             type PointType = $pointType<T>;
+        }
+
+        impl<T> NormalizableVector for $name<T> where
+            T: ops::Mul,
+            T: Copy + Clone,
+            T: ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>,
+            <T as ops::Mul>::Output: traits::Sqrt,
+{
             type NormalType = $normalType<<T as ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>>::Output>;
-            
+
             fn magnitude(self) -> <<Self::ValueType as ops::Mul>::Output as traits::Sqrt>::Output where
                 <Self as Vector>::ValueType: ops::Mul ,
-                <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt
+                <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=< <Self as Vector>::ValueType as ops::Mul>::Output>,
+                <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt + traits::Zero
             {
-                (self * self).sqrt()
+                self.dot(self).sqrt()
             }
 
             fn normalized(self) -> Self::NormalType where
                 <Self as Vector>::ValueType: ops::Mul,
-                <Self as Vector>::ValueType: ops::Div,
+                <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Zero,
+                <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=< <Self as Vector>::ValueType as ops::Mul>::Output>,
                 <Self as Vector>::ValueType: ops::Div<<<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output>,
                 <<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone
             {
@@ -81,7 +107,6 @@ macro_rules! create_vector_type {
                 let v = self / self.magnitude();
                 $normalType::new( $( v.$element, )* )
             }
-
         }
 
         impl<T: ops::Add<U> , U> ops::Add<$name<U>> for $name<T> {
@@ -125,19 +150,6 @@ macro_rules! create_vector_type {
 
             fn mul(self, rhs: T) -> Self::Output {
                 $name::new( $( self.$element * rhs, )* )
-            }
-        }
-
-        impl<T> ops::Mul for $name<T> where
-            T: ops::Mul,
-            <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
-            <T as ops::Mul>::Output: Default,
-            T: Copy + Clone
-        {
-            type Output = <T as ops::Mul>::Output;
-
-            fn mul(self, rhs: $name<T>) -> Self::Output {
-                $(self.$element * rhs.$element + )* Default::default()
             }
         }
 
@@ -468,7 +480,7 @@ mod tests {
                 let x_vec1 = Vector2::<$type>::x_axis();
                 let y_vec1 = Vector2::<$type>::y_axis();
 
-                assert_eq!(x_vec1 * y_vec1, 0 as $type);
+                assert_eq!(x_vec1.dot(y_vec1), 0 as $type);
 
                 let x_vec2 = x_vec1 * 2 as $type;
                 let y_vec2 = y_vec1 * 2 as $type;
@@ -476,8 +488,8 @@ mod tests {
                 let x_vec3 = x_vec1 * 3 as $type;
                 let y_vec3 = y_vec1 * 3 as $type;
 
-                assert_eq!(x_vec2 * x_vec3, 6 as $type); 
-                assert_eq!(y_vec2 * y_vec3, 6 as $type); 
+                assert_eq!(x_vec2.dot(x_vec3), 6 as $type);
+                assert_eq!(y_vec2.dot(y_vec3), 6 as $type);
             }
         }
     }
@@ -869,9 +881,9 @@ mod tests {
                 let y_vec1 = Vector3::<$type>::y_axis();
                 let z_vec1 = Vector3::<$type>::z_axis();
 
-                assert_eq!(x_vec1 * y_vec1, 0 as $type);
-                assert_eq!(x_vec1 * z_vec1, 0 as $type);
-                assert_eq!(y_vec1 * z_vec1, 0 as $type);
+                assert_eq!(x_vec1.dot(y_vec1), 0 as $type);
+                assert_eq!(x_vec1.dot(z_vec1), 0 as $type);
+                assert_eq!(y_vec1.dot(z_vec1), 0 as $type);
 
                 let x_vec2 = x_vec1 * 2 as $type;
                 let y_vec2 = y_vec1 * 2 as $type;
@@ -881,9 +893,9 @@ mod tests {
                 let y_vec3 = y_vec1 * 3 as $type;
                 let z_vec3 = x_vec1 * 3 as $type;
 
-                assert_eq!(x_vec2 * x_vec3, 6 as $type); 
-                assert_eq!(y_vec2 * y_vec3, 6 as $type); 
-                assert_eq!(z_vec2 * z_vec3, 6 as $type); 
+                assert_eq!(x_vec2.dot(x_vec3), 6 as $type);
+                assert_eq!(y_vec2.dot(y_vec3), 6 as $type);
+                assert_eq!(z_vec2.dot(z_vec3), 6 as $type);
             }
         }
     }

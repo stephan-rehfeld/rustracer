@@ -2,6 +2,7 @@ use std::ops;
 
 use crate::math::Vector2;
 use crate::math::Vector3;
+use crate::traits::Zero;
 
 pub trait Orthonormal2<T> {
     fn x_axis() -> Normal2<T>;
@@ -31,18 +32,14 @@ macro_rules! create_normal_type {
             pub fn as_vector(self) -> $vectorType<T> {
                 $vectorType::new( $( self.$element, )* )
             }
-        }
 
-        impl<T> ops::Mul for $name<T> where
-            T: ops::Mul,
-            <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output>,
-            <T as ops::Mul>::Output: Default,
-            T: Copy + Clone
-        {
-            type Output = <T as ops::Mul>::Output;
-
-            fn mul(self, rhs: $name<T>) -> Self::Output {
-                $(self.$element * rhs.$element + )* Default::default()
+            pub fn dot<U>(a: $name<T>, b: $name<U>) -> <T as ops::Mul<U>>::Output where
+                T: ops::Mul<U>,
+                <T as ops::Mul<U>>::Output: ops::Add<Output=<T as ops::Mul<U>>::Output>,
+                <T as ops::Mul<U>>::Output: Zero,
+                T: Copy + Clone
+            {
+                $(a.$element * b.$element + )* Zero::zero()
             }
         }
 
@@ -131,9 +128,9 @@ mod tests {
                 let x_norm = Normal2::<$type>::x_axis();
                 let y_norm = Normal2::<$type>::y_axis();
 
-                assert_eq!(x_norm * y_norm, 0 as $type);
-                assert_eq!(x_norm * x_norm, 1 as $type);
-                assert_eq!(y_norm * y_norm, 1 as $type);
+                assert_eq!(Normal2::dot(x_norm, y_norm), 0 as $type);
+                assert_eq!(Normal2::dot(x_norm, x_norm), 1 as $type);
+                assert_eq!(Normal2::dot(y_norm, y_norm), 1 as $type);
             }
         }
     }
@@ -206,13 +203,13 @@ mod tests {
                 let y_norm = Normal3::<$type>::y_axis();
                 let z_norm = Normal3::<$type>::z_axis();
 
-                assert_eq!(x_norm * y_norm, 0 as $type);
-                assert_eq!(x_norm * z_norm, 0 as $type);
-                assert_eq!(y_norm * z_norm, 0 as $type);
+                assert_eq!(Normal3::dot(x_norm, y_norm), 0 as $type);
+                assert_eq!(Normal3::dot(x_norm, z_norm), 0 as $type);
+                assert_eq!(Normal3::dot(y_norm, z_norm), 0 as $type);
 
-                assert_eq!(x_norm * x_norm, 1 as $type);
-                assert_eq!(y_norm * y_norm, 1 as $type);
-                assert_eq!(z_norm * z_norm, 1 as $type);
+                assert_eq!(Normal3::dot(x_norm, x_norm), 1 as $type);
+                assert_eq!(Normal3::dot(y_norm, y_norm), 1 as $type);
+                assert_eq!(Normal3::dot(z_norm, z_norm), 1 as $type);
             }
         }
     }

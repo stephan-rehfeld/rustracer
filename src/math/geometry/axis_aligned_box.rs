@@ -21,15 +21,15 @@ impl<P> AxisAlignedBox<P> {
     }
 }
 
-impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>>
-where
-    T: ops::Neg<Output = T> + Copy + Clone + PartialOrd,
-    Vector3<T>: Orthonormal3<T> + ops::Mul,
-    <Vector3<T> as ops::Mul>::Output: ops::Div<Output = T> + PartialEq + Zero,
-    Point3<T>: ops::Sub<Output = Vector3<T>>,
+impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>> where
+    T: ops::Neg<Output = T> + ops::Mul + Clone + Copy + PartialOrd,
+    <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output> + ops::Div<Output=T> +  PartialEq + Zero,
+    Point3<T>: ops::Sub<Output=Vector3<T>>,
+    Vector3<T>: Orthonormal3<T>,
     Vector3<T>: ops::Mul<T, Output = Vector3<T>>,
     Point3<T>: ops::Add<Vector3<T>, Output = Point3<T>>,
-    {
+{
+
     type Output = Vec<T>;
 
     fn intersect(self, aab: AxisAlignedBox<Point3<T>>) -> Self::Output {
