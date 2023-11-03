@@ -34,10 +34,9 @@ macro_rules! create_normal_type {
             }
 
             pub fn dot<U>(a: $name<T>, b: $name<U>) -> <T as ops::Mul<U>>::Output where
-                T: ops::Mul<U>,
+                T: ops::Mul<U> + Copy + Clone,
                 <T as ops::Mul<U>>::Output: ops::Add<Output=<T as ops::Mul<U>>::Output>,
                 <T as ops::Mul<U>>::Output: Zero,
-                T: Copy + Clone
             {
                 $(a.$element * b.$element + )* Zero::zero()
             }

@@ -29,9 +29,9 @@ impl<T> Intersect<Triangle<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>>
         T: ops::Mul,
         <<T as ops::Mul>::Output as ops::Mul<T>>::Output: PartialEq<T>,
         <T as ops::Mul>::Output: ops::Mul<T>,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Add< Output = <<T as ops::Mul>::Output as ops::Mul<T>>::Output >,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Sub< Output = <<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Div<Output = T>,
+        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Add<Output=<<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
+        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Sub<Output=<<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
+        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Div<Output=T>,
         <<T as ops::Mul>::Output as ops::Mul<T>>::Output: Copy + Clone,
         T: Copy + Clone + PartialOrd
 {

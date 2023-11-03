@@ -43,17 +43,15 @@ impl<T> Mat3x3<T> {
                      self.m31, self.m32, v.z )
     }
 
-    pub fn determinant(self) -> <<T as ops::Mul>::Output as ops::Mul<T>>::Output 
-        where
-        T: ops::Mul,
+    pub fn determinant(self) -> <<T as ops::Mul>::Output as ops::Mul<T>>::Output where
+        T: ops::Mul + Copy + Clone,
         <T as ops::Mul>::Output: ops::Mul<T>,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Add< Output = <<T as ops::Mul>::Output as ops::Mul<T>>::Output >,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Sub< Output = <<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
-        T: Copy + Clone
-        {
-            self.m11 * self.m22 * self.m33 + self.m12 * self.m23 * self.m31 + self.m13 * self.m21 * self.m32 - self.m31 * self.m22 * self.m13 - self.m32 * self.m23 * self.m11 - self.m33 * self.m21 * self.m12    
-        }
+        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Add<Output=<<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
+        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Sub<Output=<<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
+    {
+        self.m11 * self.m22 * self.m33 + self.m12 * self.m23 * self.m31 + self.m13 * self.m21 * self.m32 - self.m31 * self.m22 * self.m13 - self.m32 * self.m23 * self.m11 - self.m33 * self.m21 * self.m12    
     }
+}
 
 #[cfg(test)]
 mod tests {

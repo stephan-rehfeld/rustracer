@@ -17,17 +17,9 @@ pub trait Vector {
 pub trait NormalizableVector : Vector {
     type NormalType;
 
-    fn magnitude(self) -> <<Self::ValueType as ops::Mul>::Output as traits::Sqrt>::Output where
-        <Self as Vector>::ValueType: ops::Mul ,
-        <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=< <Self as Vector>::ValueType as ops::Mul>::Output>,
-        <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt + traits::Zero;
+    fn magnitude(self) -> Self::ValueType;
 
-    fn normalized(self) -> Self::NormalType where
-        <Self as Vector>::ValueType: ops::Mul,
-        <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt + traits::Zero,
-        <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=< <Self as Vector>::ValueType as ops::Mul>::Output>,
-        <Self as Vector>::ValueType: ops::Div<<<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output>,
-        <<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone;
+    fn normalized(self) -> Self::NormalType;
 }
 
 
@@ -81,29 +73,18 @@ macro_rules! create_vector_type {
         }
 
         impl<T> NormalizableVector for $name<T> where
-            T: ops::Mul,
-            T: Copy + Clone,
-            T: ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>,
-            <T as ops::Mul>::Output: traits::Sqrt,
+            T: ops::Mul + ops::Div + Copy + Clone,
+            <T as ops::Mul>::Output: traits::Sqrt<Output=T> + ops::Add<Output=<T as ops::Mul>::Output> + Zero
         {
-            type NormalType = $normalType<<T as ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>>::Output>;
+            type NormalType = $normalType<<T as ops::Div>::Output>;
 
-            fn magnitude(self) -> <<Self::ValueType as ops::Mul>::Output as traits::Sqrt>::Output where
-                <Self as Vector>::ValueType: ops::Mul ,
-                <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=< <Self as Vector>::ValueType as ops::Mul>::Output>,
-                <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Sqrt + traits::Zero
+            fn magnitude(self) -> Self::ValueType
             {
                 self.dot(self).sqrt()
             }
 
-            fn normalized(self) -> Self::NormalType where
-                <Self as Vector>::ValueType: ops::Mul,
-                <<Self as Vector>::ValueType as ops::Mul>::Output: traits::Zero,
-                <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=< <Self as Vector>::ValueType as ops::Mul>::Output>,
-                <Self as Vector>::ValueType: ops::Div<<<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output>,
-                <<<Self as Vector>::ValueType as ops::Mul>::Output as traits::Sqrt>::Output: Copy + Clone
+            fn normalized(self) -> Self::NormalType
             {
-
                 let v = self / self.magnitude();
                 $normalType::new( $( v.$element, )* )
             }
