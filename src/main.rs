@@ -10,9 +10,6 @@ use rustracer::camera::RaytracingCamera;
 use rustracer::traits::ToRadians;
 use rustracer::color;
 
-
-use rustracer::units::length::Meter;
-
 fn main() {
     let width = 640;
     let height = 480;
@@ -72,22 +69,4 @@ fn main() {
 
     imgbuf.save("output.png").unwrap();
     println!("Hello, world!");
-
-    let a = Meter::new( 2.0 );
-    let b = Meter::new( 3.0 );
-    let c = Meter::new( 4.0 );
-
-    let area = a * b;
-    let volume = area * c;
-
-    let area2 = volume / a;
-    let length2 = area2 / b;
-
-    println!("a = {}", a);
-    println!("b = {}", b);
-    println!("c = {}", c);
-    println!("area = {}", area);
-    println!("volume = {}", volume);
-    println!("area2 = {}", area2);
-    println!("length2 = {}", length2);
 }

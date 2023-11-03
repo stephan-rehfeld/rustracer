@@ -85,7 +85,7 @@ macro_rules! create_vector_type {
             T: Copy + Clone,
             T: ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>,
             <T as ops::Mul>::Output: traits::Sqrt,
-{
+        {
             type NormalType = $normalType<<T as ops::Div<<<T as ops::Mul>::Output as traits::Sqrt>::Output>>::Output>;
 
             fn magnitude(self) -> <<Self::ValueType as ops::Mul>::Output as traits::Sqrt>::Output where
@@ -145,10 +145,10 @@ macro_rules! create_vector_type {
             }
         }
 
-        impl<T: ops::Mul + Clone + Copy> ops::Mul<T> for $name<T> {
-            type Output = $name<<T as ops::Mul>::Output>;
+        impl<T: ops::Mul<U>, U: Copy + Clone> ops::Mul<U> for $name<T> {
+            type Output = $name<<T as ops::Mul<U>>::Output>;
 
-            fn mul(self, rhs: T) -> Self::Output {
+            fn mul(self, rhs: U) -> Self::Output {
                 $name::new( $( self.$element * rhs, )* )
             }
         }
