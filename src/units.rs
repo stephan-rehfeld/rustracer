@@ -4,8 +4,11 @@ use std::marker::PhantomData;
 
 use crate::traits;
 
-pub mod prefix;
 pub mod angle;
+pub mod area;
+pub mod length;
+pub mod prefix;
+pub mod volume;
 
 pub trait Unit {
     const UNIT: &'static str; 
