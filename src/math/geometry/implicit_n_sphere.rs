@@ -50,18 +50,8 @@ where
     <<V as Vector>::ValueType as ops::Div>::Output: Copy + Clone,
     P: Point + ops::Add<V, Output=P> + ops::Sub<Output=V> + Copy + Clone,
     <P as Point>::ValueType: ops::Mul<Output=<V as DotProduct>::Output> + std::fmt::Debug + PartialEq + Copy + Clone,
-
-/*    V: DotProduct<V> + ops::Add<Output=V> + Copy + Clone,
-    <V as Vector>::ValueType: ops::Mul + Copy + Clone,
-    <<V as Vector>::ValueType as ops::Mul>::Output: ops::Sub< <<P as Point>::ValueType as ops::Mul>::Output  ,Output=<<V as Vector>::ValueType as ops::Mul>::Output> +  ops::Sub<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + ops::Div + ops::Mul + ops::Neg<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + ops::Add<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + Copy + Clone,
-    <<<V as Vector>::ValueType as ops::Mul>::Output as ops::Mul>::Output: ops::Add<Output=<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Mul>::Output> + ops::Sub<Output=<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Mul>::Output> + PartialOrd + PartialEq + Zero + Sqrt<Output=<<V as Vector>::ValueType as ops::Mul>::Output>,
-    P: Point,
-    <P as Point>::ValueType: ops::Mul + Copy + Clone + PartialEq + std::fmt::Debug,
-    P: ops::Sub<Output=V> + Copy + Clone,*/
 {
-    //type Output = Vec<<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Div>::Output>;
     type Output = Vec< (<<V as Vector>::ValueType as ops::Div>::Output, <V as NormalizableVector>::NormalType) >;
- //   type Output = Vec<<<V as Vector>::ValueType as ops::Div>::Output >;
 
     fn intersect(self, sphere: ImplicitNSphere<P>) -> Self::Output {
         let a = self.direction.dot(self.direction);
@@ -100,6 +90,7 @@ mod tests {
     use super::*;
 
     use crate::math::Vector3;
+    use crate::math::Normal3;
     use crate::math::Point3;
 
     macro_rules! new_implicit_3_sphere {
@@ -183,8 +174,8 @@ mod tests {
                 );
 
                 assert_eq!(ray1.intersect(sphere), Vec::new());
-                assert_eq!(ray2.intersect(sphere), vec![3 as $type]);
-                assert_eq!(ray3.intersect(sphere), vec![1 as $type, 5 as $type]);
+                assert_eq!(ray2.intersect(sphere), vec![(3 as $type, Normal3::new(0 as $type, 1 as $type, 0 as $type))]);
+                assert_eq!(ray3.intersect(sphere), vec![(1 as $type, Normal3::new(0 as $type, 0 as $type, 1 as $type)), (5 as $type, Normal3::new(0 as $type, 0 as $type, -1 as $type))]);
             }
         }
     }

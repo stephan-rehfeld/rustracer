@@ -1,7 +1,7 @@
 use rustracer::math::Normal3;
 use rustracer::math::Vector3;
 use rustracer::math::Point3;
-//use rustracer::math::geometry::ImplicitNSphere;
+use rustracer::math::geometry::ImplicitNSphere;
 use rustracer::math::geometry::ImplicitPlane3;
 use rustracer::math::geometry::AxisAlignedBox;
 //use rustracer::math::geometry::Triangle;
@@ -20,10 +20,10 @@ fn main() {
         Normal3::new(0.0, 1.0, 0.0)
     );
 
-/*    let sphere = ImplicitNSphere::new(
+    let sphere = ImplicitNSphere::new(
         Point3::new(0.0, 2.0, -4.0),
         1.0
-    );*/
+    );
 
     let aab = AxisAlignedBox::new(
         Point3::new(-0.5, -0.5, -0.5),
@@ -37,11 +37,11 @@ fn main() {
     );
 */
     let plane_geometry = Box::new(rustracer::RenderableGeometry::new(plane, color::RGB::new(1.0, 0.0, 0.0)));
-//    let sphere_geometry = Box::new(rustracer::RenderableGeometry::new(sphere, color::RGB::new(0.0, 1.0, 0.0)));
+    let sphere_geometry = Box::new(rustracer::RenderableGeometry::new(sphere, color::RGB::new(0.0, 1.0, 0.0)));
     let aab_geometry = Box::new(rustracer::RenderableGeometry::new(aab, color::RGB::new(0.0, 0.0, 1.0)));
 //    let triangle_geometry = Box::new(rustracer::RenderableGeometry::new(triangle, color::RGB::new(1.0, 1.0, 0.0)));
 
-    let geometries : Vec<Box<dyn rustracer::Renderable<f64>>> = vec![plane_geometry, aab_geometry, /*sphere_geometry, triangle_geometry*/];
+    let geometries : Vec<Box<dyn rustracer::Renderable<f64>>> = vec![plane_geometry, aab_geometry, sphere_geometry, /*triangle_geometry*/];
 
     let cam = camera::Perspective::new(
         Point3::new(0.0, 2.0, 5.0),
