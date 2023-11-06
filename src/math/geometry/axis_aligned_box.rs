@@ -4,9 +4,11 @@ use super::ImplicitPlane3;
 use super::Intersect;
 use super::ParametricLine;
 
+use crate::math::Normal3;
+use crate::math::NormalizableVector;
 use crate::math::Point3;
 use crate::math::Vector3;
-use crate::math::vector::Orthonormal3;
+use crate::math::normal::Orthonormal3;
 use crate::traits::Zero;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -22,31 +24,35 @@ impl<P> AxisAlignedBox<P> {
 }
 
 impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>> where
-    T: ops::Neg<Output = T> + ops::Mul + Clone + Copy + PartialOrd,
-    <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output> + ops::Div<Output=T> +  PartialEq + Zero,
+    T: ops::Mul + ops::Div + ops::Add<Output=T> + Copy + Clone + PartialOrd,
+    <T as ops::Div>::Output: ops::Neg<Output=<T as ops::Div>::Output> + std::fmt::Debug + PartialEq + Clone + Copy,
+    <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output> + ops::Div +  PartialEq + Zero,
     Point3<T>: ops::Sub<Output=Vector3<T>>,
-    Vector3<T>: Orthonormal3<T>,
-    Vector3<T>: ops::Mul<T, Output = Vector3<T>>,
-    Point3<T>: ops::Add<Vector3<T>, Output = Point3<T>>,
-{
+    <T as ops::Mul<<T as ops::Div>::Output>>::Output: PartialEq,
+    T: ops::Mul<<T as ops::Div>::Output, Output=T>,
+    <T as ops::Mul< <T as ops::Div>::Output >>::Output: ops::Add<Output=<T as ops::Mul< <T as ops::Div>::Output  >>::Output> + Zero,
 
-    type Output = Vec<T>;
+    Normal3<<T as ops::Div>::Output>: Orthonormal3<<T as ops::Div>::Output>,
+    
+{
+    type Output = Vec<(<<T as ops::Mul<<T as ops::Div>::Output>>::Output as ops::Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)>;
 
     fn intersect(self, aab: AxisAlignedBox<Point3<T>>) -> Self::Output {
-        let left = ImplicitPlane3::new( aab.a, -Vector3::<T>::x_axis());
-        let lower = ImplicitPlane3::new( aab.a, -Vector3::<T>::y_axis());
-        let far = ImplicitPlane3::new( aab.a, -Vector3::<T>::z_axis());
+        let left = ImplicitPlane3::new( aab.a, -Normal3::x_axis());
+        let lower = ImplicitPlane3::new( aab.a, -Normal3::y_axis());
+        let far = ImplicitPlane3::new( aab.a, -Normal3::z_axis());
 
-        let right = ImplicitPlane3::new( aab.b, Vector3::<T>::x_axis());
-        let upper = ImplicitPlane3::new( aab.b, Vector3::<T>::y_axis());
-        let near = ImplicitPlane3::new( aab.b, Vector3::<T>::z_axis());
+        let right = ImplicitPlane3::new( aab.b, Normal3::x_axis());
+        let upper = ImplicitPlane3::new( aab.b, Normal3::y_axis());
+        let near = ImplicitPlane3::new( aab.b, Normal3::z_axis());
 
-        let mut results: Vec<T> = Vec::new();
+
+        let mut results: Vec<(<<T as ops::Mul<<T as ops::Div>::Output>>::Output as ops::Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)> = Vec::new();
 
         let t = self.intersect(left);
 
         if t.len() > 0 {
-            let p = self.at(t[0]);
+            let p = self.at(t[0].0);
 
             if p.y > aab.a.y && p.y < aab.b.y &&
                p.z > aab.a.z && p.z < aab.b.z {
@@ -57,7 +63,7 @@ impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vecto
         let t = self.intersect(right);
 
         if t.len() > 0 {
-            let p = self.at(t[0]);
+            let p = self.at(t[0].0);
 
             if p.y > aab.a.y && p.y < aab.b.y &&
                p.z > aab.a.z && p.z < aab.b.z {
@@ -68,7 +74,7 @@ impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vecto
         let t = self.intersect(lower);
 
         if t.len() > 0 {
-            let p = self.at(t[0]);
+            let p = self.at(t[0].0);
 
             if p.x > aab.a.x && p.x < aab.b.x &&
                p.z > aab.a.z && p.z < aab.b.z {
@@ -79,7 +85,7 @@ impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vecto
         let t = self.intersect(upper);
 
         if t.len() > 0 {
-            let p = self.at(t[0]);
+            let p = self.at(t[0].0);
 
             if p.x > aab.a.x && p.x < aab.b.x &&
                p.z > aab.a.z && p.z < aab.b.z {
@@ -90,7 +96,7 @@ impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vecto
         let t = self.intersect(near);
 
         if t.len() > 0 {
-            let p = self.at(t[0]);
+            let p = self.at(t[0].0);
 
             if p.x > aab.a.x && p.x < aab.b.x &&
                p.y > aab.a.z && p.y < aab.b.y {
@@ -101,7 +107,7 @@ impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vecto
         let t = self.intersect(far);
 
         if t.len() > 0 {
-            let p = self.at(t[0]);
+            let p = self.at(t[0].0);
 
             if p.x > aab.a.x && p.x < aab.b.x &&
                p.y > aab.a.z && p.y < aab.b.y {
@@ -169,8 +175,8 @@ mod tests {
                     Point3::new(2 as $type, 2 as $type, 2 as $type)
                 );
 
-                assert_eq!(ray1.intersect(aab), vec![3 as $type, 7 as $type]);
-                assert_eq!(ray2.intersect(aab), vec![5 as $type, 9 as $type]);
+                assert_eq!(ray1.intersect(aab), vec![(3 as $type, Normal3::z_axis()), (7 as $type, -Normal3::<$type>::z_axis())]);
+                assert_eq!(ray2.intersect(aab), vec![(5 as $type, Normal3::z_axis()), (9 as $type, -Normal3::<$type>::z_axis())]);
                 assert_eq!(ray3.intersect(aab), Vec::new());
             }
         }

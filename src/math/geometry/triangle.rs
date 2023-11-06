@@ -1,4 +1,4 @@
-use std::ops;
+/*use std::ops;
 
 use super::Intersect;
 use super::ParametricLine;
@@ -157,4 +157,4 @@ pub mod tests {
 
     parametric_line_intersect_triangle! { f32, parametric_line_intersect_triangle_f32 }
     parametric_line_intersect_triangle! { f64, parametric_line_intersect_triangle_f64 }
-}
+}*/

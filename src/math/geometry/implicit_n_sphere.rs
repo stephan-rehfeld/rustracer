@@ -6,6 +6,7 @@ use super::ParametricLine;
 use crate::math::Point;
 use crate::math::Vector;
 use crate::math::vector::DotProduct;
+use crate::math::vector::NormalizableVector;
 use crate::traits::Sqrt; 
 use crate::traits::Zero;
 
@@ -22,7 +23,7 @@ impl<P> ImplicitNSphere<P> where P: Point, <P as Point>::ValueType: Copy + Clone
 
     pub fn test(self, point: P) -> <<P as Point>::ValueType as ops::Mul>::Output  where 
         P: ops::Sub,
-        <P as ops::Sub>::Output: DotProduct<<P as ops::Sub>::Output, ValueType=<P as Point>::ValueType > + Copy + Clone,
+        <P as ops::Sub>::Output: DotProduct<Output= <<P as Point>::ValueType as ops::Mul>::Output> + Copy + Clone,
         <P as Point>::ValueType: ops::Mul,
         <<P as Point>::ValueType as ops::Mul>::Output: ops::Sub<Output=<<P as Point>::ValueType as ops::Mul>::Output>,
     {
@@ -33,15 +34,34 @@ impl<P> ImplicitNSphere<P> where P: Point, <P as Point>::ValueType: Copy + Clone
 
 impl<P, V> Intersect<ImplicitNSphere<P>> for ParametricLine<P, V>
 where
-    V: DotProduct<V> + ops::Add<Output=V> + Copy + Clone,
+    V: NormalizableVector + DotProduct + ops::Add<Output=V> + ops::Mul<<<V as Vector>::ValueType as ops::Div>::Output, Output=V>+ Copy + Clone,
+    <V as Vector>::ValueType: ops::Div + ops::Mul + Copy + Clone, 
+    <<V as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + Sqrt<Output=<V as Vector>::ValueType> + Zero, 
+    <V as DotProduct>::Output: ops::Add<Output=<V as DotProduct>::Output> +
+                               ops::Sub<Output=<V as DotProduct>::Output> +
+                               ops::Mul +
+                               ops::Neg<Output= <V as DotProduct>::Output> +
+                               ops::Div<Output=<<V as Vector>::ValueType as ops::Div>::Output> + Copy + Clone,
+
+    <<V as DotProduct>::Output as ops::Mul>::Output: ops::Add<Output=<<V as DotProduct>::Output as ops::Mul>::Output> +
+                                                     ops::Sub<Output=<<V as DotProduct>::Output as ops::Mul>::Output> +
+                                                     Sqrt<Output=<V as DotProduct>::Output> +
+                                                     Zero + PartialEq + PartialOrd + Copy + Clone, 
+    <<V as Vector>::ValueType as ops::Div>::Output: Copy + Clone,
+    P: Point + ops::Add<V, Output=P> + ops::Sub<Output=V> + Copy + Clone,
+    <P as Point>::ValueType: ops::Mul<Output=<V as DotProduct>::Output> + std::fmt::Debug + PartialEq + Copy + Clone,
+
+/*    V: DotProduct<V> + ops::Add<Output=V> + Copy + Clone,
     <V as Vector>::ValueType: ops::Mul + Copy + Clone,
     <<V as Vector>::ValueType as ops::Mul>::Output: ops::Sub< <<P as Point>::ValueType as ops::Mul>::Output  ,Output=<<V as Vector>::ValueType as ops::Mul>::Output> +  ops::Sub<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + ops::Div + ops::Mul + ops::Neg<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + ops::Add<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + Copy + Clone,
     <<<V as Vector>::ValueType as ops::Mul>::Output as ops::Mul>::Output: ops::Add<Output=<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Mul>::Output> + ops::Sub<Output=<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Mul>::Output> + PartialOrd + PartialEq + Zero + Sqrt<Output=<<V as Vector>::ValueType as ops::Mul>::Output>,
     P: Point,
     <P as Point>::ValueType: ops::Mul + Copy + Clone + PartialEq + std::fmt::Debug,
-    P: ops::Sub<Output=V> + Copy + Clone,
+    P: ops::Sub<Output=V> + Copy + Clone,*/
 {
-    type Output = Vec<<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Div>::Output>;
+    //type Output = Vec<<<<V as Vector>::ValueType as ops::Mul>::Output as ops::Div>::Output>;
+    type Output = Vec< (<<V as Vector>::ValueType as ops::Div>::Output, <V as NormalizableVector>::NormalType) >;
+ //   type Output = Vec<<<V as Vector>::ValueType as ops::Div>::Output >;
 
     fn intersect(self, sphere: ImplicitNSphere<P>) -> Self::Output {
         let a = self.direction.dot(self.direction);
@@ -53,10 +73,24 @@ where
         if helper < Zero::zero() {
             Vec::new()
         } else if helper == Zero::zero() {
-            vec![ (-b / (a + a) ) ]
+            let t = -b / (a + a);
+            let p = self.at(t);
+            let n = (p - sphere.center).normalized();
+
+            vec![ (t,n) ]
         } else {
             let helper = helper.sqrt();
-            vec![ ((-b - helper) / (a + a) ), ((-b + helper) / (a + a) ) ]
+
+            let t1 = (-b - helper) / (a + a);
+            let t2 = (-b + helper) / (a + a); 
+
+            let p1 = self.at(t1);
+            let p2 = self.at(t2);
+
+            let n1 = (p1 - sphere.center).normalized();
+            let n2 = (p2 - sphere.center).normalized();
+
+            vec![ (t1,n1), (t2,n2) ]
         }
     }
 }

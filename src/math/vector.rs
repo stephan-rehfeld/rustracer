@@ -17,17 +17,22 @@ pub trait Vector {
 pub trait NormalizableVector : Vector {
     type NormalType;
 
-    fn magnitude(self) -> Self::ValueType;
+    fn magnitude(self) -> Self::ValueType where
+        <Self as Vector>::ValueType: ops::Mul + Copy + Clone,
+        <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<Self as Vector>::ValueType as ops::Mul>::Output> + traits::Sqrt<Output=<Self as Vector>::ValueType> + Zero;
 
-    fn normalized(self) -> Self::NormalType;
+    fn normalized(self) -> Self::NormalType where
+        <Self as Vector>::ValueType: ops::Mul + Copy + Clone,
+        <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<Self as Vector>::ValueType as ops::Mul>::Output> + traits::Sqrt<Output=<Self as Vector>::ValueType> + Zero;
 }
 
 
-pub trait DotProduct<T> : Vector where
+pub trait DotProduct<T=Self> : Vector where
     T: Vector
 {
-    fn dot(self, v: T) -> <<Self as Vector>::ValueType as ops::Mul<T::ValueType>>::Output where
-        <Self as Vector>::ValueType: ops::Mul<<T as Vector>::ValueType>;
+    type Output;
+
+    fn dot(self, v: T) -> Self::Output;
 }
 
 pub trait Orthonormal2<T> {
@@ -60,9 +65,9 @@ macro_rules! create_vector_type {
             T: ops::Mul<U>,
             <T as ops::Mul<U>>::Output: ops::Add<Output=<T as ops::Mul<U>>::Output> + Zero
         {
-            fn dot(self, v: $name<U>) -> <T as ops::Mul<U>>::Output where
-                T: ops::Mul<U>,
-            {
+            type Output = <T as ops::Mul<U>>::Output;
+
+            fn dot(self, v: $name<U>) -> Self::Output {
                 $(self.$element * v.$element + )* Zero::zero()
             }
         }
@@ -73,17 +78,21 @@ macro_rules! create_vector_type {
         }
 
         impl<T> NormalizableVector for $name<T> where
-            T: ops::Mul + ops::Div + Copy + Clone,
-            <T as ops::Mul>::Output: traits::Sqrt<Output=T> + ops::Add<Output=<T as ops::Mul>::Output> + Zero
+            T: ops::Div + ops::Mul + Copy + Clone,
         {
             type NormalType = $normalType<<T as ops::Div>::Output>;
 
-            fn magnitude(self) -> Self::ValueType
+            fn magnitude(self) -> Self::ValueType where
+                <Self as Vector>::ValueType: ops::Mul + Copy + Clone,
+                <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<Self as Vector>::ValueType as ops::Mul>::Output> + traits::Sqrt<Output=<Self as Vector>::ValueType> + Zero
             {
                 self.dot(self).sqrt()
             }
 
-            fn normalized(self) -> Self::NormalType
+            fn normalized(self) -> Self::NormalType where
+                <Self as Vector>::ValueType: ops::Mul + Copy + Clone,
+                <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<Self as Vector>::ValueType as ops::Mul>::Output> + traits::Sqrt<Output=<Self as Vector>::ValueType> + Zero
+
             {
                 let v = self / self.magnitude();
                 $normalType::new( $( v.$element, )* )
