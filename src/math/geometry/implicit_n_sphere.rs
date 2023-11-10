@@ -42,7 +42,6 @@ where
                                ops::Mul +
                                ops::Neg<Output= <V as DotProduct>::Output> +
                                ops::Div<Output=<<V as Vector>::ValueType as ops::Div>::Output> + Copy + Clone,
-
     <<V as DotProduct>::Output as ops::Mul>::Output: ops::Add<Output=<<V as DotProduct>::Output as ops::Mul>::Output> +
                                                      ops::Sub<Output=<<V as DotProduct>::Output as ops::Mul>::Output> +
                                                      Sqrt<Output=<V as DotProduct>::Output> +

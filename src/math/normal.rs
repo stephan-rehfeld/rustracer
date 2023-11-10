@@ -49,6 +49,17 @@ macro_rules! create_normal_type {
                 $name::new( $(-self.$element, )*)
             }
         }
+
+        impl<T, U> ops::Mul<U> for $name<T> where
+            T: ops::Mul<U>,
+            U: Copy + Clone,
+        {
+            type Output = $vectorType<<T as ops::Mul<U>>::Output>;
+
+            fn mul(self, rhs: U) -> Self::Output {
+                $vectorType::new( $( self.$element * rhs, )* )
+            }
+        }
     }
 }
 
@@ -168,6 +179,26 @@ mod tests {
     normal2_neg! { f32, normal2_neg_f32 }
     normal2_neg! { f64, normal2_neg_f64 }
 
+    macro_rules! normal2_mul {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let n = Normal2::new(1 as $type, 2 as $type);
+                let v = n * (2 as $type);
+
+                assert_eq!(v, Vector2::new(2 as $type, 4 as $type));
+            }
+        }
+    }
+
+    normal2_mul! { i8, normal2_mul_i8 }
+    normal2_mul! { i16, normal2_mul_i16 }
+    normal2_mul! { i32, normal2_mul_i32 }
+    normal2_mul! { i64, normal2_mul_i64 }
+    normal2_mul! { i128, normal2_mul_i128 }
+    normal2_mul! { f32, normal2_mul_f32 }
+    normal2_mul! { f64, normal2_mul_f64 }
+
     macro_rules! new_normal3 {
         ($type: ty, $name: ident) => {
             #[test]
@@ -247,4 +278,24 @@ mod tests {
     normal3_neg! { i128, normal3_neg_i128 }
     normal3_neg! { f32, normal3_neg_f32 }
     normal3_neg! { f64, normal3_neg_f64 }
+
+    macro_rules! normal3_mul {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let n = Normal3::new(1 as $type, 2 as $type, 3 as $type);
+                let v = n * (2 as $type);
+
+                assert_eq!(v, Vector3::new(2 as $type, 4 as $type, 6 as $type));
+            }
+        }
+    }
+
+    normal3_mul! { i8, normal3_mul_i8 }
+    normal3_mul! { i16, normal3_mul_i16 }
+    normal3_mul! { i32, normal3_mul_i32 }
+    normal3_mul! { i64, normal3_mul_i64 }
+    normal3_mul! { i128, normal3_mul_i128 }
+    normal3_mul! { f32, normal3_mul_f32 }
+    normal3_mul! { f64, normal3_mul_f64 }
 }
