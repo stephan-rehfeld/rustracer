@@ -1,21 +1,15 @@
-use std::ops;
+use std::fmt::Debug;
+use std::ops::{Add, Div, Neg, Mul, Sub};
 
-use super::Intersect;
-use super::ParametricLine;
+use super::{Intersect, ParametricLine};
 
-use crate::math::Mat3x3;
-use crate::math::Point;
-use crate::math::Point3;
-use crate::math::NormalizableVector;
-use crate::math::Vector3;
-use crate::traits::One;
-use crate::traits::Zero;
-use crate::traits::Sqrt;
+use crate::math::{Mat3x3, NormalizableVector, Point, Point3, Vector3};
+use crate::traits::{One, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Triangle<T: Point> where
     <T as Point>::VectorType: NormalizableVector,
-    <<T as Point>::VectorType as NormalizableVector>::NormalType: PartialEq + Copy + std::fmt::Debug,
+    <<T as Point>::VectorType as NormalizableVector>::NormalType: PartialEq + Copy + Debug,
 {
     a: T,
     b: T,
@@ -27,7 +21,7 @@ pub struct Triangle<T: Point> where
 
 impl<T: Point> Triangle<T> where
     <T as Point>::VectorType: NormalizableVector,
-    <<T as Point>::VectorType as NormalizableVector>::NormalType: PartialEq + Copy + std::fmt::Debug,
+    <<T as Point>::VectorType as NormalizableVector>::NormalType: PartialEq + Copy + Debug,
 {
     pub fn new(a: T, b: T, c: T, na: <<T as Point>::VectorType as NormalizableVector>::NormalType, nb: <<T as Point>::VectorType as NormalizableVector>::NormalType, nc: <<T as Point>::VectorType as NormalizableVector>::NormalType ) -> Triangle<T> {
         Triangle { a, b, c, na, nb, nc }
@@ -35,36 +29,28 @@ impl<T: Point> Triangle<T> where
 }
 
 impl<T> Intersect<Triangle<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>> where
-        <T as ops::Div>::Output: ops::Add<Output=<T as ops::Div>::Output>
-                               + ops::Sub<Output=<T as ops::Div>::Output>
-                               + ops::Mul<Output=<T as ops::Div>::Output>
-                               + ops::Div<Output=<T as ops::Div>::Output>
-                               + ops::Neg<Output=<T as ops::Div>::Output>
-                               + Sqrt<Output=<T as ops::Div>::Output>
-                               + PartialOrd
-                               + One
-                               + Zero
-                               + Copy
-                               + std::fmt::Debug
-                               + PartialEq,
-        T: ops::Sub< Output = T> + ops::Mul + ops::Div + Copy ,
-        <T as ops::Mul>::Output: ops::Mul<T>,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Add<Output=<<T as ops::Mul>::Output as ops::Mul<T>>::Output>
-                                                        + ops::Sub<Output=<<T as ops::Mul>::Output as ops::Mul<T>>::Output>
-                                                        + ops::Div<Output=<T as ops::Div>::Output>,
-/*        <<<T as ops::Mul>::Output as ops::Mul<T>>::Output as ops::Div>::Output: ops::Add<Output=<<<T as ops::Mul>::Output as ops::Mul<T>>::Output as ops::Div>::Output>
-                                                                              + ops::Sub<Output=<<<T as ops::Mul>::Output as ops::Mul<T>>::Output as ops::Div>::Output>
-                                                                              + ops::Neg<Output=<<<T as ops::Mul>::Output as ops::Mul<T>>::Output as ops::Div>::Output>
-
-                                                                              + PartialOrd
-                                                                              + One
-                                                                              + Zero
-                                                                              + Copy,*/
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: Zero 
-                                                        + PartialEq 
-                                                        + Copy, 
+        <T as Div>::Output: Add<Output=<T as Div>::Output>
+                          + Sub<Output=<T as Div>::Output>
+                          + Mul<Output=<T as Div>::Output>
+                          + Div<Output=<T as Div>::Output>
+                          + Neg<Output=<T as Div>::Output>
+                          + Sqrt<Output=<T as Div>::Output>
+                          + One
+                          + Zero
+                          + Debug
+                          + PartialOrd
+                          + Copy
+                          + PartialEq,
+        T: Sub< Output = T> + Mul + Div + Copy ,
+        <T as Mul>::Output: Mul<T>,
+        <<T as Mul>::Output as Mul<T>>::Output: Add<Output=<<T as Mul>::Output as Mul<T>>::Output>
+                                              + Sub<Output=<<T as Mul>::Output as Mul<T>>::Output>
+                                              + Div<Output=<T as Div>::Output>,
+        <<T as Mul>::Output as Mul<T>>::Output: Zero 
+                                              + PartialEq 
+                                              + Copy, 
 {
-    type Output = Vec<(<T as ops::Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)>; 
+    type Output = Vec<(<T as Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)>; 
 
     fn intersect(self, triangle: Triangle<Point3<T>>) -> Self::Output 
         {

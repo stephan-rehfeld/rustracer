@@ -1,13 +1,9 @@
-use std::ops;
+use std::fmt::Debug;
+use std::ops::{Add, Div, Neg, Mul, Sub};
 
-use super::ImplicitPlane3;
-use super::Intersect;
-use super::ParametricLine;
+use super::{ImplicitPlane3, Intersect, ParametricLine};
 
-use crate::math::Normal3;
-use crate::math::NormalizableVector;
-use crate::math::Point3;
-use crate::math::Vector3;
+use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
 use crate::math::normal::Orthonormal3;
 use crate::traits::Zero;
 
@@ -24,18 +20,17 @@ impl<P> AxisAlignedBox<P> {
 }
 
 impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>> where
-    T: ops::Mul + ops::Div + ops::Add<Output=T> + Copy + Clone + PartialOrd,
-    <T as ops::Div>::Output: ops::Neg<Output=<T as ops::Div>::Output> + std::fmt::Debug + PartialEq + Clone + Copy,
-    <T as ops::Mul>::Output: ops::Add<Output=<T as ops::Mul>::Output> + ops::Div +  PartialEq + Zero,
-    Point3<T>: ops::Sub<Output=Vector3<T>>,
-    <T as ops::Mul<<T as ops::Div>::Output>>::Output: PartialEq,
-    T: ops::Mul<<T as ops::Div>::Output, Output=T>,
-    <T as ops::Mul< <T as ops::Div>::Output >>::Output: ops::Add<Output=<T as ops::Mul< <T as ops::Div>::Output  >>::Output> + Zero,
-
-    Normal3<<T as ops::Div>::Output>: Orthonormal3<<T as ops::Div>::Output>,
+    T: Mul + Mul<<T as Div>::Output, Output=T> + Div + Add<Output=T> + Copy + Clone + PartialOrd,
+    T: Mul<<T as Div>::Output, Output=T>,
+    <T as Div>::Output: Neg<Output=<T as Div>::Output> + Debug + PartialEq + Clone + Copy,
+    <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Div +  PartialEq + Zero,
+    <T as Mul<<T as Div>::Output>>::Output: PartialEq,
+    <T as Mul< <T as Div>::Output >>::Output: Add<Output=<T as Mul< <T as Div>::Output  >>::Output> + Zero,
+    Normal3<<T as Div>::Output>: Orthonormal3<<T as Div>::Output>,
+    Point3<T>: Sub<Output=Vector3<T>>,
     
 {
-    type Output = Vec<(<<T as ops::Mul<<T as ops::Div>::Output>>::Output as ops::Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)>;
+    type Output = Vec<(<<T as Mul<<T as Div>::Output>>::Output as Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)>;
 
     fn intersect(self, aab: AxisAlignedBox<Point3<T>>) -> Self::Output {
         let left = ImplicitPlane3::new( aab.a, -Normal3::x_axis());
@@ -47,7 +42,7 @@ impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vecto
         let near = ImplicitPlane3::new( aab.b, Normal3::z_axis());
 
 
-        let mut results: Vec<(<<T as ops::Mul<<T as ops::Div>::Output>>::Output as ops::Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)> = Vec::new();
+        let mut results: Vec<(<<T as Mul<<T as Div>::Output>>::Output as Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)> = Vec::new();
 
         let t = self.intersect(left);
 

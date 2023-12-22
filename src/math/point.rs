@@ -1,7 +1,6 @@
-use std::ops;
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 
-use super::Vector2;
-use super::Vector3;
+use super::{Vector2, Vector3};
 
 pub trait Point {
     type ValueType;
@@ -13,7 +12,7 @@ macro_rules! create_point_type {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
             $(
-            pub(super) $element: T,
+            pub $element: T,
             )*
         }
 
@@ -28,37 +27,37 @@ macro_rules! create_point_type {
             type VectorType = $vectorType<T>;
         }
 
-        impl<T: ops::Add<U>, U> ops::Add<$vectorType<U>> for $name<T> {
-            type Output = $name<<T as ops::Add<U>>::Output>;
+        impl<T: Add<U>, U> Add<$vectorType<U>> for $name<T> {
+            type Output = $name<<T as Add<U>>::Output>;
 
             fn add(self, rhs: $vectorType<U>) -> Self::Output {
                  $name::new($(self.$element + rhs.$element, )*)
             }
         }
 
-        impl<T: ops::AddAssign<U>, U> ops::AddAssign<$vectorType<U>> for $name<T> {
+        impl<T: AddAssign<U>, U> AddAssign<$vectorType<U>> for $name<T> {
             fn add_assign(&mut self, rhs: $vectorType<U>) {
                 $(self.$element += rhs.$element;)*
             }
         }
 
-        impl<T: ops::Sub<U>, U> ops::Sub<$name<U>> for $name<T> {
-            type Output = $vectorType<<T as ops::Sub<U>>::Output>;
+        impl<T: Sub<U>, U> Sub<$name<U>> for $name<T> {
+            type Output = $vectorType<<T as Sub<U>>::Output>;
 
             fn sub(self, rhs: $name<U>) -> Self::Output {
                 $vectorType::new($(self.$element - rhs.$element, )*)
             }
         }
 
-        impl<T: ops::Sub<U>, U> ops::Sub<$vectorType<U>> for $name<T> {
-            type Output = $name<<T as ops::Sub<U>>::Output>;
+        impl<T: Sub<U>, U> Sub<$vectorType<U>> for $name<T> {
+            type Output = $name<<T as Sub<U>>::Output>;
 
             fn sub(self, rhs: $vectorType<U>) -> Self::Output {
                 $name::new($(self.$element - rhs.$element, )*)
             }
         }
 
-        impl<T: ops::SubAssign<U>, U> ops::SubAssign<$vectorType<U>> for $name<T> {
+        impl<T: SubAssign<U>, U> SubAssign<$vectorType<U>> for $name<T> {
             fn sub_assign(&mut self, rhs: $vectorType<U>) {
                 $(self.$element -= rhs.$element;)*
             }

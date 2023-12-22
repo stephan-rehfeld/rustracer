@@ -1,67 +1,66 @@
-use std::ops;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
-use crate::math::NormalizableVector;
-use crate::math::Point3;
-use crate::math::Vector3;
+use crate::math::{NormalizableVector, Point2, Point3, Vector2, Vector3};
 use crate::math::geometry::ParametricLine;
-use crate::traits;
-use crate::traits::Half;
-use crate::traits::Tan;
-use crate::traits::Zero;
-use crate::units::angle;
+use crate::traits::{Half, Sqrt, Tan, Zero};
+use crate::units::angle::Radians;
 
 pub trait RaytracingCamera<T> {
-    fn ray_for(&self, x: T, y: T) -> ParametricLine<Point3<T>, Vector3<T>>;
+    fn size(&self) -> Vector2<T>;
+    fn ray_for(&self, p: Point2<T>) -> ParametricLine<Point3<T>, Vector3<T>>;
 }
 
-pub struct Orthographic<T> where T: ops::Div {
+pub struct Orthographic<T> where T: Div {
     e: Point3<T>,
     u: Vector3<T>,
     v: Vector3<T>,
     w: Vector3<T>,
     scale: T,
-    width: T,
-    height: T,
-    aspect_ratio: <T as ops::Div>::Output,
+    size: Vector2<T>,
+    aspect_ratio: <T as Div>::Output,
 }
 
 impl<T> Orthographic<T> where
-    T: ops::Div<Output = T>,
-    T: ops::Mul<Output = T>,
-    T: ops::Add<Output = T>,
-    T: ops::Sub<Output = T>,
-    T: ops::Neg<Output = T>,
-    T: traits::Sqrt<Output = T>,
+    T: Div<Output = T>,
+    T: Mul<Output = T>,
+    T: Add<Output = T>,
+    T: Sub<Output = T>,
+    T: Neg<Output = T>,
+    T: Sqrt<Output = T>,
     T: Clone + Copy + Zero,
 {
-    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, scale: T, width: T, height: T) -> Orthographic<T> 
+    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, scale: T, size: Vector2<T>) -> Orthographic<T> 
     {
         let w = -g.normalized().as_vector();
         let u = Vector3::cross(t, w).normalized().as_vector();
         let v = Vector3::cross(w, u);
 
-        let aspect_ratio = width/height;
+        let aspect_ratio = size.x/size.y;
 
-        Orthographic { e, u, v, w, scale, width, height, aspect_ratio }
+        Orthographic { e, u, v, w, scale, size, aspect_ratio }
     }
 }
 
 impl<T> RaytracingCamera<T> for Orthographic<T> where
-    T: ops::Div<Output = T>,
-    T: ops::Mul<Vector3<T>, Output=Vector3<T>>,
-    T: ops::Mul<Output = T>,
-    T: ops::Add<Output = T>,
-    T: ops::Sub<Output = T>,
-    T: ops::Neg<Output = T>,
-    T: traits::Sqrt<Output = T>,
-    T: traits::Half,
+    T: Div<Output = T>,
+    T: Mul<Vector3<T>, Output=Vector3<T>>,
+    T: Mul<Output = T>,
+    T: Add<Output = T>,
+    T: Sub<Output = T>,
+    T: Neg<Output = T>,
+    T: Sqrt<Output = T>,
+    T: Half,
     T: Clone + Copy,
 {
-    fn ray_for(&self, x: T, y: T) -> ParametricLine<Point3<T>, Vector3<T>> {
+    fn size(&self) -> Vector2<T> {
+        self.size
+    }
+
+    fn ray_for(&self, p: Point2<T>) -> ParametricLine<Point3<T>, Vector3<T>> {
         let d = -self.w;
 
-        let x = (x - self.width.half()) / self.width;
-        let y = (y - self.height.half()) / self.height;
+        let x = (p.x - self.size.x.half()) / self.size.x;
+        let y = (p.y - self.size.y.half()) / self.size.y;
 
         let o = self.e + self.aspect_ratio * self.scale * x * self.u + self.scale * y * self.v;
 
@@ -74,51 +73,54 @@ pub struct Perspective<T> {
     u: Vector3<T>,
     v: Vector3<T>,
     w: Vector3<T>,
-    vertical_field_of_view: angle::Radians<T>,
-    width: T,
-    height: T 
+    vertical_field_of_view: Radians<T>,
+    size: Vector2<T>
 }
 
 impl<T> Perspective<T> where
-    T: ops::Div<Output = T>,
-    T: ops::Mul<Vector3<T>, Output=Vector3<T>>,
-    T: ops::Mul<Output = T>,
-    T: ops::Add<Output = T>,
-    T: ops::Sub<Output = T>,
-    T: ops::Neg<Output = T>,
-    T: traits::Sqrt<Output = T>,
-    T: traits::Half,
+    T: Div<Output = T>,
+    T: Mul<Vector3<T>, Output=Vector3<T>>,
+    T: Mul<Output = T>,
+    T: Add<Output = T>,
+    T: Sub<Output = T>,
+    T: Neg<Output = T>,
+    T: Sqrt<Output = T>,
+    T: Half,
     T: Clone + Copy + Zero,
 {
-    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, vertical_field_of_view: angle::Radians<T>, width: T, height: T) -> Perspective<T> {
+    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, vertical_field_of_view: Radians<T>, size: Vector2<T>) -> Perspective<T> {
         let w = -g.normalized().as_vector();
         let u = Vector3::cross(t, w).normalized().as_vector();
         let v = Vector3::cross(w, u);
 
         let vertical_field_of_view = vertical_field_of_view.half();
 
-        Perspective { e, u, v, w, vertical_field_of_view, width, height }
+        Perspective { e, u, v, w, vertical_field_of_view, size }
     }
 }
 
 impl<T> RaytracingCamera<T> for Perspective<T> where
-    T: ops::Add<Output = T>,
-    T: ops::Sub<Output = T>,
-    T: ops::Mul<Output = T>,
-    T: ops::Mul<Vector3<T>, Output=Vector3<T>>,
-    T: ops::Div<Output = T>,
-    T: traits::Sqrt<Output = T>,
-    T: traits::Half,
-    T: traits::Tan<Output = T>,
-    T: ops::Neg<Output = T>,
+    T: Add<Output = T>,
+    T: Sub<Output = T>,
+    T: Mul<Output = T>,
+    T: Mul<Vector3<T>, Output=Vector3<T>>,
+    T: Div<Output = T>,
+    T: Sqrt<Output = T>,
+    T: Half,
+    T: Tan<Output = T>,
+    T: Neg<Output = T>,
     T: Clone + Copy + Zero,
 {
-    fn ray_for(&self, x: T, y: T ) -> ParametricLine<Point3<T>, Vector3<T>> {
+    fn size(&self) -> Vector2<T> {
+        self.size
+    }
+
+    fn ray_for(&self, p: Point2<T> ) -> ParametricLine<Point3<T>, Vector3<T>> {
         let o = self.e;
 
-        let a = -self.w * self.height.half()/self.vertical_field_of_view.tan(); 
-        let b = (x - self.width.half()) * self.u;
-        let c = (y - self.height.half()) * self.v;
+        let a = -self.w * self.size.y.half()/self.vertical_field_of_view.tan();
+        let b = (p.x - self.size.x.half()) * self.u;
+        let c = (p.y - self.size.y.half()) * self.v;
 
         let r = a + b + c; 
         let d = r.normalized().as_vector();
@@ -132,6 +134,7 @@ mod tests {
     use super::*;
 
     use crate::traits::ToRadians;
+    use crate::units::angle::Degrees;
 
     macro_rules! new_orthographic {
         ($type: ty, $name: ident) => {
@@ -140,13 +143,14 @@ mod tests {
                 let e = Point3::new( 1 as $type, 2 as $type, 3 as $type );
                 let g = Vector3::new( 0 as $type, 0 as $type, -1 as $type );
                 let t = Vector3::new( 0 as $type, -1 as $type, 0 as $type );
+                let size = Vector2::new( 640.0, 480.0 );
+
                 let orth = Orthographic::new(
                     e,
                     g,
                     t,
                     15.0,
-                    640.0,
-                    480.0
+                    size
                 );
 
                 assert_eq!(orth.e, e);
@@ -155,8 +159,7 @@ mod tests {
                 assert_eq!(orth.w, Vector3::new(0 as $type, 0 as $type, 1 as $type));
 
                 assert_eq!(orth.scale, 15.0);
-                assert_eq!(orth.width, 640.0);
-                assert_eq!(orth.height, 480.0);
+                assert_eq!(orth.size, size);
                 assert_eq!(orth.aspect_ratio, 640.0/480.0);
             }
         }
@@ -172,14 +175,14 @@ mod tests {
                 let e = Point3::new(3 as $type, 2 as $type, 1 as $type);
                 let g = Vector3::new(1 as $type, 0 as $type, 0 as $type);
                 let t = Vector3::new(0 as $type, 1 as $type, 0 as $type);
+                let size = Vector2::new( 640.0, 480.0 );
 
                 let orth = Orthographic::new(
                     e,
                     g,
                     t,
                     480.0,
-                    640.0,
-                    480.0
+                    size
                 );
 
                 let center = ParametricLine::new(e, g);
@@ -188,11 +191,11 @@ mod tests {
                 let lower_right = ParametricLine::new(Point3::new( 3 as $type, -238.0 as $type ,321 as $type), g); 
                 let upper_right = ParametricLine::new(Point3::new( 3 as $type, 242.0 as $type ,321 as $type), g); 
 
-                assert_eq!(orth.ray_for(320.0, 240.0), center);
-                assert_eq!(orth.ray_for(0.0, 480.0), upper_left);
-                assert_eq!(orth.ray_for(0.0, 0.0), lower_left);
-                assert_eq!(orth.ray_for(640.0, 0.0), lower_right);
-                assert_eq!(orth.ray_for(640.0, 480.0), upper_right);
+                assert_eq!(orth.ray_for(Point2::new(320.0, 240.0)), center);
+                assert_eq!(orth.ray_for(Point2::new(0.0, 480.0)), upper_left);
+                assert_eq!(orth.ray_for(Point2::new(0.0, 0.0)), lower_left);
+                assert_eq!(orth.ray_for(Point2::new(640.0, 0.0)), lower_right);
+                assert_eq!(orth.ray_for(Point2::new(640.0, 480.0)), upper_right);
             }
         }
     }
@@ -208,15 +211,15 @@ mod tests {
                 let g = Vector3::new( 0 as $type, 0 as $type, -1 as $type );
                 let t = Vector3::new( 0 as $type, -1 as $type, 0 as $type );
 
-                let fov = angle::Degrees::<$type>::new( 90.0 ).to_radians();
+                let fov = Degrees::<$type>::new( 90.0 ).to_radians();
+                let size = Vector2::new( 640.0, 480.0 );
 
                 let persp = Perspective::new(
                     e,
                     g,
                     t,
                     fov,
-                    640.0,
-                    480.0
+                    size
                 );
 
                 assert_eq!(persp.e, e);
@@ -226,8 +229,7 @@ mod tests {
 
                 assert_eq!(persp.vertical_field_of_view, fov.half());
 
-                assert_eq!(persp.width, 640.0);
-                assert_eq!(persp.height, 480.0);
+                assert_eq!(persp.size, size);
             }
         }
     }
@@ -243,15 +245,15 @@ mod tests {
                 let g = Vector3::new( 0 as $type, 0 as $type, -1 as $type );
                 let t = Vector3::new( 0 as $type, 1 as $type, 0 as $type );
 
-                let fov = angle::Degrees::<$type>::new( 90.0 ).to_radians();
+                let fov = Degrees::<$type>::new( 90.0 ).to_radians();
+                let size = Vector2::new( 640.0, 480.0 );
 
                 let persp = Perspective::new(
                     e,
                     g,
                     t,
                     fov,
-                    640.0,
-                    480.0
+                    size,
                 );
 
                 let center = ParametricLine::new(e, g);
@@ -260,11 +262,11 @@ mod tests {
                 let lower_right = ParametricLine::new(e, Vector3::new( 0.6859943405700354, -0.5144957554275266, -0.5144957554275266));
                 let upper_right = ParametricLine::new(e, Vector3::new( 0.6859943405700354, 0.5144957554275266, -0.5144957554275266));
 
-                assert_eq!(persp.ray_for(320.0, 240.0), center);
-                assert_eq!(persp.ray_for(0.0, 480.0), upper_left);
-                assert_eq!(persp.ray_for(0.0, 0.0), lower_left);
-                assert_eq!(persp.ray_for(640.0, 0.0), lower_right);
-                assert_eq!(persp.ray_for(640.0, 480.0), upper_right);
+                assert_eq!(persp.ray_for(Point2::new(320.0, 240.0)), center);
+                assert_eq!(persp.ray_for(Point2::new(0.0, 480.0)), upper_left);
+                assert_eq!(persp.ray_for(Point2::new(0.0, 0.0)), lower_left);
+                assert_eq!(persp.ray_for(Point2::new(640.0, 0.0)), lower_right);
+                assert_eq!(persp.ray_for(Point2::new(640.0, 480.0)), upper_right);
             }
         }
     }

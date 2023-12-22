@@ -1,44 +1,72 @@
+use std::ops::Index;
 
-#[derive(Debug,PartialEq,Clone,Copy)]
-pub struct RGB<T> {
-    pub red: T,
-    pub green: T,
-    pub blue: T
+pub trait Color : Default + Clone + Copy + PartialEq + Index<usize, Output=Self::ChannelType> {
+    type ChannelType;
+
+    fn clamped(self, min: Self, max: Self) -> Self where <Self as Color>::ChannelType: PartialOrd;
 }
 
-impl<T> RGB<T> {
-    pub fn new(red: T, green: T, blue: T) -> RGB<T> {
-        RGB { red, green, blue }
-    }
-}
+#[macro_export]
+macro_rules! create_color_type {
+    ($name: ident, [$($channel: ident)+]) => {
+        #[derive(Debug,PartialEq,Clone,Copy)]
+        pub struct $name<T> {
+        $(
+            pub $channel: T,
+        )+
+        }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+        impl<T> $name<T> {
+            pub fn new($($channel: T,)+) -> $name<T> {
+                $name { $($channel, )+ }
+            }
+        }
 
-    macro_rules! new_rgb {
-        ($type: ty, $name: ident) => {
-            #[test]
-            fn $name() {
-                let rgb = RGB::new( 1 as $type, 2 as $type, 3 as $type );
+        impl<T: Default> Default for $name<T> {
+            fn default() -> Self {
+                $name { $($channel: Default::default(),)+ }
+            }
+        }
 
-                assert_eq!(rgb.red, 1 as $type);
-                assert_eq!(rgb.green, 2 as $type);
-                assert_eq!(rgb.blue, 3 as $type);
+        impl<T: Copy + Clone + Default + PartialEq> Color for $name<T> {
+            type ChannelType = T;
+
+            fn clamped(self, min: $name<T>, max: $name<T>) -> $name<T> where T: PartialOrd {
+                $(
+                let $channel = if self.$channel < min.$channel {
+                    min.$channel
+                } else {
+                    if self.$channel > max.$channel {
+                        max.$channel
+                    } else {
+                        self.$channel
+                    }
+                
+                };
+                )+
+                $name::new( $($channel,)+ )
+            }
+        }
+
+        impl<T: Eq> Eq for $name<T> {
+        }
+
+        impl<T: Hash> Hash for $name<T> {
+            fn hash<H>(&self, state: &mut H) where H: Hasher {
+                $(
+                self.$channel.hash(state);
+                )+
             }
         }
     }
-
-    new_rgb! { u8, new_rgb_u8 }
-    new_rgb! { u16, new_rgb_u16 }
-    new_rgb! { u32, new_rgb_u32 }
-    new_rgb! { u64, new_rgb_u64 }
-    new_rgb! { u128, new_rgb_u128 }
-    new_rgb! { i8, new_rgb_i8 }
-    new_rgb! { i16, new_rgb_i16 }
-    new_rgb! { i32, new_rgb_i32 }
-    new_rgb! { i64, new_rgb_i64 }
-    new_rgb! { i128, new_rgb_i128 }
-    new_rgb! { f32, new_rgb_f32 }
-    new_rgb! { f64, new_rgb_f64 }
 }
+
+pub mod rgb;
+pub mod rgba;
+pub mod ycbcr;
+pub mod gray;
+
+pub use rgb::RGB;
+pub use rgba::RGBA;
+pub use ycbcr::YCbCr;
+pub use gray::Gray;

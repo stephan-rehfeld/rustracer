@@ -1,13 +1,7 @@
-use crate::traits;
-use crate::traits::Acos;
-use crate::traits::Acosh;
-use crate::traits::Asin;
-use crate::traits::Asinh;
-use crate::traits::Atan;
-use crate::traits::Atan2;
-use crate::traits::Atanh;
+use crate::traits::{Acos, Acosh, Asin, Asinh, Atan, Atan2, Atanh, Cos, Cosh, Sin, SinCos, Sinh, Tan, Tanh, ToRadians, ToDegrees};
+
 use super::ValueWithPrefixAndUnit;
-use super::prefix;
+use super::prefix::None;
 
 #[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
 pub struct DegreesUnit;
@@ -24,122 +18,131 @@ impl super::Unit for RadiansUnit {
 }
 
 
-pub trait Angle<T>: traits::ToDegrees + traits::ToRadians {
-//    fn to_degrees(self) -> Degrees<T>;
-//    fn to_radians(self) -> Radians<T>;
+pub trait Angle<T>: ToDegrees + ToRadians {
 }
 
-pub type Degrees<T> = ValueWithPrefixAndUnit<T, prefix::None, DegreesUnit>;
-pub type Radians<T> = ValueWithPrefixAndUnit<T, prefix::None, RadiansUnit>;
+pub type Degrees<T> = ValueWithPrefixAndUnit<T, None, DegreesUnit>;
+pub type Radians<T> = ValueWithPrefixAndUnit<T, None, RadiansUnit>;
+
+impl<T> Angle<T> for Degrees<T> where
+    T: ToDegrees + ToRadians,
+{
+}
+
+impl<T> Angle<T> for Radians<T> where
+    T: ToDegrees + ToRadians,
+{
+}
+
 
 impl<T> Radians<T> {
-    pub fn acos(v: T) -> Radians<<T as traits::Acos>::Output> where
-        T: traits::Acos
+    pub fn acos(v: T) -> Radians<<T as Acos>::Output> where
+        T: Acos
     {
          Radians::new( v.acos() )
     }
     
-    pub fn acosh(v: T) -> Radians<<T as traits::Acosh>::Output> where
-        T: traits::Acosh
+    pub fn acosh(v: T) -> Radians<<T as Acosh>::Output> where
+        T: Acosh
     {
         Radians::new( v.acosh() )
     }
 
-    pub fn asin(v: T) -> Radians<<T as traits::Asin>::Output> where
-        T: traits::Asin
+    pub fn asin(v: T) -> Radians<<T as Asin>::Output> where
+        T: Asin
     {
         Radians::new( v.asin() )
     }
     
-    pub fn asinh(v: T) -> Radians<<T as traits::Asinh>::Output> where
-        T: traits::Asinh
+    pub fn asinh(v: T) -> Radians<<T as Asinh>::Output> where
+        T: Asinh
     {
         Radians::new( v.asinh() )
     }
 
-    pub fn atan(v: T) -> Radians<<T as traits::Atan>::Output> where
-        T: traits::Atan
+    pub fn atan(v: T) -> Radians<<T as Atan>::Output> where
+        T: Atan
     {
         Radians::new( v.atan() )
     }
 
-    pub fn atan2(v: T, other: T) -> Radians<<T as traits::Atan2>::Output> where
-        T: traits::Atan2
+    pub fn atan2(v: T, other: T) -> Radians<<T as Atan2>::Output> where
+        T: Atan2
     {
         Radians::new( v.atan2(other) )
     }
     
-    pub fn atanh(v: T) -> Radians<<T as traits::Atanh>::Output> where
-        T: traits::Atanh
+    pub fn atanh(v: T) -> Radians<<T as Atanh>::Output> where
+        T: Atanh
     {
         Radians::new( v.atanh() )
     }
 }
 
 impl<T> Degrees<T> {
-    pub fn acos(v: T) -> Degrees<<<T as traits::ToRadians>::Output as traits::Acos>::Output> where
-        T: traits::ToRadians,
-        <T as traits::ToRadians>::Output: traits::Acos
+    pub fn acos(v: T) -> Degrees<<<T as ToRadians>::Output as Acos>::Output> where
+        T: ToRadians,
+        <T as ToRadians>::Output: Acos
     {
         Degrees::new( v.to_radians().acos() )
     }
     
-    pub fn acosh(v: T) -> Degrees<<<T as traits::ToRadians>::Output as traits::Acosh>::Output> where
-        T: traits::ToRadians,
-        <T as traits::ToRadians>::Output: traits::Acosh
+    pub fn acosh(v: T) -> Degrees<<<T as ToRadians>::Output as Acosh>::Output> where
+        T: ToRadians,
+        <T as ToRadians>::Output: Acosh
     {
         Degrees::new( v.to_radians().acosh() )
     }
 
-    pub fn asin(v: T) -> Degrees<<<T as traits::ToRadians>::Output as traits::Asin>::Output> where
-        T: traits::ToRadians,
-        <T as traits::ToRadians>::Output: traits::Asin
+    pub fn asin(v: T) -> Degrees<<<T as ToRadians>::Output as Asin>::Output> where
+        T: ToRadians,
+        <T as ToRadians>::Output: Asin
     {
         Degrees::new( v.to_radians().asin() )
     }
     
-    pub fn asinh(v: T) -> Degrees<<<T as traits::ToRadians>::Output as traits::Asinh>::Output> where
-        T: traits::ToRadians,
-        <T as traits::ToRadians>::Output: traits::Asinh
+    pub fn asinh(v: T) -> Degrees<<<T as ToRadians>::Output as Asinh>::Output> where
+        T: ToRadians,
+        <T as ToRadians>::Output: Asinh
     {
         Degrees::new( v.to_radians().asinh() )
     }
 
-    pub fn atan(v: T) -> Degrees<<<T as traits::ToRadians>::Output as traits::Atan>::Output> where
-        T: traits::ToRadians,
-        <T as traits::ToRadians>::Output: traits::Atan
+    pub fn atan(v: T) -> Degrees<<<T as ToRadians>::Output as Atan>::Output> where
+        T: ToRadians,
+        <T as ToRadians>::Output: Atan
     {
         Degrees::new( v.to_radians().atan() )
     }
 
-    pub fn atan2(v: T, other: <T as traits::ToRadians>::Output) -> Degrees<<<T as traits::ToRadians>::Output as traits::Atan2>::Output> where
-        T: traits::ToRadians,
-        <T as traits::ToRadians>::Output: traits::Atan2
+    pub fn atan2(v: T, other: <T as ToRadians>::Output) -> Degrees<<<T as ToRadians>::Output as Atan2>::Output> where
+        T: ToRadians,
+        <T as ToRadians>::Output: Atan2
     {
         Degrees::new( v.to_radians().atan2(other) )
     }
     
-    pub fn atanh(v: T) -> Degrees<<<T as traits::ToRadians>::Output as traits::Atanh>::Output> where
-        T: traits::ToRadians,
-        <T as traits::ToRadians>::Output: traits::Atanh
+    pub fn atanh(v: T) -> Degrees<<<T as ToRadians>::Output as Atanh>::Output> where
+        T: ToRadians,
+        <T as ToRadians>::Output: Atanh
     {
         Degrees::new( v.to_radians().atanh() )
     }
 }
 
-impl<T: traits::Sin> traits::Sin for Radians<T> {
-    type Output = <T as traits::Sin>::Output;
+impl<T: Sin> Sin for Radians<T> {
+    type Output = <T as Sin>::Output;
 
     fn sin(self) -> Self::Output {
         self.value.sin()
     }
 }
 
-impl<T> traits::Sin for Degrees<T> where 
-    T: traits::ToRadians,
-    <T as traits::ToRadians>::Output: traits::Sin
+impl<T> Sin for Degrees<T> where 
+    T: ToRadians,
+    <T as ToRadians>::Output: Sin
 {
-    type Output = <<T as traits::ToRadians>::Output as traits::Sin>::Output;
+    type Output = <<T as ToRadians>::Output as Sin>::Output;
 
     fn sin(self) -> Self::Output {
         self.value.to_radians().sin()
@@ -147,129 +150,129 @@ impl<T> traits::Sin for Degrees<T> where
 }
 
 
-impl<T: traits::SinCos> traits::SinCos for Radians<T> {
-    type Output = <T as traits::SinCos>::Output;
+impl<T: SinCos> SinCos for Radians<T> {
+    type Output = <T as SinCos>::Output;
 
     fn sin_cos(self) -> Self::Output {
         self.value.sin_cos()
     }
 }
 
-impl<T> traits::SinCos for Degrees<T> where 
-    T: traits::ToRadians,
-    <T as traits::ToRadians>::Output: traits::SinCos
+impl<T> SinCos for Degrees<T> where 
+    T: ToRadians,
+    <T as ToRadians>::Output: SinCos
 {
-    type Output = <<T as traits::ToRadians>::Output as traits::SinCos>::Output;
+    type Output = <<T as ToRadians>::Output as SinCos>::Output;
 
     fn sin_cos(self) -> Self::Output {
         self.value.to_radians().sin_cos()
     }
 }
 
-impl<T: traits::Sinh> traits::Sinh for Radians<T> {
-    type Output = <T as traits::Sinh>::Output;
+impl<T: Sinh> Sinh for Radians<T> {
+    type Output = <T as Sinh>::Output;
 
     fn sinh(self) -> Self::Output {
         self.value.sinh()
     }
 }
 
-impl<T> traits::Sinh for Degrees<T> where 
-    T: traits::ToRadians,
-    <T as traits::ToRadians>::Output: traits::Sinh
+impl<T> Sinh for Degrees<T> where 
+    T: ToRadians,
+    <T as ToRadians>::Output: Sinh
 {
-    type Output = <<T as traits::ToRadians>::Output as traits::Sinh>::Output;
+    type Output = <<T as ToRadians>::Output as Sinh>::Output;
 
     fn sinh(self) -> Self::Output {
         self.value.to_radians().sinh()
     }
 }
 
-impl<T: traits::Cos> traits::Cos for Radians<T> {
-    type Output = <T as traits::Cos>::Output;
+impl<T: Cos> Cos for Radians<T> {
+    type Output = <T as Cos>::Output;
 
     fn cos(self) -> Self::Output {
         self.value.cos()
     }
 }
 
-impl<T> traits::Cos for Degrees<T> where 
-    T: traits::ToRadians,
-    <T as traits::ToRadians>::Output: traits::Cos
+impl<T> Cos for Degrees<T> where 
+    T: ToRadians,
+    <T as ToRadians>::Output: Cos
 {
-    type Output = <<T as traits::ToRadians>::Output as traits::Cos>::Output;
+    type Output = <<T as ToRadians>::Output as Cos>::Output;
 
     fn cos(self) -> Self::Output {
         self.value.to_radians().cos()
     }
 }
 
-impl<T: traits::Cosh> traits::Cosh for Radians<T> {
-    type Output = <T as traits::Cosh>::Output;
+impl<T: Cosh> Cosh for Radians<T> {
+    type Output = <T as Cosh>::Output;
 
     fn cosh(self) -> Self::Output {
         self.value.cosh()
     }
 }
 
-impl<T> traits::Cosh for Degrees<T> where 
-    T: traits::ToRadians,
-    <T as traits::ToRadians>::Output: traits::Cosh
+impl<T> Cosh for Degrees<T> where 
+    T: ToRadians,
+    <T as ToRadians>::Output: Cosh
 {
-    type Output = <<T as traits::ToRadians>::Output as traits::Cosh>::Output;
+    type Output = <<T as ToRadians>::Output as Cosh>::Output;
 
     fn cosh(self) -> Self::Output {
         self.value.to_radians().cosh()
     }
 }
 
-impl<T: traits::Tan> traits::Tan for Radians<T> {
-    type Output = <T as traits::Tan>::Output;
+impl<T: Tan> Tan for Radians<T> {
+    type Output = <T as Tan>::Output;
 
     fn tan(self) -> Self::Output {
         self.value.tan()
     }
 }
 
-impl<T> traits::Tan for Degrees<T> where 
-    T: traits::ToRadians,
-    <T as traits::ToRadians>::Output: traits::Tan
+impl<T> Tan for Degrees<T> where 
+    T: ToRadians,
+    <T as ToRadians>::Output: Tan
 {
-    type Output = <<T as traits::ToRadians>::Output as traits::Tan>::Output;
+    type Output = <<T as ToRadians>::Output as Tan>::Output;
 
     fn tan(self) -> Self::Output {
         self.value.to_radians().tan()
     }
 }
 
-impl<T: traits::Tanh> traits::Tanh for Radians<T> {
-    type Output = <T as traits::Tanh>::Output;
+impl<T: Tanh> Tanh for Radians<T> {
+    type Output = <T as Tanh>::Output;
 
     fn tanh(self) -> Self::Output {
         self.value.tanh()
     }
 }
 
-impl<T> traits::Tanh for Degrees<T> where 
-    T: traits::ToRadians,
-    <T as traits::ToRadians>::Output: traits::Tanh
+impl<T> Tanh for Degrees<T> where 
+    T: ToRadians,
+    <T as ToRadians>::Output: Tanh
 {
-    type Output = <<T as traits::ToRadians>::Output as traits::Tanh>::Output;
+    type Output = <<T as ToRadians>::Output as Tanh>::Output;
 
     fn tanh(self) -> Self::Output {
         self.value.to_radians().tanh()
     }
 }
 
-impl<T: traits::ToDegrees> traits::ToDegrees for Radians<T> {
-    type Output = Degrees<<T as traits::ToDegrees>::Output>;
+impl<T: ToDegrees> ToDegrees for Radians<T> {
+    type Output = Degrees<<T as ToDegrees>::Output>;
 
     fn to_degrees(self) -> Self::Output {
         Degrees::new( self.value.to_degrees() )
     }
 }
 
-impl<T> traits::ToDegrees for Degrees<T> {
+impl<T> ToDegrees for Degrees<T> {
     type Output = Self;
 
     fn to_degrees(self) -> Self::Output {
@@ -277,7 +280,7 @@ impl<T> traits::ToDegrees for Degrees<T> {
     }
 }
 
-impl<T> traits::ToRadians for Radians<T> {
+impl<T> ToRadians for Radians<T> {
     type Output = Self;
 
     fn to_radians(self) -> Self::Output {
@@ -285,8 +288,8 @@ impl<T> traits::ToRadians for Radians<T> {
     }
 }
 
-impl<T: traits::ToRadians> traits::ToRadians for Degrees<T> {
-    type Output = Radians<<T as traits::ToRadians>::Output>;
+impl<T: ToRadians> ToRadians for Degrees<T> {
+    type Output = Radians<<T as ToRadians>::Output>;
 
     fn to_radians(self) -> Self::Output {
         Radians::new( self.value.to_radians() )

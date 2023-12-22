@@ -1,14 +1,16 @@
-use std::fmt;
-use std::ops;
+use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::ops::{Add, AddAssign, Div, DivAssign, Neg, Mul, MulAssign, Sub, SubAssign};
 use std::marker::PhantomData;
 
-use crate::traits;
+use crate::traits::{Half, One, Zero};
 
 pub mod angle;
 pub mod area;
 pub mod length;
 pub mod prefix;
 pub mod volume;
+
+use prefix::Prefix;
 
 pub trait Unit {
     const UNIT: &'static str; 
@@ -27,72 +29,72 @@ impl<T, P, U> ValueWithPrefixAndUnit<T, P, U> {
     }
 }
 
-impl<T: ops::Add, P, U> ops::Add for ValueWithPrefixAndUnit<T, P, U> {
-    type Output = ValueWithPrefixAndUnit<<T as ops::Add>::Output, P, U>;
+impl<T: Add, P, U> Add for ValueWithPrefixAndUnit<T, P, U> {
+    type Output = ValueWithPrefixAndUnit<<T as Add>::Output, P, U>;
 
     fn add(self, rhs: Self) -> Self::Output {
         ValueWithPrefixAndUnit::new(self.value + rhs.value)
     }
 }
 
-impl<T: ops::AddAssign, P, U> ops::AddAssign for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: AddAssign, P, U> AddAssign for ValueWithPrefixAndUnit<T, P, U> {
     fn add_assign(&mut self, rhs: Self) {
         self.value += rhs.value;
     }
 }
 
-impl<T: ops::Sub, P, U> ops::Sub for ValueWithPrefixAndUnit<T, P, U> {
-    type Output = ValueWithPrefixAndUnit<<T as ops::Sub>::Output, P, U>;
+impl<T: Sub, P, U> Sub for ValueWithPrefixAndUnit<T, P, U> {
+    type Output = ValueWithPrefixAndUnit<<T as Sub>::Output, P, U>;
 
     fn sub(self, rhs: Self) -> Self::Output {
         ValueWithPrefixAndUnit::new(self.value - rhs.value)
     }
 }
 
-impl<T: ops::SubAssign, P, U> ops::SubAssign for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: SubAssign, P, U> SubAssign for ValueWithPrefixAndUnit<T, P, U> {
     fn sub_assign(&mut self, rhs: Self) {
         self.value -= rhs.value;
     }
 }
 
-impl<T: ops::Mul, P, U> ops::Mul<T> for ValueWithPrefixAndUnit<T, P, U> {
-    type Output = ValueWithPrefixAndUnit<<T as ops::Mul>::Output, P, U>;
+impl<T: Mul, P, U> Mul<T> for ValueWithPrefixAndUnit<T, P, U> {
+    type Output = ValueWithPrefixAndUnit<<T as Mul>::Output, P, U>;
 
     fn mul(self, rhs: T) -> Self::Output {
         ValueWithPrefixAndUnit::new(self.value * rhs)
     }
 }
 
-impl<T: ops::MulAssign, P, U> ops::MulAssign<T> for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: MulAssign, P, U> MulAssign<T> for ValueWithPrefixAndUnit<T, P, U> {
     fn mul_assign(&mut self, rhs: T) {
         self.value *= rhs;
     }
 }
 
-impl<T: ops::Div, P, U> ops::Div<T> for ValueWithPrefixAndUnit<T, P, U> {
-    type Output = ValueWithPrefixAndUnit<<T as ops::Div>::Output, P, U>;
+impl<T: Div, P, U> Div<T> for ValueWithPrefixAndUnit<T, P, U> {
+    type Output = ValueWithPrefixAndUnit<<T as Div>::Output, P, U>;
 
     fn div(self, rhs: T) -> Self::Output {
         ValueWithPrefixAndUnit::new(self.value / rhs)
     }
 }
 
-impl<T: ops::DivAssign, P, U> ops::DivAssign<T> for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: DivAssign, P, U> DivAssign<T> for ValueWithPrefixAndUnit<T, P, U> {
     fn div_assign(&mut self, rhs: T) {
         self.value /= rhs;
     }
 }
 
-impl<T: ops::Div, P, U> ops::Div for ValueWithPrefixAndUnit<T, P, U> {
-    type Output = <T as ops::Div>::Output;
+impl<T: Div, P, U> Div for ValueWithPrefixAndUnit<T, P, U> {
+    type Output = <T as Div>::Output;
 
     fn div(self, rhs: Self) -> Self::Output {
         self.value / rhs.value
     }
 }
 
-impl<T: ops::Neg, P, U> ops::Neg for ValueWithPrefixAndUnit<T, P, U> {
-    type Output = ValueWithPrefixAndUnit<<T as ops::Neg>::Output, P, U>;
+impl<T: Neg, P, U> Neg for ValueWithPrefixAndUnit<T, P, U> {
+    type Output = ValueWithPrefixAndUnit<<T as Neg>::Output, P, U>;
 
     fn neg(self) -> Self::Output {
         ValueWithPrefixAndUnit::new(-self.value)
@@ -105,14 +107,27 @@ impl<T: Default, P, U> Default for ValueWithPrefixAndUnit<T, P, U> {
     }
 }
 
-impl<T: fmt::Display, P: prefix::Prefix, U: Unit> fmt::Display for ValueWithPrefixAndUnit<T, P, U> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<T: Display, P: Prefix, U: Unit> Display for ValueWithPrefixAndUnit<T, P, U> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}{}{}", self.value, P::PREFIX, U::UNIT)
     }
 }
 
-impl<T: traits::Half, P, U> traits::Half for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: Half, P, U> Half for ValueWithPrefixAndUnit<T, P, U> {
     fn half(&self) -> ValueWithPrefixAndUnit<T, P, U> {
         Self::new(self.value.half())
     }
 }
+
+impl<T: One, P, U> One for ValueWithPrefixAndUnit<T, P, U> {
+    fn one() -> ValueWithPrefixAndUnit<T, P, U> {
+        Self::new(One::one())
+    }
+}
+
+impl<T: Zero, P, U> Zero for ValueWithPrefixAndUnit<T, P, U> {
+    fn zero() -> ValueWithPrefixAndUnit<T, P, U> {
+        Self::new(Zero::zero())
+    }
+}
+

@@ -1,8 +1,11 @@
-use std::ops;
+use std::ops::{Add, Neg, Mul};
 
-use crate::math::Vector2;
-use crate::math::Vector3;
+use crate::math::{Vector2, Vector3};
 use crate::traits::Zero;
+
+pub trait Normal {
+    type ValueType;
+}
 
 pub trait Orthonormal2<T> {
     fn x_axis() -> Normal2<T>;
@@ -33,28 +36,31 @@ macro_rules! create_normal_type {
                 $vectorType::new( $( self.$element, )* )
             }
 
-            pub fn dot<U>(a: $name<T>, b: $name<U>) -> <T as ops::Mul<U>>::Output where
-                T: ops::Mul<U> + Copy + Clone,
-                <T as ops::Mul<U>>::Output: ops::Add<Output=<T as ops::Mul<U>>::Output>,
-                <T as ops::Mul<U>>::Output: Zero,
+            pub fn dot<U>(a: $name<T>, b: $name<U>) -> <T as Mul<U>>::Output where
+                T: Mul<U> + Copy + Clone,
+                <T as Mul<U>>::Output: Add<Output=<T as Mul<U>>::Output> + Zero,
             {
                 $(a.$element * b.$element + )* Zero::zero()
             }
         }
+        
+        impl<T> Normal for $name<T> {
+            type ValueType = T;
+        }
 
-        impl<T: ops::Neg> ops::Neg for $name<T> {
-            type Output = $name<<T as ops::Neg>::Output>;
+        impl<T: Neg> Neg for $name<T> {
+            type Output = $name<<T as Neg>::Output>;
 
             fn neg(self) -> Self::Output {
                 $name::new( $(-self.$element, )*)
             }
         }
 
-        impl<T, U> ops::Mul<U> for $name<T> where
-            T: ops::Mul<U>,
+        impl<T, U> Mul<U> for $name<T> where
+            T: Mul<U>,
             U: Copy + Clone,
         {
-            type Output = $vectorType<<T as ops::Mul<U>>::Output>;
+            type Output = $vectorType<<T as Mul<U>>::Output>;
 
             fn mul(self, rhs: U) -> Self::Output {
                 $vectorType::new( $( self.$element * rhs, )* )

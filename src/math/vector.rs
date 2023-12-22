@@ -1,13 +1,8 @@
-use std::ops;
+use std::ops::{Add, AddAssign, Div, DivAssign, Neg, Mul, MulAssign, Sub, SubAssign};
 
-use super::Normal2;
-use super::Normal3;
-use super::Point2;
-use super::Point3;
+use super::{Normal2, Normal3, Point2, Point3};
 
-use crate::traits;
-use crate::traits::Sqrt;
-use crate::traits::Zero;
+use crate::traits::{Sqrt, Zero};
 
 pub trait Vector {
     type ValueType;
@@ -18,12 +13,12 @@ pub trait NormalizableVector : Vector {
     type NormalType;
 
     fn magnitude(self) -> Self::ValueType where
-        <Self as Vector>::ValueType: ops::Mul + Copy + Clone,
-        <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<Self as Vector>::ValueType as ops::Mul>::Output> + traits::Sqrt<Output=<Self as Vector>::ValueType> + Zero;
+        <Self as Vector>::ValueType: Mul + Copy + Clone,
+        <<Self as Vector>::ValueType as Mul>::Output: Add<Output=<<Self as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<Self as Vector>::ValueType> + Zero;
 
     fn normalized(self) -> Self::NormalType where
-        <Self as Vector>::ValueType: ops::Mul + Copy + Clone,
-        <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<Self as Vector>::ValueType as ops::Mul>::Output> + traits::Sqrt<Output=<Self as Vector>::ValueType> + Zero;
+        <Self as Vector>::ValueType: Mul + Copy + Clone,
+        <<Self as Vector>::ValueType as Mul>::Output: Add<Output=<<Self as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<Self as Vector>::ValueType> + Zero;
 }
 
 
@@ -51,7 +46,7 @@ macro_rules! create_vector_type {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
             $(
-            pub(super) $element: T,
+            pub $element: T,
             )*
         }
 
@@ -62,10 +57,10 @@ macro_rules! create_vector_type {
         }
 
         impl<T, U> DotProduct<$name<U>> for $name<T> where
-            T: ops::Mul<U>,
-            <T as ops::Mul<U>>::Output: ops::Add<Output=<T as ops::Mul<U>>::Output> + Zero
+            T: Mul<U>,
+            <T as Mul<U>>::Output: Add<Output=<T as Mul<U>>::Output> + Zero
         {
-            type Output = <T as ops::Mul<U>>::Output;
+            type Output = <T as Mul<U>>::Output;
 
             fn dot(self, v: $name<U>) -> Self::Output {
                 $(self.$element * v.$element + )* Zero::zero()
@@ -78,20 +73,20 @@ macro_rules! create_vector_type {
         }
 
         impl<T> NormalizableVector for $name<T> where
-            T: ops::Div + ops::Mul + Copy + Clone,
+            T: Div + Mul + Copy + Clone,
         {
-            type NormalType = $normalType<<T as ops::Div>::Output>;
+            type NormalType = $normalType<<T as Div>::Output>;
 
             fn magnitude(self) -> Self::ValueType where
-                <Self as Vector>::ValueType: ops::Mul + Copy + Clone,
-                <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<Self as Vector>::ValueType as ops::Mul>::Output> + traits::Sqrt<Output=<Self as Vector>::ValueType> + Zero
+                <Self as Vector>::ValueType: Mul + Copy + Clone,
+                <<Self as Vector>::ValueType as Mul>::Output: Add<Output=<<Self as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<Self as Vector>::ValueType> + Zero
             {
                 self.dot(self).sqrt()
             }
 
             fn normalized(self) -> Self::NormalType where
-                <Self as Vector>::ValueType: ops::Mul + Copy + Clone,
-                <<Self as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<Self as Vector>::ValueType as ops::Mul>::Output> + traits::Sqrt<Output=<Self as Vector>::ValueType> + Zero
+                <Self as Vector>::ValueType: Mul + Copy + Clone,
+                <<Self as Vector>::ValueType as Mul>::Output: Add<Output=<<Self as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<Self as Vector>::ValueType> + Zero
 
             {
                 let v = self / self.magnitude();
@@ -99,72 +94,72 @@ macro_rules! create_vector_type {
             }
         }
 
-        impl<T: ops::Add<U> , U> ops::Add<$name<U>> for $name<T> {
-            type Output = $name<<T as ops::Add<U>>::Output>;
+        impl<T: Add<U> , U> Add<$name<U>> for $name<T> {
+            type Output = $name<<T as Add<U>>::Output>;
 
             fn add(self, rhs: $name<U>) -> Self::Output {
                 $name::new( $( self.$element + rhs.$element, )* )
             }
         }
 
-        impl<T: ops::Add<U> , U> ops::Add<$pointType<U>> for $name<T> {
-            type Output = $pointType<<T as ops::Add<U>>::Output>;
+        impl<T: Add<U> , U> Add<$pointType<U>> for $name<T> {
+            type Output = $pointType<<T as Add<U>>::Output>;
 
             fn add(self, rhs: $pointType<U>) -> Self::Output {
                 $pointType::new( $( self.$element + rhs.$element, )* )
             }
         }
 
-        impl<T: ops::AddAssign<U> , U> ops::AddAssign<$name<U>> for $name<T> {
+        impl<T: AddAssign<U> , U> AddAssign<$name<U>> for $name<T> {
             fn add_assign(&mut self, rhs: $name<U>) {
                 $( self.$element += rhs.$element; )*
             }
         }
 
-        impl<T: ops::Sub<U>, U> ops::Sub<$name<U>> for $name<T> {
-            type Output = $name<<T as ops::Sub<U>>::Output>;
+        impl<T: Sub<U>, U> Sub<$name<U>> for $name<T> {
+            type Output = $name<<T as Sub<U>>::Output>;
 
             fn sub(self, rhs: $name<U>) -> Self::Output {
                 $name::new( $( self.$element - rhs.$element, )* )
             }
         }
 
-        impl<T: ops::SubAssign<U>, U> ops::SubAssign<$name<U>> for $name<T> {
+        impl<T: SubAssign<U>, U> SubAssign<$name<U>> for $name<T> {
             fn sub_assign(&mut self, rhs: $name<U>) {
                 $( self.$element -= rhs.$element; )*
             }
         }
 
-        impl<T: ops::Mul<U>, U: Copy + Clone> ops::Mul<U> for $name<T> {
-            type Output = $name<<T as ops::Mul<U>>::Output>;
+        impl<T: Mul<U>, U: Copy + Clone> Mul<U> for $name<T> {
+            type Output = $name<<T as Mul<U>>::Output>;
 
             fn mul(self, rhs: U) -> Self::Output {
                 $name::new( $( self.$element * rhs, )* )
             }
         }
 
-        impl<T: ops::MulAssign<U>, U: Copy + Clone> ops::MulAssign<U> for $name<T> {
+        impl<T: MulAssign<U>, U: Copy + Clone> MulAssign<U> for $name<T> {
             fn mul_assign(&mut self, rhs: U) {
                 $( self.$element *= rhs; )*
             }
         }
 
-        impl<T: ops::Div<U>, U: Copy + Clone> ops::Div<U> for $name<T> {
-            type Output = $name<<T as ops::Div<U>>::Output>;
+        impl<T: Div<U>, U: Copy + Clone> Div<U> for $name<T> {
+            type Output = $name<<T as Div<U>>::Output>;
 
             fn div(self, rhs: U) -> Self::Output {
                 $name::new($(self.$element / rhs, )*)
             }
         }
 
-        impl<T: ops::DivAssign<U>, U: Copy + Clone> ops::DivAssign<U> for $name<T> {
+        impl<T: DivAssign<U>, U: Copy + Clone> DivAssign<U> for $name<T> {
             fn div_assign(&mut self, rhs: U) {
                 $( self.$element /= rhs; )*
             }
         }
 
-        impl<T: ops::Neg> ops::Neg for $name<T> {
-            type Output = $name<<T as ops::Neg>::Output>;
+        impl<T: Neg> Neg for $name<T> {
+            type Output = $name<<T as Neg>::Output>;
 
             fn neg(self) -> Self::Output {
                 $name::new( $(-self.$element, )*)
@@ -177,11 +172,10 @@ create_vector_type! { Vector2, [x y], Point2, Normal2 }
 create_vector_type! { Vector3, [x y z], Point3, Normal3 }
 
 impl<T> Vector3<T> {
-    pub fn cross(a: Vector3<T>, b: Vector3<T>) -> Vector3<<<T as ops::Mul>::Output as ops::Sub>::Output>
+    pub fn cross(a: Vector3<T>, b: Vector3<T>) -> Vector3<<<T as Mul>::Output as Sub>::Output>
     where
-        T: ops::Mul,
-        <T as ops::Mul>::Output: ops::Sub,
-        T: Copy + Clone,
+        T: Mul + Copy + Clone,
+        <T as Mul>::Output: Sub,
     {
         Vector3::new(
             a.y * b.z - a.z * b.y,
@@ -229,8 +223,8 @@ impl_orthonormal3_for! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
 macro_rules! impl_mul_scalar_with_vector2 {
     ($($type: ty)+ ) => ($(
-        impl ops::Mul<Vector2<$type>> for $type  {
-            type Output = Vector2<<$type as ops::Mul>::Output>;
+        impl Mul<Vector2<$type>> for $type  {
+            type Output = Vector2<<$type as Mul>::Output>;
 
             fn mul(self, rhs: Vector2<$type>) -> Self::Output {
                 Vector2::new( self * rhs.x, self * rhs.y )
@@ -243,8 +237,8 @@ impl_mul_scalar_with_vector2! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 
 
 macro_rules! impl_mul_scalar_with_vector3 {
     ($($type: ty)+ ) => ($(
-        impl ops::Mul<Vector3<$type>> for $type  {
-            type Output = Vector3<<$type as ops::Mul>::Output>;
+        impl Mul<Vector3<$type>> for $type  {
+            type Output = Vector3<<$type as Mul>::Output>;
 
             fn mul(self, rhs: Vector3<$type>) -> Self::Output {
                 Vector3::new( self * rhs.x, self * rhs.y, self * rhs.z )

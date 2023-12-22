@@ -1,31 +1,28 @@
-use std::ops;
+use std::fmt::Debug;
+use std::ops::{Add, Div, Neg, Mul, Sub};
 
-use super::Intersect;
-use super::ParametricLine;
+use super::{Intersect, ParametricLine};
 
-use crate::math::Point;
-use crate::math::Vector;
-use crate::math::vector::DotProduct;
-use crate::math::vector::NormalizableVector;
-use crate::traits::Sqrt; 
-use crate::traits::Zero;
+use crate::math::{Point, Vector};
+use crate::math::vector::{DotProduct, NormalizableVector};
+use crate::traits::{Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct ImplicitNSphere<P> where P: Point, <P as Point>::ValueType: Copy + Clone + PartialEq + std::fmt::Debug {
+pub struct ImplicitNSphere<P> where P: Point, <P as Point>::ValueType: Copy + Clone + PartialEq + Debug {
     center: P,
     radius: <P as Point>::ValueType,
 }
 
-impl<P> ImplicitNSphere<P> where P: Point, <P as Point>::ValueType: Copy + Clone + PartialEq + std::fmt::Debug {
+impl<P> ImplicitNSphere<P> where P: Point, <P as Point>::ValueType: Copy + Clone + PartialEq + Debug {
     pub fn new(center: P, radius: <P as Point>::ValueType) -> ImplicitNSphere<P> {
         ImplicitNSphere { center, radius }
     }
 
-    pub fn test(self, point: P) -> <<P as Point>::ValueType as ops::Mul>::Output  where 
-        P: ops::Sub,
-        <P as ops::Sub>::Output: DotProduct<Output= <<P as Point>::ValueType as ops::Mul>::Output> + Copy + Clone,
-        <P as Point>::ValueType: ops::Mul,
-        <<P as Point>::ValueType as ops::Mul>::Output: ops::Sub<Output=<<P as Point>::ValueType as ops::Mul>::Output>,
+    pub fn test(self, point: P) -> <<P as Point>::ValueType as Mul>::Output  where 
+        P: Sub,
+        <P as Sub>::Output: DotProduct<Output= <<P as Point>::ValueType as Mul>::Output> + Copy + Clone,
+        <P as Point>::ValueType: Mul,
+        <<P as Point>::ValueType as Mul>::Output: Sub<Output=<<P as Point>::ValueType as Mul>::Output>,
     {
         let d = point - self.center;
         d.dot(d) - self.radius * self.radius
@@ -34,23 +31,23 @@ impl<P> ImplicitNSphere<P> where P: Point, <P as Point>::ValueType: Copy + Clone
 
 impl<P, V> Intersect<ImplicitNSphere<P>> for ParametricLine<P, V>
 where
-    V: NormalizableVector + DotProduct + ops::Add<Output=V> + ops::Mul<<<V as Vector>::ValueType as ops::Div>::Output, Output=V>+ Copy + Clone,
-    <V as Vector>::ValueType: ops::Div + ops::Mul + Copy + Clone, 
-    <<V as Vector>::ValueType as ops::Mul>::Output: ops::Add<Output=<<V as Vector>::ValueType as ops::Mul>::Output> + Sqrt<Output=<V as Vector>::ValueType> + Zero, 
-    <V as DotProduct>::Output: ops::Add<Output=<V as DotProduct>::Output> +
-                               ops::Sub<Output=<V as DotProduct>::Output> +
-                               ops::Mul +
-                               ops::Neg<Output= <V as DotProduct>::Output> +
-                               ops::Div<Output=<<V as Vector>::ValueType as ops::Div>::Output> + Copy + Clone,
-    <<V as DotProduct>::Output as ops::Mul>::Output: ops::Add<Output=<<V as DotProduct>::Output as ops::Mul>::Output> +
-                                                     ops::Sub<Output=<<V as DotProduct>::Output as ops::Mul>::Output> +
-                                                     Sqrt<Output=<V as DotProduct>::Output> +
-                                                     Zero + PartialEq + PartialOrd + Copy + Clone, 
-    <<V as Vector>::ValueType as ops::Div>::Output: Copy + Clone,
-    P: Point + ops::Add<V, Output=P> + ops::Sub<Output=V> + Copy + Clone,
-    <P as Point>::ValueType: ops::Mul<Output=<V as DotProduct>::Output> + std::fmt::Debug + PartialEq + Copy + Clone,
+    V: NormalizableVector + DotProduct + Add<Output=V> + Mul<<<V as Vector>::ValueType as Div>::Output, Output=V>+ Copy + Clone,
+    <V as Vector>::ValueType: Div + Mul + Copy + Clone, 
+    <<V as Vector>::ValueType as Mul>::Output: Add<Output=<<V as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<V as Vector>::ValueType> + Zero, 
+    <V as DotProduct>::Output: Add<Output=<V as DotProduct>::Output>
+                             + Sub<Output=<V as DotProduct>::Output>
+                             + Mul
+                             + Neg<Output= <V as DotProduct>::Output>
+                             + Div<Output=<<V as Vector>::ValueType as Div>::Output> + Copy + Clone,
+    <<V as DotProduct>::Output as Mul>::Output: Add<Output=<<V as DotProduct>::Output as Mul>::Output>
+                                                   + Sub<Output=<<V as DotProduct>::Output as Mul>::Output>
+                                                   + Sqrt<Output=<V as DotProduct>::Output>
+                                                   + Zero + PartialEq + PartialOrd + Copy + Clone, 
+    <<V as Vector>::ValueType as Div>::Output: Copy + Clone,
+    P: Point + Add<V, Output=P> + Sub<Output=V> + Copy + Clone,
+    <P as Point>::ValueType: Mul<Output=<V as DotProduct>::Output> + Debug + PartialEq + Copy + Clone,
 {
-    type Output = Vec< (<<V as Vector>::ValueType as ops::Div>::Output, <V as NormalizableVector>::NormalType) >;
+    type Output = Vec< (<<V as Vector>::ValueType as Div>::Output, <V as NormalizableVector>::NormalType) >;
 
     fn intersect(self, sphere: ImplicitNSphere<P>) -> Self::Output {
         let a = self.direction.dot(self.direction);
@@ -88,9 +85,7 @@ where
 mod tests {
     use super::*;
 
-    use crate::math::Vector3;
-    use crate::math::Normal3;
-    use crate::math::Point3;
+    use crate::math::{Normal3, Point3, Vector3};
 
     macro_rules! new_implicit_3_sphere {
         ($type: ty, $name: ident) => {

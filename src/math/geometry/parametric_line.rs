@@ -1,4 +1,4 @@
-use std::ops;
+use std::ops::{Add, Mul};
 
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct ParametricLine<P,V> {
@@ -11,10 +11,10 @@ impl<P,V> ParametricLine<P,V> {
         ParametricLine { origin, direction }
     }
 
-    pub fn at<T>(self, t: T) -> <P as ops::Add<<V as ops::Mul<T>>::Output>>::Output
+    pub fn at<T>(self, t: T) -> <P as Add<<V as Mul<T>>::Output>>::Output
     where
-        V: ops::Mul<T>,
-        P: ops::Add<<V as ops::Mul<T>>::Output>
+        V: Mul<T>,
+        P: Add<<V as Mul<T>>::Output>
 
     {
        self.origin + self.direction * t
@@ -25,8 +25,7 @@ impl<P,V> ParametricLine<P,V> {
 mod tests {
     use super::*;
 
-    use crate::math::Vector3;
-    use crate::math::Point3;
+    use crate::math::{Point3, Vector3};
 
     macro_rules! new_parametric_line {
         ( $type: ty, $name: ident) => {
