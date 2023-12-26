@@ -72,6 +72,39 @@ macro_rules! create_normal_type {
 create_normal_type! { Normal2, [x y], Vector2 }
 create_normal_type! { Normal3, [x y z], Vector3 }
 
+macro_rules! impl_mul_scalar_with_normal2 {
+    ($($type: ty)+ ) => ($(
+        impl<T> Mul<Normal2<T>> for $type where
+            $type: Mul<T>,
+        {
+            type Output = Vector2<<$type as Mul<T>>::Output>;
+
+            fn mul(self, rhs: Normal2<T>) -> Self::Output {
+                Vector2::new( self * rhs.x, self * rhs.y )
+            }
+        }
+    )*)
+}
+
+impl_mul_scalar_with_normal2! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
+
+macro_rules! impl_mul_scalar_with_normal3 {
+    ($($type: ty)+ ) => ($(
+        impl<T> Mul<Normal3<T>> for $type where
+            $type: Mul<T>,
+        {
+            type Output = Vector3<<$type as Mul<T>>::Output>;
+
+            fn mul(self, rhs: Normal3<T>) -> Self::Output {
+                Vector3::new( self * rhs.x, self * rhs.y, self * rhs.z )
+            }
+        }
+    )*)
+}
+
+impl_mul_scalar_with_normal3! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
+
+
 macro_rules! impl_orthonormal2_for {
     ($($type: ty)* ) => ($(
         impl Orthonormal2<$type> for Normal2<$type> {
@@ -205,6 +238,26 @@ mod tests {
     normal2_mul! { f32, normal2_mul_f32 }
     normal2_mul! { f64, normal2_mul_f64 }
 
+    macro_rules! mul_scalar_normal2 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let n = Normal2::new( 2 as $type, 3 as $type );
+                let r = Vector2::new( 4 as $type, 6 as $type );
+
+                assert_eq!( 2 as $type * n, r);
+            }
+        }
+    }
+
+    mul_scalar_normal2! { i8, mul_scalar_normal2_i8 }
+    mul_scalar_normal2! { i16, mul_scalar_normal2_i16 }
+    mul_scalar_normal2! { i32, mul_scalar_normal2_i32 }
+    mul_scalar_normal2! { i64, mul_scalar_normal2_i64 }
+    mul_scalar_normal2! { i128, mul_scalar_normal2_i128 }
+    mul_scalar_normal2! { f32, mul_scalar_normal2_f32 }
+    mul_scalar_normal2! { f64, mul_scalar_normal2_f64 }
+
     macro_rules! new_normal3 {
         ($type: ty, $name: ident) => {
             #[test]
@@ -304,4 +357,25 @@ mod tests {
     normal3_mul! { i128, normal3_mul_i128 }
     normal3_mul! { f32, normal3_mul_f32 }
     normal3_mul! { f64, normal3_mul_f64 }
+
+    macro_rules! mul_scalar_normal3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let n = Normal3::new( 2 as $type, 3 as $type, 4 as $type );
+                let r = Vector3::new( 4 as $type, 6 as $type, 8 as $type );
+
+                assert_eq!( 2 as $type * n, r);
+            }
+        }
+    }
+
+    mul_scalar_normal3! { i8, mul_scalar_normal3_i8 }
+    mul_scalar_normal3! { i16, mul_scalar_normal3_i16 }
+    mul_scalar_normal3! { i32, mul_scalar_normal3_i32 }
+    mul_scalar_normal3! { i64, mul_scalar_normal3_i64 }
+    mul_scalar_normal3! { i128, mul_scalar_normal3_i128 }
+    mul_scalar_normal3! { f32, mul_scalar_normal3_f32 }
+    mul_scalar_normal3! { f64, mul_scalar_normal3_f64 }
+
 }

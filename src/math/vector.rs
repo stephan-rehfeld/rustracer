@@ -172,10 +172,11 @@ create_vector_type! { Vector2, [x y], Point2, Normal2 }
 create_vector_type! { Vector3, [x y z], Point3, Normal3 }
 
 impl<T> Vector3<T> {
-    pub fn cross(a: Vector3<T>, b: Vector3<T>) -> Vector3<<<T as Mul>::Output as Sub>::Output>
+    pub fn cross<U>(a: Vector3<T>, b: Vector3<U>) -> Vector3<<T as Mul<U>>::Output>
     where
-        T: Mul + Copy + Clone,
-        <T as Mul>::Output: Sub,
+        T: Mul<U> + Copy + Clone,
+        <T as Mul<U>>::Output: Sub<Output=<T as Mul<U>>::Output>,
+        U: Copy,
     {
         Vector3::new(
             a.y * b.z - a.z * b.y,
@@ -223,10 +224,12 @@ impl_orthonormal3_for! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
 macro_rules! impl_mul_scalar_with_vector2 {
     ($($type: ty)+ ) => ($(
-        impl Mul<Vector2<$type>> for $type  {
-            type Output = Vector2<<$type as Mul>::Output>;
+        impl<T> Mul<Vector2<T>> for $type where
+            $type: Mul<T>,
+        {
+            type Output = Vector2<<$type as Mul<T>>::Output>;
 
-            fn mul(self, rhs: Vector2<$type>) -> Self::Output {
+            fn mul(self, rhs: Vector2<T>) -> Self::Output {
                 Vector2::new( self * rhs.x, self * rhs.y )
             }
         }
@@ -237,10 +240,12 @@ impl_mul_scalar_with_vector2! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 
 
 macro_rules! impl_mul_scalar_with_vector3 {
     ($($type: ty)+ ) => ($(
-        impl Mul<Vector3<$type>> for $type  {
-            type Output = Vector3<<$type as Mul>::Output>;
+        impl<T> Mul<Vector3<T>> for $type where
+            $type: Mul<T>
+        {
+            type Output = Vector3<<$type as Mul<T>>::Output>;
 
-            fn mul(self, rhs: Vector3<$type>) -> Self::Output {
+            fn mul(self, rhs: Vector3<T>) -> Self::Output {
                 Vector3::new( self * rhs.x, self * rhs.y, self * rhs.z )
             }
         }
