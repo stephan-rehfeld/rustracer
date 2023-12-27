@@ -75,7 +75,7 @@ pub trait Raytracer : Image {
 
 pub struct ClassicRaytracer<T, C> where
     T: Div + Mul + Copy + One + Default + Zero + Sub<Output=T> + PartialOrd,
-    <T as Div>::Output: Copy + Default + PartialEq + PartialOrd + Zero,
+    <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Copy + Default + PartialEq + PartialOrd + Zero,
     C: Color<ChannelType = <T as Div>::Output>
 {
     camera: Box<dyn RaytracingCamera<T>>,
@@ -85,7 +85,7 @@ pub struct ClassicRaytracer<T, C> where
 
 impl<T, C> ClassicRaytracer<T, C> where
     T: Div + Mul + Copy + One + Default + Zero + Sub<Output=T> + PartialOrd,
-    <T as Div>::Output: Copy + Default + PartialEq + PartialOrd + Zero,
+    <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Copy + Default + PartialEq + PartialOrd + Zero,
     C: Color<ChannelType = <T as Div>::Output>
 {
     pub fn new(camera: Box<dyn RaytracingCamera<T>>, scene: Vec<Box< <Self as Raytracer>::RenderableTraitType>>, bg_color: C) -> ClassicRaytracer<T, C> {
@@ -94,13 +94,13 @@ impl<T, C> ClassicRaytracer<T, C> where
 }
 
 impl<T: Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + PartialOrd, C> Image for ClassicRaytracer<T, C>  where
-    <T as Div>::Output: Default + PartialEq + Copy + PartialOrd + Zero,
+    <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Default + PartialEq + Copy + PartialOrd + Zero,
     C: Color<ChannelType = <T as Div>::Output>
 {
     type ColorType = C;
-    type PointType = Point2<T>;
+    type PointType = Point2<<T as Div>::Output>;
 
-    fn size(&self) -> Vector2<T> {
+    fn size(&self) -> Vector2<<T as Div>::Output> {
         self.camera.size()
     }
 
@@ -122,7 +122,7 @@ impl<T: Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + Pa
 
 impl<T, C> Raytracer for ClassicRaytracer<T, C> where
     T: Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + PartialOrd,
-    <T as Div>::Output: Copy + Default + PartialEq + PartialOrd + Zero, 
+    <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Copy + Default + PartialEq + PartialOrd + Zero, 
     C: Color<ChannelType = <T as Div>::Output>
 {
     type ScalarType = <T as Div>::Output;

@@ -5,9 +5,9 @@ use crate::math::geometry::ParametricLine;
 use crate::traits::{Half, One, Sqrt, Tan, Zero};
 use crate::units::angle::Radians;
 
-pub trait RaytracingCamera<T> {
-    fn size(&self) -> Vector2<T>;
-    fn ray_for(&self, p: Point2<T>) -> ParametricLine<Point3<T>, Vector3<T>>;
+pub trait RaytracingCamera<T> where T: Div {
+    fn size(&self) -> Vector2<<T as Div>::Output>;
+    fn ray_for(&self, p: Point2<<T as Div>::Output>) -> ParametricLine<Point3<T>, Vector3<T>>;
 }
 
 pub struct Orthographic<T> where T: Div {
@@ -16,7 +16,7 @@ pub struct Orthographic<T> where T: Div {
     v: Normal3<<T as Div>::Output>,
     w: Normal3<<T as Div>::Output>,
     scale: <T as Div>::Output,
-    size: Vector2<T>,
+    size: Vector2<<T as Div>::Output>,
     aspect_ratio: <T as Div>::Output,
 }
 
@@ -25,7 +25,7 @@ impl<T> Orthographic<T> where
    <T as Div>::Output: Add<Output=<T as Div>::Output> + Div<Output=<T as Div>::Output> + Neg<Output=<T as Div>::Output> + Mul<Output=<T as Div>::Output> + Sub<Output=<T as Div>::Output> + Sqrt<Output=<T as Div>::Output> + Zero + Copy,
    <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Sub<Output=<T as Mul>::Output> + Sqrt<Output=T> + Zero 
 {
-    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, scale: <T as Div>::Output, size: Vector2<T>) -> Orthographic<T> 
+    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, scale: <T as Div>::Output, size: Vector2<<T as Div>::Output>) -> Orthographic<T> 
     {
         let w = -g.normalized();
         let u = Vector3::cross(t, w.as_vector()).normalized();
@@ -38,14 +38,14 @@ impl<T> Orthographic<T> where
 }
 
 impl<T> RaytracingCamera<T> for Orthographic<T> where
-    T: Add<Output=T> + Div + Half + Mul<<T as Div>::Output, Output=T> + Neg<Output=T> + One + Sub<Output=T> + Mul<Normal3<<T as Div>::Output>, Output=Vector3<T>> + Copy,
-    <T as Div>::Output: Mul<T, Output=T> + Mul<<T as Div>::Output, Output=<T as Div>::Output> + Copy,
+    T: Add<Output=T> + Div + Mul<<T as Div>::Output, Output=T> + Neg<Output=T> + One + Mul<Normal3<<T as Div>::Output>, Output=Vector3<T>> + Copy,
+    <T as Div>::Output: Div<Output=<T as Div>::Output> + Half + Mul<T, Output=T> + Mul<<T as Div>::Output, Output=<T as Div>::Output> + Sub<Output=<T as Div>::Output> + Copy,
 {
-    fn size(&self) -> Vector2<T> {
+    fn size(&self) -> Vector2<<T as Div>::Output> {
         self.size
     }
 
-    fn ray_for(&self, p: Point2<T>) -> ParametricLine<Point3<T>, Vector3<T>> {
+    fn ray_for(&self, p: Point2<<T as Div>::Output>) -> ParametricLine<Point3<T>, Vector3<T>> {
         let d = -(self.w.as_vector() * T::one());
 
         let x = (p.x - self.size.x.half()) / self.size.x;
@@ -63,7 +63,7 @@ pub struct Perspective<T> where T: Div {
     v: Normal3<<T as Div>::Output>,
     w: Normal3<<T as Div>::Output>,
     vertical_field_of_view: Radians<<T as Div>::Output>,
-    size: Vector2<T>
+    size: Vector2<<T as Div>::Output>
 }
 
 impl<T> Perspective<T> where
@@ -71,7 +71,7 @@ impl<T> Perspective<T> where
     <T as Div>::Output: Add<Output=<T as Div>::Output> + Div<Output=<T as Div>::Output> + Half + Neg<Output=<T as Div>::Output> + Mul<Output=<T as Div>::Output> + Sub<Output=<T as Div>::Output> + Sqrt<Output=<T as Div>::Output> + Zero + Copy,
     <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Sub<Output=<T as Mul>::Output> + Sqrt<Output=T> + Zero 
 {
-    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, vertical_field_of_view: Radians<<T as Div>::Output>, size: Vector2<T>) -> Perspective<T> {
+    pub fn new(e: Point3<T>, g: Vector3<T>, t: Vector3<T>, vertical_field_of_view: Radians<<T as Div>::Output>, size: Vector2<<T as Div>::Output>) -> Perspective<T> {
         let w = -g.normalized();
         let u = Vector3::cross(t, w.as_vector()).normalized();
         let v = Vector3::cross(w.as_vector(), u.as_vector()).normalized();
@@ -83,15 +83,15 @@ impl<T> Perspective<T> where
 }
 
 impl<T> RaytracingCamera<T> for Perspective<T> where
-    T: Add<Output=T> + Div + Div<<T as Div>::Output, Output=T> + Half + Mul + Mul<<T as Div>::Output, Output=T> + One + Sub<Output=T> + Copy,
-    <T as Div>::Output: Mul<T, Output=T> + Neg<Output=<T as Div>::Output> + Tan<Output=<T as Div>::Output> + Copy,
+    T: Div + Mul + One + Copy,
+    <T as Div>::Output: Add<Output=<T as Div>::Output> + Div<Output=<T as Div>::Output> + Half + Mul<T, Output=T> + Mul<Output=<T as Div>::Output> + Neg<Output=<T as Div>::Output> + Sub<Output=<T as Div>::Output> + Sqrt<Output=<T as Div>::Output> + Tan<Output=<T as Div>::Output> + Zero + Copy,
     <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Sqrt<Output=T> + Zero,
 {
-    fn size(&self) -> Vector2<T> {
+    fn size(&self) -> Vector2<<T as Div>::Output> {
         self.size
     }
 
-    fn ray_for(&self, p: Point2<T> ) -> ParametricLine<Point3<T>, Vector3<T>> {
+    fn ray_for(&self, p: Point2<<T as Div>::Output> ) -> ParametricLine<Point3<T>, Vector3<T>> {
         let o = self.e;
 
         let a = -self.w * (self.size.y.half()/self.vertical_field_of_view.tan());
