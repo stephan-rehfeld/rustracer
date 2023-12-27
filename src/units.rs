@@ -8,6 +8,7 @@ pub mod angle;
 pub mod area;
 pub mod length;
 pub mod prefix;
+pub mod second_moment_of_area;
 pub mod volume;
 
 use prefix::Prefix;
@@ -64,6 +65,22 @@ impl<T: Mul, P, U> Mul<T> for ValueWithPrefixAndUnit<T, P, U> {
         ValueWithPrefixAndUnit::new(self.value * rhs)
     }
 }
+
+macro_rules! impl_mul_scalar_with_value_with_prefix_and_unit {
+    ($($type: ty)+ ) => ($(
+        impl<T: Mul, P, U> Mul<ValueWithPrefixAndUnit<T, P, U>> for $type where
+            $type: Mul<T>
+        {
+            type Output = ValueWithPrefixAndUnit<<$type as Mul<T>>::Output, P, U>;
+
+            fn mul(self, rhs: ValueWithPrefixAndUnit<T, P, U>) -> Self::Output {
+                ValueWithPrefixAndUnit::new( self * rhs.value )
+            }
+        }
+    )*)
+}
+
+impl_mul_scalar_with_value_with_prefix_and_unit! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
 impl<T: MulAssign, P, U> MulAssign<T> for ValueWithPrefixAndUnit<T, P, U> {
     fn mul_assign(&mut self, rhs: T) {

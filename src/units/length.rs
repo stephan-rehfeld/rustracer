@@ -22,3 +22,4 @@ impl<T: Mul> Mul for Meter<T> {
         SquareMeter::new(self.value * rhs.value)
     }
 }
+
