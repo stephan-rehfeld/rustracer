@@ -10,6 +10,7 @@ use traits::{One, Zero};
 pub mod camera;
 pub mod color;
 pub mod image;
+pub mod light;
 pub mod math;
 pub mod traits;
 pub mod units;
