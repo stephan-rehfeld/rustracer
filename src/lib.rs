@@ -11,6 +11,7 @@ pub mod camera;
 pub mod color;
 pub mod image;
 pub mod light;
+pub mod material;
 pub mod math;
 pub mod traits;
 pub mod units;
@@ -28,7 +29,6 @@ pub trait Renderable<T> where
     fn intersect(&self, ray: ParametricLine<Self::PointType, Self::VectorType>) -> Vec<(Self::ScalarType, Self::NormalType, Self::ColorType)>;
 }
 
-#[derive(Debug,PartialEq,Clone,Copy)]
 pub struct RenderableGeometry<G, C> {
     geometry: G,
     color: C,
