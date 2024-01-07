@@ -118,11 +118,11 @@ impl<T: , C> Image for ClassicRaytracer<T, C>  where
         hits.sort_by( |(t1,_,_), (t2,_,_)| t1.partial_cmp( t2 ).unwrap() );
 
         if hits.is_empty() {
-            return self.bg_color;
+            self.bg_color
         } else {
             let (t, n, material) = hits[0];
             let p = ray.at(t);
-            return material.color_for(p, n, &self.lights);
+            material.color_for(p, n, &self.lights)
         }
     }
 }
