@@ -48,7 +48,34 @@ macro_rules! create_color_type {
             }
         }
 
+        impl<T: Add<U> , U> Add<$name<U>> for $name<T> {
+            type Output = $name<<T as Add<U>>::Output>;
+
+            fn add(self, rhs: $name<U>) -> Self::Output {
+                $name::new( $( self.$channel + rhs.$channel, )* )
+            }
+        }
+
+
+        impl<T: Mul<U>, U: Copy + Clone> Mul<U> for $name<T> {
+            type Output = $name<<T as Mul<U>>::Output>;
+
+            fn mul(self, rhs: U) -> Self::Output {
+                $name::new( $( self.$channel * rhs, )* )
+            }
+        }
+
         impl<T: Eq> Eq for $name<T> {
+        }
+
+
+        impl<T: Add<Output=T> + Default> Sum for $name<T> {
+            fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
+                iter.fold(
+                    Default::default(),
+                    |a, b| a + b
+                )
+            }
         }
 
         impl<T: Hash> Hash for $name<T> {

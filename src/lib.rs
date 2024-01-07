@@ -1,8 +1,10 @@
-use std::ops::{Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 use camera::RaytracingCamera;
 use color::Color;
 use image::Image;
+use light::Light;
+use material::Material;
 use math::{Normal, Normal3, NormalizableVector, Point, Point2, Point3, Vector, Vector2, Vector3};
 use math::geometry::{Intersect, ParametricLine};
 use traits::{One, Zero};
@@ -26,38 +28,39 @@ pub trait Renderable<T> where
     type NormalType: Normal<ValueType = Self::ScalarType>;
     type ColorType: Color<ChannelType = Self::ScalarType>;
 
-    fn intersect(&self, ray: ParametricLine<Self::PointType, Self::VectorType>) -> Vec<(Self::ScalarType, Self::NormalType, Self::ColorType)>;
+    fn intersect(&self, ray: ParametricLine<Self::PointType, Self::VectorType>) -> Vec<(Self::ScalarType, Self::NormalType, &dyn Material<Self::LengthType, ColorType=Self::ColorType>)>;
 }
 
-pub struct RenderableGeometry<G, C> {
+pub struct RenderableGeometry<G, M> {
     geometry: G,
-    color: C,
+    material: M,
 }
 
-impl<G, C> RenderableGeometry<G, C> {
-    pub fn new(geometry: G, color: C) -> RenderableGeometry<G, C> {
-        RenderableGeometry { geometry, color }
+impl<G, M> RenderableGeometry<G, M> {
+    pub fn new(geometry: G, material: M) -> RenderableGeometry<G, M> {
+        RenderableGeometry { geometry, material }
     }
 }
 
-impl<G, T, C> Renderable<T> for RenderableGeometry<G, C>
+impl<G, T, M> Renderable<T> for RenderableGeometry<G, M>
     where
         T: Div + Mul,
         <T as Div>::Output: Copy,
         ParametricLine<Point3<T>, Vector3<T>>: Intersect<G, Output = Vec<(<T as Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)>>,
         G: Copy + Clone,
         T: Copy + Clone,
-        C: Color<ChannelType = <T as Div>::Output> 
+        M: Material<T>,
+        <M as Material<T>>::ColorType: Color<ChannelType = <T as Div>::Output> 
 {
     type ScalarType = <T as Div>::Output;
     type LengthType = T;
     type VectorType = Vector3<T>;
     type PointType = Point3<T>;
     type NormalType = <Self::VectorType as NormalizableVector>::NormalType;
-    type ColorType = C;
+    type ColorType = <M as Material<T>>::ColorType;
 
-    fn intersect(&self, ray: ParametricLine<Self::PointType, Self::VectorType>) -> Vec<(Self::ScalarType, Self::NormalType, Self::ColorType)> {
-        ray.intersect(self.geometry).iter().map(|t| (t.0, t.1, self.color)).collect()
+    fn intersect(&self, ray: ParametricLine<Self::PointType, Self::VectorType>) -> Vec<(Self::ScalarType, Self::NormalType, &dyn Material<T, ColorType=Self::ColorType>)> {
+        ray.intersect(self.geometry).iter().map(|t| (t.0, t.1, &self.material as  &dyn Material<T, ColorType=Self::ColorType> )).collect()
     }
 }
 
@@ -75,26 +78,28 @@ pub trait Raytracer : Image {
 }
 
 pub struct ClassicRaytracer<T, C> where
-    T: Div + Mul + Copy + One + Default + Zero + Sub<Output=T> + PartialOrd,
+    T: Add<Output=T> + Div + Mul + Mul<<T as Div>::Output, Output=T> + Copy + One + Default + Zero + Sub<Output=T> + PartialOrd,
     <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Copy + Default + PartialEq + PartialOrd + Zero,
     C: Color<ChannelType = <T as Div>::Output>
 {
     camera: Box<dyn RaytracingCamera<T>>,
     scene: Vec<Box< <Self as Raytracer>::RenderableTraitType  >>,
+    lights: Vec<Box< dyn Light<T, C > >>,
     bg_color: C,
 }
 
 impl<T, C> ClassicRaytracer<T, C> where
-    T: Div + Mul + Copy + One + Default + Zero + Sub<Output=T> + PartialOrd,
+    T: Add<Output=T> + Div + Mul + Mul<<T as Div>::Output, Output=T> + Copy + One + Default + Zero + Sub<Output=T> + PartialOrd,
     <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Copy + Default + PartialEq + PartialOrd + Zero,
     C: Color<ChannelType = <T as Div>::Output>
 {
-    pub fn new(camera: Box<dyn RaytracingCamera<T>>, scene: Vec<Box< <Self as Raytracer>::RenderableTraitType>>, bg_color: C) -> ClassicRaytracer<T, C> {
-        ClassicRaytracer { camera, scene, bg_color }
+    pub fn new(camera: Box<dyn RaytracingCamera<T>>, scene: Vec<Box< <Self as Raytracer>::RenderableTraitType>>, lights: Vec<Box<dyn Light<T, C>>>, bg_color: C) -> ClassicRaytracer<T, C> {
+        ClassicRaytracer { camera, scene, lights, bg_color }
     }
 }
 
-impl<T: Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + PartialOrd, C> Image for ClassicRaytracer<T, C>  where
+impl<T: , C> Image for ClassicRaytracer<T, C>  where
+    T: Add<Output=T> + Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + Mul<<T as Div>::Output, Output=T> + PartialOrd,
     <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Default + PartialEq + Copy + PartialOrd + Zero,
     C: Color<ChannelType = <T as Div>::Output>
 {
@@ -109,20 +114,21 @@ impl<T: Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + Pa
         let p = Point2::new(p.x, self.size().y - p.y - One::one());
         let ray = self.camera.ray_for(p);
 
-        let mut hits : Vec<(<Self as Raytracer>::ScalarType, <Self as Raytracer>::NormalType, Self::ColorType)> = self.scene.iter().flat_map(|g| g.intersect(ray)).filter(|(t,_,_)| *t > Zero::zero()).collect();
+        let mut hits : Vec<(<Self as Raytracer>::ScalarType, <Self as Raytracer>::NormalType, &dyn Material<T, ColorType=Self::ColorType>)> = self.scene.iter().flat_map(|g| g.intersect(ray)).filter(|(t,_,_)| *t > Zero::zero()).collect();
         hits.sort_by( |(t1,_,_), (t2,_,_)| t1.partial_cmp( t2 ).unwrap() );
 
         if hits.is_empty() {
             return self.bg_color;
         } else {
-            let (_, _, color) = hits[0];
-            return color;
+            let (t, n, material) = hits[0];
+            let p = ray.at(t);
+            return material.color_for(p, n, &self.lights);
         }
     }
 }
 
 impl<T, C> Raytracer for ClassicRaytracer<T, C> where
-    T: Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + PartialOrd,
+    T: Add<Output=T> + Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + Mul<<T as Div>::Output, Output=T> + PartialOrd,
     <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Copy + Default + PartialEq + PartialOrd + Zero, 
     C: Color<ChannelType = <T as Div>::Output>
 {

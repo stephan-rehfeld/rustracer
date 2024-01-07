@@ -1,5 +1,6 @@
 use std::hash::{Hash, Hasher};
-use std::ops::Index;
+use std::iter::Sum;
+use std::ops::{Add, Index, Mul};
 
 use super::Color;
 use super::RGB;
