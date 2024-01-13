@@ -172,18 +172,35 @@ mod tests {
             vec![(other.t, other.normal)]
         }
     }
+    
+    #[derive(Debug,PartialEq,Clone,Copy)]
+    struct MockMaterial<T: Div> where
+        <T as Div>::Output: Copy + Debug + PartialEq,
+    {
+        color: RGB<<T as Div>::Output>,
+    }
+
+    impl<T: Div> Material<T> for MockMaterial<T> where
+        <T as Div>::Output: Copy + Debug + PartialEq,
+    {
+        type ColorType = RGB<<T as Div>::Output>;
+
+        fn color_for(&self, _p: Point3<T>, _n: Normal3<<T as Div>::Output>, _lights: &Vec<Box<dyn Light<T, RGB<<T as Div>::Output>>>>) -> RGB<<T as Div>::Output> {
+            self.color
+        }
+    }
 
     macro_rules! new_renderable_geometry {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
                 let g = MockGeometry { t: 1.0 as $type, normal: Normal3::new(0 as $type, 1 as $type, 0 as $type)};
-                let c = RGB::new(0.0 as $type, 0.5 as $type, 1.0 as $type);
+                let m: MockMaterial<$type> = MockMaterial { color: RGB::new(0.0 as $type, 0.5 as $type, 1.0 as $type) };
 
-                let rg = RenderableGeometry::new(g, c);
+                let rg = RenderableGeometry::new(g, m);
 
                 assert_eq!(rg.geometry, g);
-                assert_eq!(rg.color, c);
+                assert_eq!(rg.material, m);
             }
         }
     }
@@ -198,16 +215,25 @@ mod tests {
                 let v = 25.0 as $type;
                 let n = Normal3::new(0 as $type, 1 as $type, 0 as $type);
                 let g = MockGeometry { t: v, normal: n };
-                let c = RGB::new(0.0 as $type, 0.5 as $type, 1.0 as $type);
+                let m: MockMaterial<$type> = MockMaterial { color: RGB::new(0.0 as $type, 0.5 as $type, 1.0 as $type) };
 
                 let ray = ParametricLine::new(
                     Point3::new(0 as $type, 0 as $type, 0 as $type),
                     Vector3::new(0 as $type, 0 as $type, -1 as $type)
                 );
 
-                let rg = RenderableGeometry::new(g, c);
+                let rg = RenderableGeometry::new(g, m);
 
-                assert_eq!(rg.intersect(ray), vec![(v, n, c)]);
+                let intersections = rg.intersect(ray);
+                assert_eq!(1, intersections.len());
+                assert_eq!(v, intersections[0].0);
+                assert_eq!(n, intersections[0].1);
+
+                // Cast to *const () is required to prevent fat pointer from being used.
+                let rg_mat_pointer = &rg.material as *const dyn Material<$type, ColorType=RGB<$type>> as *const ();
+                let intersect_mat_pointer = intersections[0].2 as *const dyn Material<$type, ColorType=RGB<$type>> as *const ();
+
+                assert_eq!(rg_mat_pointer, intersect_mat_pointer);
             }
         }
     }
