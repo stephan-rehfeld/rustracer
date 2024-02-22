@@ -13,8 +13,6 @@ use rustracer::traits::ToRadians;
 use rustracer::units::angle::Degrees;
 use rustracer::units::length::Meter;
 
-
-
 fn main() {
     let size = Vector2::new( 640.0, 480.0 );
 

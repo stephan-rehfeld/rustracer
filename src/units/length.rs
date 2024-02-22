@@ -1,6 +1,7 @@
 use super::ValueWithPrefixAndUnit;
 use super::prefix::None;
 
+use crate::traits::number::SelfMultiply;
 use crate::units::area::SquareMeter;
 
 use std::ops::Mul;
@@ -23,3 +24,5 @@ impl<T: Mul> Mul for Meter<T> {
     }
 }
 
+impl<T: SelfMultiply> SelfMultiply<T> for Meter<T> {
+}

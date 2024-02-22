@@ -1,4 +1,6 @@
-pub trait Prefix {
+use std::fmt::Debug;
+
+pub trait Prefix: Debug + PartialEq + PartialOrd + Clone + Copy {
     const NUMERATOR: u64;
     const DENOMINATOR: u64;
     const PREFIX: &'static str;
