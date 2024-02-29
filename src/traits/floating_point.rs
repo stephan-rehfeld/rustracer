@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::num::FpCategory;
 
 use super::SignedNumber;
@@ -34,8 +35,6 @@ create_and_implement_proxy_trait! { with name Cos and function cos and different
 create_and_implement_proxy_trait! { with name Cosh and function cosh and different output for types [f32 f64] }
 
 
-
-
 create_and_implement_proxy_trait! { with name Exp and function exp and different output for types [f32 f64] }
 create_and_implement_proxy_trait! { with name Exp2 and function exp2 and different output for types [f32 f64] }
 create_and_implement_proxy_trait! { with name ExpM1 and function exp_m1 and different output for types [f32 f64] }
@@ -64,6 +63,8 @@ impl FromBits for f64 {
     }
 }
 
+// Gamma
+
 create_and_implement_proxy_trait! { with name Hypot and function hypot and one parameter for types [f32 f64] }
 
 create_and_implement_proxy_trait! { with name IsFinite and function is_finite and output bool for types [f32 f64] }
@@ -74,26 +75,60 @@ create_and_implement_proxy_trait! { with name IsSignNegative and function is_sig
 create_and_implement_proxy_trait! { with name IsSignPositive and function is_sign_positive and output bool for types [f32 f64] }
 create_and_implement_proxy_trait! { with name IsSubnormal and function is_subnormal and output bool for types [f32 f64] }
 
-// ln
-// ln_1p
-// ln_gamma
-// log
-// log10
-// log2
-// max
+create_and_implement_proxy_trait! { with name Ln and function ln for types [f32 f64] }
+create_and_implement_proxy_trait! { with name Ln1p and function ln_1p for types [f32 f64] }
+
+
+create_and_implement_proxy_trait! { with name Log and function log and one parameter for types [f32 f64] }
+create_and_implement_proxy_trait! { with name Log10 and function log10 for types [f32 f64] }
+create_and_implement_proxy_trait! { with name Log2 and function log2 for types [f32 f64] }
+
+create_and_implement_proxy_trait! { with name Max and function max and one parameter for types [f32 f64] }
 // maximum
-// min
+create_and_implement_proxy_trait! { with name Min and function min and one parameter for types [f32 f64] }
 // mimimum
-// mul_add
+
+pub trait MulAdd<N=Self> {
+    fn mul_add(self, a: N, b: Self) -> Self;
+}
+
+impl MulAdd for f32 {
+    fn mul_add(self, a: f32, b: f32) -> f32 {
+        self.mul_add(a, b)
+    }
+}
+
+impl MulAdd for f64 {
+    fn mul_add(self, a: f64, b: f64) -> f64 {
+        self.mul_add(a, b)
+    }
+}
+
 // next_down
 // next_up
-// powf
-// powi
-// recip
-// round
+
+create_and_implement_proxy_trait! { with name Powf and function powf and one parameter for types [f32 f64] }
+
+pub trait Powi {
+    fn powi(self, n: i32) -> Self;
+}
+
+impl Powi for f32 {
+    fn powi(self, n: i32) -> f32 {
+        self.powi(n)
+    }
+}
+
+impl Powi for f64 {
+    fn powi(self, n: i32) -> f64 {
+        self.powi(n)
+    }
+}
+
+create_and_implement_proxy_trait! { with name Recip and function recip for types [f32 f64] }
+create_and_implement_proxy_trait! { with name Round and function round for types [f32 f64] }
+
 // round_ties_even
-
-
 
 create_and_implement_proxy_trait! { with name Sin and function sin and different output for types [f32 f64] }
 
@@ -127,7 +162,27 @@ create_and_implement_proxy_trait! { with name Sqrt and function sqrt and differe
 create_and_implement_proxy_trait! { with name Tan and function tan and different output for types [f32 f64] }
 create_and_implement_proxy_trait! { with name Tanh and function tanh and different output for types [f32 f64] }
 
-// to_bits
+pub trait ToBits {
+    type Output;
+
+    fn to_bits(self) -> Self::Output;
+}
+
+impl ToBits for f32 {
+    type Output = u32;
+
+    fn to_bits(self) -> Self::Output {
+        self.to_bits()
+    }
+}
+
+impl ToBits for f64 {
+    type Output = u64;
+
+    fn to_bits(self) -> Self::Output {
+        self.to_bits()
+    }
+}
 
 create_and_implement_proxy_trait! { with name ToDegrees and function to_degrees and different output for types [f32 f64] }
 
@@ -135,8 +190,23 @@ create_and_implement_proxy_trait! { with name ToDegrees and function to_degrees 
 
 create_and_implement_proxy_trait! { with name ToRadians and function to_radians and different output for types [f32 f64] }
 
-// total_cmp
-// trunc
+pub trait TotalCmp {
+    fn total_cmp(&self, other: &Self) -> Ordering;
+}
+
+impl TotalCmp for f32 {
+    fn total_cmp(&self, other: &Self) -> Ordering {
+        self.total_cmp(other)
+    }
+}
+
+impl TotalCmp for f64 {
+    fn total_cmp(&self, other: &Self) -> Ordering {
+        self.total_cmp(other)
+    }
+}
+
+create_and_implement_proxy_trait! { with name Trunc and function trunc for types [f32 f64] }
 
 pub trait FloatingPoint<N=Self>: SignedNumber<N>
         + Acos
@@ -166,7 +236,36 @@ pub trait FloatingPoint<N=Self>: SignedNumber<N>
         + IsNormal
         + IsSignNegative
         + IsSignPositive
-        + IsSubnormal  {
+        + IsSubnormal
+        + Ln
+        + Ln1p
+        //+ LnGamma
+        + Log
+        + Log2
+        + Log10
+        + Max
+        + Min
+        + MulAdd<N>
+        //+ NextDown
+        //+ NextUp
+        + Powf
+        + Powi
+        + Recip
+        + Round
+        //+ RoundTiesEven
+        + Sin
+        + SinCos
+        + Sinh
+        + Sqrt
+        + Tan
+        + Tanh
+        + ToBits
+        + ToDegrees
+        //+ ToIntUnchecked
+        + ToRadians
+        + TotalCmp 
+        + Trunc
+          {
     const DIGITS: u32;
     const EPSILON: Self;
     const INFINITY: Self;
@@ -600,6 +699,254 @@ mod tests {
         assert_eq!(is_subnormal_helper(lower_than_min), lower_than_min.is_subnormal());
     }
 
+    fn ln_helper<T: Ln>(v: T) -> T {
+        v.ln()
+    }
+
+    #[test]
+    fn ln_f32() {
+        let v: f32 = 23.24;
+
+        assert_eq!(ln_helper(v), v.ln()); 
+    }
+
+    #[test]
+    fn ln_f64() {
+        let v: f64 = 23.24;
+
+        assert_eq!(ln_helper(v), v.ln()); 
+    }
+
+    fn ln_1p_helper<T: Ln1p>(v: T) -> T {
+        v.ln_1p()
+    }
+
+    #[test]
+    fn ln_1p_f32() {
+        let v: f32 = 23.24;
+
+        assert_eq!(ln_1p_helper(v), v.ln_1p()); 
+    }
+
+    #[test]
+    fn ln_1p_f64() {
+        let v: f64 = 23.24;
+
+        assert_eq!(ln_1p_helper(v), v.ln_1p()); 
+    }
+
+    fn log_helper<T: Log>(v: T, base: T) -> T {
+        v.log(base)
+    }
+
+    #[test]
+    fn log_f32() {
+        let v: f32 = 23.24;
+        let base: f32 = 5.0;
+
+        assert_eq!(log_helper(v, base), v.log(base)); 
+    }
+
+    #[test]
+    fn log_f64() {
+        let v: f64 = 23.24;
+        let base: f64 = 5.0;
+
+        assert_eq!(log_helper(v, base), v.log(base)); 
+    }
+
+    fn log2_helper<T: Log2>(v: T) -> T {
+        v.log2()
+    }
+
+    #[test]
+    fn log2_f32() {
+        let v: f32 = 23.24;
+
+        assert_eq!(log2_helper(v), v.log2()); 
+    }
+
+    #[test]
+    fn log2_f64() {
+        let v: f64 = 23.24;
+
+        assert_eq!(log2_helper(v), v.log2()); 
+    }
+
+    fn log10_helper<T: Log10>(v: T) -> T {
+        v.log10()
+    }
+
+    #[test]
+    fn log10_f32() {
+        let v: f32 = 23.24;
+
+        assert_eq!(log10_helper(v), v.log10()); 
+    }
+
+    #[test]
+    fn log10_f64() {
+        let v: f64 = 23.24;
+
+        assert_eq!(log10_helper(v), v.log10()); 
+    }
+
+    fn max_helper<T: Max>(v: T, other: T) -> T {
+        v.max(other)
+    }
+
+    #[test]
+    fn max_f32() {
+        let v: f32 = 23.24;
+        let other: f32 = 5.0;
+
+        assert_eq!(max_helper(v, other), v.max(other)); 
+    }
+
+    #[test]
+    fn max_f64() {
+        let v: f64 = 23.24;
+        let other: f64 = 5.0;
+
+        assert_eq!(max_helper(v, other), v.max(other)); 
+    }
+
+    fn min_helper<T: Min>(v: T, other: T) -> T {
+        v.min(other)
+    }
+
+    #[test]
+    fn min_f32() {
+        let v: f32 = 23.24;
+        let other: f32 = 5.0;
+
+        assert_eq!(min_helper(v, other), v.min(other)); 
+    }
+
+    #[test]
+    fn min_f64() {
+        let v: f64 = 23.24;
+        let other: f64 = 5.0;
+
+        assert_eq!(min_helper(v, other), v.min(other)); 
+    }
+
+    fn mul_add_helper<T: MulAdd>(v: T, a: T, b: T) -> T {
+        v.mul_add(a, b)
+    }
+
+    #[test]
+    fn mul_add_f32() {
+        let v: f32 = 5.0;
+        let a: f32 = 3.0;
+        let b: f32 = 2.0;
+
+        assert_eq!(mul_add_helper(v, a, b), v.mul_add(a, b))
+    }
+
+    #[test]
+    fn mul_add_f64() {
+        let v: f64 = 5.0;
+        let a: f64 = 3.0;
+        let b: f64 = 2.0;
+
+        assert_eq!(mul_add_helper(v, a, b), v.mul_add(a, b))
+    }
+
+    fn powf_helper<T: Powf>(v: T, exp: T) -> T {
+        v.powf(exp)
+    }
+
+    #[test]
+    fn powf_f32() {
+        let v: f32 = 23.24;
+        let exp: f32 = 5.0;
+
+        assert_eq!(powf_helper(v, exp), v.powf(exp)); 
+    }
+
+    #[test]
+    fn powf_f64() {
+        let v: f64 = 23.24;
+        let exp: f64 = 5.0;
+
+        assert_eq!(powf_helper(v, exp), v.powf(exp)); 
+    }
+
+    fn powi_helper<T: Powi>(v: T, exp: i32) -> T {
+        v.powi(exp)
+    }
+
+    #[test]
+    fn powi_f32() {
+        let v: f32 = 23.24;
+        let exp: i32 = 5;
+
+        assert_eq!(powi_helper(v, exp), v.powi(exp)); 
+    }
+
+    #[test]
+    fn powi_f64() {
+        let v: f64 = 23.24;
+        let exp: i32 = 5;
+
+        assert_eq!(powi_helper(v, exp), v.powi(exp)); 
+    }
+
+    fn recip_helper<T: Recip>(v: T) -> T {
+        v.recip()
+    }
+
+    #[test]
+    fn recip_f32() {
+        let v: f32 = 23.24;
+
+        assert_eq!(recip_helper(v), v.recip()); 
+    }
+
+    #[test]
+    fn recip_f64() {
+        let v: f64 = 23.24;
+
+        assert_eq!(recip_helper(v), v.recip()); 
+    }
+
+    fn round_helper<T: Round>(v: T) -> T {
+        v.round()
+    }
+
+    #[test]
+    fn round_f32() {
+        let v: f32 = 23.24;
+
+        assert_eq!(round_helper(v), v.round()); 
+    }
+
+    #[test]
+    fn round_f64() {
+        let v: f64 = 23.24;
+
+        assert_eq!(round_helper(v), v.round()); 
+    }
+
+    fn to_bits_helper<T: ToBits>(v: T) -> <T as ToBits>::Output {
+        v.to_bits()
+    }
+
+    #[test]
+    fn to_bits_f32() {
+        let v: f32 = 23.24;
+
+        assert_eq!(to_bits_helper(v), v.to_bits()); 
+    }
+
+    #[test]
+    fn to_bits_f64() {
+        let v: f64 = 23.24;
+
+        assert_eq!(to_bits_helper(v), v.to_bits()); 
+    }
+
     implement_test_for! { Sin, sin, sin_test, 1.0, [sin_f32, sin_f64], [f32, f64] }
     implement_test_for! { SinCos, sin_cos, sin_cos_test, 1.0, [sin_cos_f32, sin_cos_f64], [f32, f64] }
     implement_test_for! { Sinh, sinh, sinh_test, 1.0, [sinh_f32, sinh_f64], [f32, f64] }
@@ -608,4 +955,67 @@ mod tests {
     implement_test_for! { Tanh, tanh, tanh_test, 1.0, [tanh_f32, tanh_f64], [f32, f64] }
     implement_test_for! { ToDegrees, to_degrees, to_degrees_test, 3.1415, [to_degrees_f32, to_degrees_f64], [f32, f64] }
     implement_test_for! { ToRadians, to_radians, to_radians_test, 180.0, [to_radians_f32, to_radians_f64], [f32, f64] }
+
+    fn total_cmp_helper<T: TotalCmp>(v: &T, other: &T) -> Ordering {
+        v.total_cmp(other)
+    }
+    
+    #[test]
+    fn total_cmp_f32() {
+        let neg_inf = f32::NEG_INFINITY;
+        let neg: f32 = -5.23;
+        let zero: f32 = 0.0;
+        let pos: f32 = 2341.43;
+        let inf = f32::INFINITY;
+        let nan = f32::NAN;
+
+        assert_eq!(total_cmp_helper(&neg_inf, &neg), neg_inf.total_cmp(&neg));
+        assert_eq!(total_cmp_helper(&neg, &zero), neg.total_cmp(&zero));
+        assert_eq!(total_cmp_helper(&zero, &pos), zero.total_cmp(&pos));
+        assert_eq!(total_cmp_helper(&pos, &inf), pos.total_cmp(&inf));
+        assert_eq!(total_cmp_helper(&inf, &nan), inf.total_cmp(&nan));
+    }
+
+    #[test]
+    fn total_cmp_f64() {
+        let neg_inf = f64::NEG_INFINITY;
+        let neg: f64 = -5.23;
+        let zero: f64 = 0.0;
+        let pos: f64 = 2341.43;
+        let inf = f64::INFINITY;
+        let nan = f64::NAN;
+
+        assert_eq!(total_cmp_helper(&neg_inf, &neg), neg_inf.total_cmp(&neg));
+        assert_eq!(total_cmp_helper(&neg, &zero), neg.total_cmp(&zero));
+        assert_eq!(total_cmp_helper(&zero, &pos), zero.total_cmp(&pos));
+        assert_eq!(total_cmp_helper(&pos, &inf), pos.total_cmp(&inf));
+        assert_eq!(total_cmp_helper(&inf, &nan), inf.total_cmp(&nan));
+    }
+
+
+    fn trunc_helper<T: Trunc>(v: T) -> T {
+        v.trunc()
+    }
+   
+    #[test] 
+    fn trunc_f32() {
+        let a: f32 = 2.3;
+        let b: f32 = 2.0;
+        let c: f32 = -2.3;
+
+        assert_eq!(trunc_helper(a), a.trunc());
+        assert_eq!(trunc_helper(b), b.trunc());
+        assert_eq!(trunc_helper(c), c.trunc());
+    }
+
+    #[test] 
+    fn trunc_f64() {
+        let a: f64 = 2.3;
+        let b: f64 = 2.0;
+        let c: f64 = -2.3;
+
+        assert_eq!(trunc_helper(a), a.trunc());
+        assert_eq!(trunc_helper(b), b.trunc());
+        assert_eq!(trunc_helper(c), c.trunc());
+    }
 }

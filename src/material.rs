@@ -59,3 +59,5 @@ impl<T, C> Material<T> for LambertMaterial<C> where
             .sum()
     }
 }
+
+
