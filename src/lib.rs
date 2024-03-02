@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::Div;
 
 use camera::RaytracingCamera;
 use color::Color;
@@ -8,6 +8,8 @@ use material::Material;
 use math::{Normal, Normal3, NormalizableVector, Point, Point2, Point3, Vector, Vector2, Vector3};
 use math::geometry::{Intersect, ParametricLine};
 use traits::{One, Zero};
+
+use crate::units::length::Length;
 
 pub mod camera;
 pub mod color;
@@ -19,7 +21,7 @@ pub mod traits;
 pub mod units;
 
 pub trait Renderable<T> where
-    T: Div + Mul + Copy + Clone,
+    T: Length,
 {
     type ScalarType;
     type LengthType;
@@ -44,8 +46,7 @@ impl<G, M> RenderableGeometry<G, M> {
 
 impl<G, T, M> Renderable<T> for RenderableGeometry<G, M>
     where
-        T: Div + Mul,
-        <T as Div>::Output: Copy,
+        T: Length,
         ParametricLine<Point3<T>, Vector3<T>>: Intersect<G, Output = Vec<(<T as Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)>>,
         G: Copy + Clone,
         T: Copy + Clone,
@@ -66,7 +67,7 @@ impl<G, T, M> Renderable<T> for RenderableGeometry<G, M>
 
 pub trait Raytracer : Image {
     type ScalarType;
-    type LengthType: Mul + Div<Output = Self::ScalarType> + Copy;
+    type LengthType: Length;
     type PointType: Point<ValueType = Self::LengthType>;
     type VectorType: Vector<ValueType = Self::LengthType> + NormalizableVector<NormalType = Self::NormalType>;
     type NormalType: Normal<ValueType = Self::ScalarType>;
@@ -78,8 +79,7 @@ pub trait Raytracer : Image {
 }
 
 pub struct ClassicRaytracer<T, C> where
-    T: Add<Output=T> + Div + Mul + Mul<<T as Div>::Output, Output=T> + Copy + One + Default + Zero + Sub<Output=T> + PartialOrd,
-    <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Copy + Default + PartialEq + PartialOrd + Zero,
+    T: Length,
     C: Color<ChannelType = <T as Div>::Output>
 {
     camera: Box<dyn RaytracingCamera<T>>,
@@ -89,8 +89,7 @@ pub struct ClassicRaytracer<T, C> where
 }
 
 impl<T, C> ClassicRaytracer<T, C> where
-    T: Add<Output=T> + Div + Mul + Mul<<T as Div>::Output, Output=T> + Copy + One + Default + Zero + Sub<Output=T> + PartialOrd,
-    <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Copy + Default + PartialEq + PartialOrd + Zero,
+    T: Length,
     C: Color<ChannelType = <T as Div>::Output>
 {
     pub fn new(camera: Box<dyn RaytracingCamera<T>>, scene: Vec<Box< <Self as Raytracer>::RenderableTraitType>>, lights: Vec<Box<dyn Light<T, C>>>, bg_color: C) -> ClassicRaytracer<T, C> {
@@ -99,19 +98,18 @@ impl<T, C> ClassicRaytracer<T, C> where
 }
 
 impl<T: , C> Image for ClassicRaytracer<T, C>  where
-    T: Add<Output=T> + Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + Mul<<T as Div>::Output, Output=T> + PartialOrd,
-    <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Default + PartialEq + Copy + PartialOrd + Zero,
-    C: Color<ChannelType = <T as Div>::Output>
+    T: Length,
+    C: Color<ChannelType = <T as Length>::ValueType>
 {
     type ColorType = C;
-    type PointType = Point2<<T as Div>::Output>;
+    type PointType = Point2<<T as Length>::ValueType>;
 
-    fn size(&self) -> Vector2<<T as Div>::Output> {
+    fn size(&self) -> Vector2<<T as Length>::ValueType> {
         self.camera.size()
     }
 
     fn get(&self, p: Self::PointType) -> Self::ColorType {
-        let p = Point2::new(p.x, self.size().y - p.y - One::one());
+        let p = Point2::new(p.x, self.size().y - p.y - <<T as Length>::ValueType>::one());
         let ray = self.camera.ray_for(p);
 
         let mut hits : Vec<(<Self as Raytracer>::ScalarType, <Self as Raytracer>::NormalType, &dyn Material<T, ColorType=Self::ColorType>)> = self.scene.iter().flat_map(|g| g.intersect(ray)).filter(|(t,_,_)| *t > Zero::zero()).collect();
@@ -128,8 +126,7 @@ impl<T: , C> Image for ClassicRaytracer<T, C>  where
 }
 
 impl<T, C> Raytracer for ClassicRaytracer<T, C> where
-    T: Add<Output=T> + Default + PartialEq + Copy + Zero + Div + Sub<Output=T> + One + Mul + Mul<<T as Div>::Output, Output=T> + PartialOrd,
-    <T as Div>::Output: Sub<Output=<T as Div>::Output> + One + Copy + Default + PartialEq + PartialOrd + Zero, 
+    T: Length,
     C: Color<ChannelType = <T as Div>::Output>
 {
     type ScalarType = <T as Div>::Output;
@@ -153,20 +150,20 @@ mod tests {
     use color::RGB;
     use math::Normal3;
 
+    use crate::units::length::Meter;  
+
     #[derive(Debug,PartialEq,Clone,Copy)]
     struct MockGeometry<T> where
-        T: Div + Mul + Copy + Clone,
-        <T as Div>::Output: Copy + Clone + Debug + PartialEq,
+        T: Length,
     {
-        t: T,
+        t: <T as Length>::ValueType,
         normal: <Vector3<T> as NormalizableVector>::NormalType,
     }
 
     impl<T> Intersect<MockGeometry<T>> for ParametricLine<Point3<T>, Vector3<T>> where
-        T: Div + Mul + Copy + Clone,
-        <T as Div>::Output: Copy + Clone + Debug + PartialEq,
+        T: Length,
     {
-        type Output = Vec<(T, <Vector3<T> as NormalizableVector>::NormalType)>;
+        type Output = Vec<(<T as Length>::ValueType, <Vector3<T> as NormalizableVector>::NormalType)>;
 
         fn intersect(self, other: MockGeometry<T>) -> Self::Output {
             vec![(other.t, other.normal)]
@@ -174,18 +171,16 @@ mod tests {
     }
     
     #[derive(Debug,PartialEq,Clone,Copy)]
-    struct MockMaterial<T: Div> where
-        <T as Div>::Output: Copy + Debug + PartialEq,
+    struct MockMaterial<T: Length>
     {
-        color: RGB<<T as Div>::Output>,
+        color: RGB<<T as Length>::ValueType>,
     }
 
-    impl<T: Div> Material<T> for MockMaterial<T> where
-        <T as Div>::Output: Copy + Debug + PartialEq,
+    impl<T: Length> Material<T> for MockMaterial<T> where
     {
-        type ColorType = RGB<<T as Div>::Output>;
+        type ColorType = RGB<<T as Length>::ValueType>;
 
-        fn color_for(&self, _p: Point3<T>, _n: Normal3<<T as Div>::Output>, _lights: &Vec<Box<dyn Light<T, RGB<<T as Div>::Output>>>>) -> RGB<<T as Div>::Output> {
+        fn color_for(&self, _p: Point3<T>, _n: Normal3<<T as Length>::ValueType>, _lights: &Vec<Box<dyn Light<T, RGB<<T as Length>::ValueType>>>>) -> RGB<<T as Length>::ValueType> {
             self.color
         }
     }
@@ -194,8 +189,8 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let g = MockGeometry { t: 1.0 as $type, normal: Normal3::new(0 as $type, 1 as $type, 0 as $type)};
-                let m: MockMaterial<$type> = MockMaterial { color: RGB::new(0.0 as $type, 0.5 as $type, 1.0 as $type) };
+                let g: MockGeometry<Meter<$type>> = MockGeometry { t: 1.0 as $type, normal: Normal3::new(0 as $type, 1 as $type, 0 as $type)};
+                let m: MockMaterial<Meter<$type>> = MockMaterial { color: RGB::new(0.0 as $type, 0.5 as $type, 1.0 as $type) };
 
                 let rg = RenderableGeometry::new(g, m);
 
@@ -214,12 +209,12 @@ mod tests {
             fn $name() {
                 let v = 25.0 as $type;
                 let n = Normal3::new(0 as $type, 1 as $type, 0 as $type);
-                let g = MockGeometry { t: v, normal: n };
-                let m: MockMaterial<$type> = MockMaterial { color: RGB::new(0.0 as $type, 0.5 as $type, 1.0 as $type) };
+                let g: MockGeometry<Meter<$type>> = MockGeometry { t: v, normal: n };
+                let m: MockMaterial<Meter<$type>> = MockMaterial { color: RGB::new(0.0 as $type, 0.5 as $type, 1.0 as $type) };
 
                 let ray = ParametricLine::new(
-                    Point3::new(0 as $type, 0 as $type, 0 as $type),
-                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                    Point3::new(Meter::new(0 as $type), Meter::new(0 as $type), Meter::new(0 as $type)),
+                    Vector3::new(Meter::new(0 as $type), Meter::new(0 as $type), Meter::new(-1 as $type))
                 );
 
                 let rg = RenderableGeometry::new(g, m);
@@ -230,8 +225,8 @@ mod tests {
                 assert_eq!(n, intersections[0].1);
 
                 // Cast to *const () is required to prevent fat pointer from being used.
-                let rg_mat_pointer = &rg.material as *const dyn Material<$type, ColorType=RGB<$type>> as *const ();
-                let intersect_mat_pointer = intersections[0].2 as *const dyn Material<$type, ColorType=RGB<$type>> as *const ();
+                let rg_mat_pointer = &rg.material as *const dyn Material<Meter<$type>, ColorType=RGB<$type>> as *const ();
+                let intersect_mat_pointer = intersections[0].2 as *const dyn Material<Meter<$type>, ColorType=RGB<$type>> as *const ();
 
                 assert_eq!(rg_mat_pointer, intersect_mat_pointer);
             }

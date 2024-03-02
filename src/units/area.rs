@@ -4,9 +4,18 @@ use super::prefix::None;
 use std::ops::{Div, Mul};
 
 use crate::traits::Sqrt;
-use crate::units::length::Meter;
+use crate::traits::number::{Number, SelfMultiply};
+use crate::units::length::{Length, Meter};
 use crate::units::second_moment_of_area::SecondMomentOfArea;
-use crate::units::volume::CubicMeter;
+use crate::units::volume::{CubicMeter, Volume};
+
+pub trait Area: Number<Self::ValueType>
+              + Mul<Self::LengthType, Output = Self::VolumeType>
+              + Div<Self::LengthType, Output = Self::LengthType> {
+    type ValueType: Number;
+    type LengthType: Length;
+    type VolumeType: Volume;
+}
 
 #[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
 pub struct SquareMeterUnit;
@@ -50,4 +59,10 @@ impl<T: Sqrt> Sqrt for SquareMeter<T> {
     fn sqrt(self) -> Self::Output {
         Meter::new(self.value.sqrt())
     }
+}
+
+impl<T: Number + SelfMultiply> Area for SquareMeter<T> {
+    type ValueType = T;
+    type LengthType = Meter<T>;
+    type VolumeType = CubicMeter<T>;
 }
