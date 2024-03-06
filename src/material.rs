@@ -1,16 +1,15 @@
-use std::iter::Sum;
-use std::ops::{Add, Div, Mul};
-
+use crate::color::Color;
 use crate::light::Light;
-use crate::math::{Normal3, Point3};
-use crate::traits::Zero;
+use crate::math::{Normal3, Point3, Vector3};
+use crate::math::vector::{NormalizableVector};
+use crate::traits::{FloatingPoint, Zero};
+use crate::traits::floating_point::{Max, Powf, Sqrt};
+use crate::units::length::Length;
 
-pub trait Material<T> where
-    T: Div
-{
-    type ColorType;
+pub trait Material<T: Length> {
+    type ColorType: Color;
 
-    fn color_for(&self, p: Point3<T>, n: Normal3<<T as Div>::Output>, lights: &Vec<Box<dyn Light<T, Self::ColorType>>>) -> Self::ColorType;
+    fn color_for(&self, p: Point3<T>, n: Normal3<<T as Length>::ValueType>, d: Vector3<T>, lights: &Vec<Box<dyn Light<T, Self::ColorType>>>) -> Self::ColorType;
 }
 
 pub struct SingleColorMaterial<C> {
@@ -23,13 +22,10 @@ impl<C> SingleColorMaterial<C> {
     }
 }
 
-impl<T, C> Material<T> for SingleColorMaterial<C> where
-    T: Div,
-    C: Copy
-{
+impl<T: Length, C: Color> Material<T> for SingleColorMaterial<C> {
     type ColorType = C;
 
-    fn color_for(&self, _p: Point3<T>, _n: Normal3<<T as Div>::Output>, _lights: &Vec<Box<dyn Light<T, C>>>) -> C {
+    fn color_for(&self, _p: Point3<T>, _n: Normal3<<T as Length>::ValueType>, _d: Vector3<T>, _lights: &Vec<Box<dyn Light<T, C>>>) -> C {
         self.color
     }
 }
@@ -44,20 +40,49 @@ impl<C> LambertMaterial<C> {
     }
 }
 
-impl<T, C> Material<T> for LambertMaterial<C> where
-    T: Div + Copy,
-    <T as Div>::Output: Add<Output=<T as Div>::Output> + Mul<Output=<T as Div>::Output> + Copy + PartialOrd + Zero,
-    C: Mul<<T as Div>::Output, Output=C> + Sum + Copy
+impl<T: Length, C> Material<T> for LambertMaterial<C> where
+    C: Color<ChannelType=<T as Length>::ValueType>
 {
     type ColorType = C;
 
-    fn color_for(&self, p: Point3<T>, n: Normal3<<T as Div>::Output>, lights: &Vec<Box<dyn Light<T, C>>>) -> C {
+    fn color_for(&self, p: Point3<T>, n: Normal3<<T as Length>::ValueType>, _d: Vector3<T>, lights: &Vec<Box<dyn Light<T, C>>>) -> C {
         lights.iter()
             .filter(|light| light.illuminates(p, n))
             .filter(|light| Normal3::dot(light.direction_from(p), n) > Zero::zero())
-            .map(|light| self.color * Normal3::dot(light.direction_from(p), n))
+            .map(|light| self.color * light.get_color() * Normal3::dot(light.direction_from(p), n))
             .sum()
     }
 }
 
+pub struct PhongMaterial<C: Color> {
+    diffuse: C,
+    specular: C,
+    exponent: <C as Color>::ChannelType,
+}
 
+impl<C: Color> PhongMaterial<C> {
+    pub fn new(diffuse:C, specular: C, exponent: <C as Color>::ChannelType) -> PhongMaterial<C> {
+        PhongMaterial { diffuse, specular, exponent }
+    }
+}
+
+impl<T: Length, C> Material<T> for PhongMaterial<C> where
+    <T as Length>::ValueType: FloatingPoint + Sqrt<Output=<T as Length>::ValueType>,
+    <T as Length>::AreaType: Sqrt<Output=T>,
+    C: Color<ChannelType=<T as Length>::ValueType>
+{
+    type ColorType = C;
+
+    fn color_for(&self, p: Point3<T>, n: Normal3<<T as Length>::ValueType>, d: Vector3<T>, lights: &Vec<Box<dyn Light<T, C>>>) -> C {
+        lights.iter()
+            .filter(|light| light.illuminates(p, n))
+            .filter(|light| Normal3::dot(light.direction_from(p), n) > Zero::zero())
+            .map(|light| {
+                let diffuse_term = self.diffuse * light.get_color() * Normal3::dot(light.direction_from(p), n);
+                let reflected_light = light.direction_from(p).as_vector().reflect_on(n).normalized();
+                let specular_term = self.specular * light.get_color() * Normal3::dot(reflected_light, d.normalized()).max(Zero::zero()).powf(self.exponent);
+                diffuse_term + specular_term
+            })
+            .sum()
+    }
+}

@@ -4,6 +4,8 @@ use std::ops::{Add, Index, Mul};
 
 use super::{Color, RGB};
 
+use crate::traits::{MultiplyStable, Number, SelfMultiply};
+
 create_color_type! { RGBA, [red green blue alpha] }
 
 impl<T> Index<usize> for RGBA<T> {

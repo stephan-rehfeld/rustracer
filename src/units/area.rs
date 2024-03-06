@@ -3,7 +3,7 @@ use super::prefix::None;
 
 use std::ops::{Div, Mul};
 
-use crate::traits::Sqrt;
+use crate::traits::floating_point::Sqrt;
 use crate::traits::number::{Number, SelfMultiply};
 use crate::units::length::{Length, Meter};
 use crate::units::second_moment_of_area::SecondMomentOfArea;

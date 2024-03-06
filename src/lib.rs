@@ -20,9 +20,7 @@ pub mod math;
 pub mod traits;
 pub mod units;
 
-pub trait Renderable<T> where
-    T: Length,
-{
+pub trait Renderable<T: Length> {
     type ScalarType;
     type LengthType;
     type VectorType: Vector<ValueType = Self::LengthType>;
@@ -44,9 +42,8 @@ impl<G, M> RenderableGeometry<G, M> {
     }
 }
 
-impl<G, T, M> Renderable<T> for RenderableGeometry<G, M>
+impl<G, T: Length, M> Renderable<T> for RenderableGeometry<G, M>
     where
-        T: Length,
         ParametricLine<Point3<T>, Vector3<T>>: Intersect<G, Output = Vec<(<T as Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)>>,
         G: Copy + Clone,
         T: Copy + Clone,
@@ -78,9 +75,8 @@ pub trait Raytracer : Image {
     type RenderableTraitType: ?Sized;
 }
 
-pub struct ClassicRaytracer<T, C> where
-    T: Length,
-    C: Color<ChannelType = <T as Div>::Output>
+pub struct ClassicRaytracer<T: Length, C> where
+    C: Color<ChannelType = <T as Length>::ValueType>
 {
     camera: Box<dyn RaytracingCamera<T>>,
     scene: Vec<Box< <Self as Raytracer>::RenderableTraitType  >>,
@@ -88,17 +84,15 @@ pub struct ClassicRaytracer<T, C> where
     bg_color: C,
 }
 
-impl<T, C> ClassicRaytracer<T, C> where
-    T: Length,
-    C: Color<ChannelType = <T as Div>::Output>
+impl<T: Length, C> ClassicRaytracer<T, C> where
+    C: Color<ChannelType = <T as Length>::ValueType>
 {
     pub fn new(camera: Box<dyn RaytracingCamera<T>>, scene: Vec<Box< <Self as Raytracer>::RenderableTraitType>>, lights: Vec<Box<dyn Light<T, C>>>, bg_color: C) -> ClassicRaytracer<T, C> {
         ClassicRaytracer { camera, scene, lights, bg_color }
     }
 }
 
-impl<T: , C> Image for ClassicRaytracer<T, C>  where
-    T: Length,
+impl<T: Length, C> Image for ClassicRaytracer<T, C>  where
     C: Color<ChannelType = <T as Length>::ValueType>
 {
     type ColorType = C;
@@ -120,7 +114,7 @@ impl<T: , C> Image for ClassicRaytracer<T, C>  where
         } else {
             let (t, n, material) = hits[0];
             let p = ray.at(t);
-            material.color_for(p, n, &self.lights)
+            material.color_for(p, n, ray.direction, &self.lights)
         }
     }
 }

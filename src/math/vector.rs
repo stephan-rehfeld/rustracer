@@ -72,6 +72,17 @@ macro_rules! create_vector_type {
             type PointType = $pointType<T>;
         }
 
+        impl<T> $name<T> where
+            T: Div + Mul<<T as Div>::Output, Output=T> + Add<Output=T> + Sub<T, Output=T> + Zero + Copy,
+            <T as Div>::Output: Mul<T, Output=T> + Copy + Clone,
+        {
+            pub fn reflect_on(self, n: $normalType<<T as Div>::Output>) -> Self {
+                let dot_product = self.dot(n.as_vector());
+                let dot_product_times_two = dot_product + dot_product;
+                self - n * dot_product_times_two
+            }
+        }
+
         impl<T> NormalizableVector for $name<T> where
             T: Div + Mul + Copy + Clone,
         {
@@ -495,7 +506,9 @@ mod tests {
     dot_product_vector2! { i128, dot_product_vector2_i128 }
     dot_product_vector2! { f32, dot_product_vector2_f32 }
     dot_product_vector2! { f64, dot_product_vector2_f64 }
-    
+   
+    // reflect on
+
     macro_rules! vector2_mul_assign {
         ($type: ty, $name: ident) => {
             #[test]
@@ -901,7 +914,9 @@ mod tests {
     dot_product_vector3! { i128, dot_product_vector3_i128 }
     dot_product_vector3! { f32, dot_product_vector3_f32 }
     dot_product_vector3! { f64, dot_product_vector3_f64 }
-    
+   
+    // reflect on
+
     macro_rules! vector3_mul_assign {
         ($type: ty, $name: ident) => {
             #[test]

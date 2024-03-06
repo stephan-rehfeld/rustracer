@@ -6,7 +6,7 @@ use rustracer::color::{RGB, RGBA};
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
 use rustracer::light::{Light, PointLight};
-use rustracer::material::LambertMaterial;
+use rustracer::material::{LambertMaterial, PhongMaterial};
 use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
 use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle};
 use rustracer::traits::ToRadians;
@@ -43,7 +43,7 @@ fn main() {
     );
 
     let plane_geometry = Box::new(RenderableGeometry::new(plane, LambertMaterial::new(RGB::new(1.0, 0.0, 0.0))));
-    let sphere_geometry = Box::new(RenderableGeometry::new(sphere, LambertMaterial::new(RGB::new(0.0, 1.0, 0.0))));
+    let sphere_geometry = Box::new(RenderableGeometry::new(sphere, PhongMaterial::new(RGB::new(0.0, 1.0, 0.0), RGB::new(1.0, 1.0, 1.0), 64.0)));
     let aab_geometry = Box::new(RenderableGeometry::new(aab, LambertMaterial::new(RGB::new(0.0, 0.0, 1.0))));
     let triangle_geometry = Box::new(RenderableGeometry::new(triangle, LambertMaterial::new(RGB::new(1.0, 1.0, 0.0))));
 

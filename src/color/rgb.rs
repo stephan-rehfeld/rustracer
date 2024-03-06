@@ -6,6 +6,8 @@ use super::Color;
 use super::RGBA;
 use super::YCbCr;
 
+use crate::traits::{MultiplyStable, Number, SelfMultiply};
+
 create_color_type! { RGB, [red green blue] }
 
 impl From<YCbCr<u8>> for RGB<u8> {

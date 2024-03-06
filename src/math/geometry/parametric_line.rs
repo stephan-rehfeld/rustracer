@@ -2,8 +2,8 @@ use std::ops::{Add, Mul};
 
 #[derive(Debug,PartialEq,Clone,Copy)]
 pub struct ParametricLine<P,V> {
-    pub(super) origin: P,
-    pub(super) direction: V
+    pub origin: P,
+    pub direction: V
 }
 
 impl<P,V> ParametricLine<P,V> {

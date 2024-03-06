@@ -1,7 +1,18 @@
-use std::ops::Index;
+use std::iter::Sum;
+use std::ops::{Add, Index, Mul};
 
-pub trait Color : Default + Clone + Copy + PartialEq + Index<usize, Output=Self::ChannelType> {
-    type ChannelType;
+use crate::traits::{MultiplyStable, Number, SelfMultiply};
+
+pub trait Color : Add<Output=Self>
+                + Mul<Self::ChannelType, Output=Self>
+                + Mul<Output=Self>
+                + Sum
+                + Default
+                + Clone
+                + Copy
+                + PartialEq
+                + Index<usize, Output=Self::ChannelType> {
+    type ChannelType: Number + SelfMultiply + MultiplyStable;
 
     fn clamped(self, min: Self, max: Self) -> Self where <Self as Color>::ChannelType: PartialOrd;
 }
@@ -28,7 +39,7 @@ macro_rules! create_color_type {
             }
         }
 
-        impl<T: Copy + Clone + Default + PartialEq> Color for $name<T> {
+        impl<T: Number + SelfMultiply + MultiplyStable> Color for $name<T> {
             type ChannelType = T;
 
             fn clamped(self, min: $name<T>, max: $name<T>) -> $name<T> where T: PartialOrd {
@@ -57,14 +68,22 @@ macro_rules! create_color_type {
         }
 
 
-        impl<T: Mul<U>, U: Copy + Clone> Mul<U> for $name<T> {
-            type Output = $name<<T as Mul<U>>::Output>;
+        impl<T: Mul<Output=T> + Copy> Mul<T> for $name<T> {
+            type Output = $name<T>;
 
-            fn mul(self, rhs: U) -> Self::Output {
+            fn mul(self, rhs: T) -> Self::Output {
                 $name::new( $( self.$channel * rhs, )* )
             }
         }
 
+        impl<T: Mul<Output=T>> Mul for $name<T> {
+            type Output = $name<T>;
+
+            fn mul(self, rhs: Self) -> Self::Output {
+                $name::new( $( self.$channel * rhs.$channel, )* )
+            }
+        }
+        
         impl<T: Eq> Eq for $name<T> {
         }
 
