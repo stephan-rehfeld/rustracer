@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Neg, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use super::{Normal2, Normal3, Point2, Point3};
 
@@ -9,21 +9,27 @@ pub trait Vector {
     type PointType;
 }
 
-pub trait NormalizableVector : Vector {
+pub trait NormalizableVector: Vector {
     type NormalType;
 
-    fn magnitude(self) -> Self::ValueType where
+    fn magnitude(self) -> Self::ValueType
+    where
         <Self as Vector>::ValueType: Mul + Copy + Clone,
-        <<Self as Vector>::ValueType as Mul>::Output: Add<Output=<<Self as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<Self as Vector>::ValueType> + Zero;
+        <<Self as Vector>::ValueType as Mul>::Output: Add<Output = <<Self as Vector>::ValueType as Mul>::Output>
+            + Sqrt<Output = <Self as Vector>::ValueType>
+            + Zero;
 
-    fn normalized(self) -> Self::NormalType where
+    fn normalized(self) -> Self::NormalType
+    where
         <Self as Vector>::ValueType: Mul + Copy + Clone,
-        <<Self as Vector>::ValueType as Mul>::Output: Add<Output=<<Self as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<Self as Vector>::ValueType> + Zero;
+        <<Self as Vector>::ValueType as Mul>::Output: Add<Output = <<Self as Vector>::ValueType as Mul>::Output>
+            + Sqrt<Output = <Self as Vector>::ValueType>
+            + Zero;
 }
 
-
-pub trait DotProduct<T=Self> : Vector where
-    T: Vector
+pub trait DotProduct<T = Self>: Vector
+where
+    T: Vector,
 {
     type Output;
 
@@ -186,13 +192,13 @@ impl<T> Vector3<T> {
     pub fn cross<U>(a: Vector3<T>, b: Vector3<U>) -> Vector3<<T as Mul<U>>::Output>
     where
         T: Mul<U> + Copy + Clone,
-        <T as Mul<U>>::Output: Sub<Output=<T as Mul<U>>::Output>,
+        <T as Mul<U>>::Output: Sub<Output = <T as Mul<U>>::Output>,
         U: Copy,
     {
         Vector3::new(
             a.y * b.z - a.z * b.y,
             a.z * b.x - a.x * b.z,
-            a.x * b.y - a.y * b.x
+            a.x * b.y - a.y * b.x,
         )
     }
 }
@@ -273,12 +279,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let vec = Vector2::new( 1 as $type, 2 as $type );
+                let vec = Vector2::new(1 as $type, 2 as $type);
 
                 assert_eq!(vec.x, 1 as $type);
                 assert_eq!(vec.y, 2 as $type);
             }
-        }
+        };
     }
 
     new_vector2! { u8, new_vector2_u8 }
@@ -298,12 +304,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v1 = Vector2::new( 1 as $type, 2 as $type );
-                let v2 = Vector2::new( 4 as $type, 5 as $type );
+                let v1 = Vector2::new(1 as $type, 2 as $type);
+                let v2 = Vector2::new(4 as $type, 5 as $type);
 
                 assert_eq!(v1 + v2, Vector2::new(5 as $type, 7 as $type));
             }
-        }
+        };
     }
 
     add_vector2! { u8, add_vector2_u8 }
@@ -318,17 +324,17 @@ mod tests {
     add_vector2! { i128, add_vector2_i128 }
     add_vector2! { f32, add_vector2_f32 }
     add_vector2! { f64, add_vector2_f64 }
-    
+
     macro_rules! vector2_add_point2 {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v = Vector2::new( 1 as $type, 2 as $type );
-                let p = Point2::new( 4 as $type, 5 as $type );
+                let v = Vector2::new(1 as $type, 2 as $type);
+                let p = Point2::new(4 as $type, 5 as $type);
 
-                assert_eq!(v + p, Point2::new(5 as $type, 7 as $type ));
+                assert_eq!(v + p, Point2::new(5 as $type, 7 as $type));
             }
-        }
+        };
     }
 
     vector2_add_point2! { u8, vector2_add_point2_u8 }
@@ -348,14 +354,14 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut v1 = Vector2::new( 1 as $type, 2 as $type );
-                let v2 = Vector2::new( 4 as $type, 5 as $type );
+                let mut v1 = Vector2::new(1 as $type, 2 as $type);
+                let v2 = Vector2::new(4 as $type, 5 as $type);
 
                 v1 += v2;
 
-                assert_eq!(v1, Vector2::new(5 as $type, 7 as $type ));
+                assert_eq!(v1, Vector2::new(5 as $type, 7 as $type));
             }
-        }
+        };
     }
 
     add_assign_vector2! { u8, add_assign_vector2_u8 }
@@ -375,12 +381,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v1 = Vector2::new( 4 as $type, 5 as $type );
-                let v2 = Vector2::new( 1 as $type, 2 as $type );
+                let v1 = Vector2::new(4 as $type, 5 as $type);
+                let v2 = Vector2::new(1 as $type, 2 as $type);
 
-                assert_eq!(v1 - v2, Vector2::new(3 as $type, 3 as $type ));
+                assert_eq!(v1 - v2, Vector2::new(3 as $type, 3 as $type));
             }
-        }
+        };
     }
 
     sub_vector2! { u8, sub_vector2_u8 }
@@ -395,19 +401,19 @@ mod tests {
     sub_vector2! { i128, sub_vector2_i128 }
     sub_vector2! { f32, sub_vector2_f32 }
     sub_vector2! { f64, sub_vector2_f64 }
- 
+
     macro_rules! sub_assign_vector2 {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut v1 = Vector2::new( 4 as $type, 5 as $type );
-                let v2 = Vector2::new( 1 as $type, 2 as $type );
+                let mut v1 = Vector2::new(4 as $type, 5 as $type);
+                let v2 = Vector2::new(1 as $type, 2 as $type);
 
                 v1 -= v2;
 
-                assert_eq!(v1, Vector2::new(3 as $type, 3 as $type ));
+                assert_eq!(v1, Vector2::new(3 as $type, 3 as $type));
             }
-        }
+        };
     }
 
     sub_assign_vector2! { u8, sub_assign_vector2_u8 }
@@ -427,12 +433,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v = Vector2::new( 2 as $type, 3 as $type );
-                let r = Vector2::new( 4 as $type, 6 as $type );
+                let v = Vector2::new(2 as $type, 3 as $type);
+                let r = Vector2::new(4 as $type, 6 as $type);
 
-                assert_eq!( v * 2 as $type, r);
+                assert_eq!(v * 2 as $type, r);
             }
-        }
+        };
     }
 
     mul_vector2_scalar! { u8, mul_vector2_scalar_u8 }
@@ -452,12 +458,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v = Vector2::new( 2 as $type, 3 as $type );
-                let r = Vector2::new( 4 as $type, 6 as $type );
+                let v = Vector2::new(2 as $type, 3 as $type);
+                let r = Vector2::new(4 as $type, 6 as $type);
 
-                assert_eq!( 2 as $type * v, r);
+                assert_eq!(2 as $type * v, r);
             }
-        }
+        };
     }
 
     mul_scalar_vector2! { u8, mul_scalar_vector2_u8 }
@@ -491,7 +497,7 @@ mod tests {
                 assert_eq!(x_vec2.dot(x_vec3), 6 as $type);
                 assert_eq!(y_vec2.dot(y_vec3), 6 as $type);
             }
-        }
+        };
     }
 
     dot_product_vector2! { u8, dot_product_vector2_u8 }
@@ -506,22 +512,21 @@ mod tests {
     dot_product_vector2! { i128, dot_product_vector2_i128 }
     dot_product_vector2! { f32, dot_product_vector2_f32 }
     dot_product_vector2! { f64, dot_product_vector2_f64 }
-   
+
     // reflect on
 
     macro_rules! vector2_mul_assign {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut v = Vector2::new( 2 as $type, 4 as $type );
-                let r = Vector2::new( 4 as $type, 8 as $type );
+                let mut v = Vector2::new(2 as $type, 4 as $type);
+                let r = Vector2::new(4 as $type, 8 as $type);
 
                 v *= 2.0 as $type;
 
                 assert_eq!(v, r);
-
             }
-        }
+        };
     }
 
     vector2_mul_assign! { u16, vector2_mul_assign_u16 }
@@ -540,13 +545,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v = Vector2::new( 2 as $type, 4 as $type );
-                let r = Vector2::new( 1 as $type, 2 as $type );
+                let v = Vector2::new(2 as $type, 4 as $type);
+                let r = Vector2::new(1 as $type, 2 as $type);
 
                 assert_eq!(v / 2 as $type, r);
-
             }
-        }
+        };
     }
 
     vector2_div! { u8, vector2_div_u8 }
@@ -566,15 +570,14 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut v = Vector2::new( 2 as $type, 4 as $type );
-                let r = Vector2::new( 1 as $type, 2 as $type );
+                let mut v = Vector2::new(2 as $type, 4 as $type);
+                let r = Vector2::new(1 as $type, 2 as $type);
 
                 v /= 2.0 as $type;
 
                 assert_eq!(v, r);
-
             }
-        }
+        };
     }
 
     vector2_div_assign! { u16, vector2_div_assign_u16 }
@@ -593,13 +596,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v1 = Vector2::new( 1 as $type, 2 as $type);
+                let v1 = Vector2::new(1 as $type, 2 as $type);
                 let v2 = -v1;
 
                 assert_eq!(v2.x, -1 as $type);
                 assert_eq!(v2.y, -2 as $type);
             }
-        }
+        };
     }
 
     vector2_neg! { i8, vector2_neg_i8 }
@@ -614,13 +617,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let x_vec = Vector2::new( 2 as $type, 0 as $type );
-                let y_vec = Vector2::new( 0 as $type, 3 as $type );
+                let x_vec = Vector2::new(2 as $type, 0 as $type);
+                let y_vec = Vector2::new(0 as $type, 3 as $type);
 
                 assert_eq!(x_vec.magnitude(), 2 as $type);
                 assert_eq!(y_vec.magnitude(), 3 as $type);
             }
-        }
+        };
     }
 
     vector2_magnitude! { f32, vector2_magnitude_f32 }
@@ -630,13 +633,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let x_vec = Vector2::new( 2 as $type, 0 as $type );
-                let y_vec = Vector2::new( 0 as $type, 3 as $type );
+                let x_vec = Vector2::new(2 as $type, 0 as $type);
+                let y_vec = Vector2::new(0 as $type, 3 as $type);
 
                 assert_eq!(x_vec.normalized(), Normal2::new(1 as $type, 0 as $type));
                 assert_eq!(y_vec.normalized(), Normal2::new(0 as $type, 1 as $type));
             }
-        }
+        };
     }
 
     vector2_normalized! { f32, vector2_normalized_f32 }
@@ -646,13 +649,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let vec = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+                let vec = Vector3::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(vec.x, 1 as $type);
                 assert_eq!(vec.y, 2 as $type);
                 assert_eq!(vec.z, 3 as $type);
             }
-        }
+        };
     }
 
     new_vector3! { u8, new_vector3_u8 }
@@ -685,7 +688,7 @@ mod tests {
                 assert_eq!(z_axis, Vector3::cross(x_axis, y_axis));
                 assert_eq!(-z_axis, Vector3::cross(y_axis, x_axis));
             }
-        }
+        };
     }
 
     vector3_cross! { i8, vector3_cross_i8 }
@@ -700,12 +703,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v1 = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
-                let v2 = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
+                let v1 = Vector3::new(1 as $type, 2 as $type, 3 as $type);
+                let v2 = Vector3::new(4 as $type, 5 as $type, 6 as $type);
 
                 assert_eq!(v1 + v2, Vector3::new(5 as $type, 7 as $type, 9 as $type));
             }
-        }
+        };
     }
 
     add_vector3! { u8, add_vector3_u8 }
@@ -720,17 +723,17 @@ mod tests {
     add_vector3! { i128, add_vector3_i128 }
     add_vector3! { f32, add_vector3_f32 }
     add_vector3! { f64, add_vector3_f64 }
-    
+
     macro_rules! vector3_add_point3 {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
-                let p = Point3::new( 4 as $type, 5 as $type, 6 as $type );
+                let v = Vector3::new(1 as $type, 2 as $type, 3 as $type);
+                let p = Point3::new(4 as $type, 5 as $type, 6 as $type);
 
                 assert_eq!(v + p, Point3::new(5 as $type, 7 as $type, 9 as $type));
             }
-        }
+        };
     }
 
     vector3_add_point3! { u8, vector3_add_point3_u8 }
@@ -750,14 +753,14 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut v1 = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
-                let v2 = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
+                let mut v1 = Vector3::new(1 as $type, 2 as $type, 3 as $type);
+                let v2 = Vector3::new(4 as $type, 5 as $type, 6 as $type);
 
                 v1 += v2;
 
                 assert_eq!(v1, Vector3::new(5 as $type, 7 as $type, 9 as $type));
             }
-        }
+        };
     }
 
     add_assign_vector3! { u8, add_assign_vector3_u8 }
@@ -777,12 +780,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v1 = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
-                let v2 = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+                let v1 = Vector3::new(4 as $type, 5 as $type, 6 as $type);
+                let v2 = Vector3::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(v1 - v2, Vector3::new(3 as $type, 3 as $type, 3 as $type));
             }
-        }
+        };
     }
 
     sub_vector3! { u8, sub_vector3_u8 }
@@ -797,19 +800,19 @@ mod tests {
     sub_vector3! { i128, sub_vector3_i128 }
     sub_vector3! { f32, sub_vector3_f32 }
     sub_vector3! { f64, sub_vector3_f64 }
- 
+
     macro_rules! sub_assign_vector3 {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut v1 = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
-                let v2 = Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+                let mut v1 = Vector3::new(4 as $type, 5 as $type, 6 as $type);
+                let v2 = Vector3::new(1 as $type, 2 as $type, 3 as $type);
 
                 v1 -= v2;
 
                 assert_eq!(v1, Vector3::new(3 as $type, 3 as $type, 3 as $type));
             }
-        }
+        };
     }
 
     sub_assign_vector3! { u8, sub_assign_vector3_u8 }
@@ -829,12 +832,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v = Vector3::new( 2 as $type, 3 as $type, 4 as $type );
-                let r = Vector3::new( 4 as $type, 6 as $type, 8 as $type );
+                let v = Vector3::new(2 as $type, 3 as $type, 4 as $type);
+                let r = Vector3::new(4 as $type, 6 as $type, 8 as $type);
 
-                assert_eq!( v * 2 as $type, r);
+                assert_eq!(v * 2 as $type, r);
             }
-        }
+        };
     }
 
     mul_vector3_scalar! { u8, mul_vector3_scalar_u8 }
@@ -854,12 +857,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v = Vector3::new( 2 as $type, 3 as $type, 4 as $type );
-                let r = Vector3::new( 4 as $type, 6 as $type, 8 as $type );
+                let v = Vector3::new(2 as $type, 3 as $type, 4 as $type);
+                let r = Vector3::new(4 as $type, 6 as $type, 8 as $type);
 
-                assert_eq!( 2 as $type * v, r);
+                assert_eq!(2 as $type * v, r);
             }
-        }
+        };
     }
 
     mul_scalar_vector3! { u8, mul_scalar_vector3_u8 }
@@ -899,7 +902,7 @@ mod tests {
                 assert_eq!(y_vec2.dot(y_vec3), 6 as $type);
                 assert_eq!(z_vec2.dot(z_vec3), 6 as $type);
             }
-        }
+        };
     }
 
     dot_product_vector3! { u8, dot_product_vector3_u8 }
@@ -914,22 +917,21 @@ mod tests {
     dot_product_vector3! { i128, dot_product_vector3_i128 }
     dot_product_vector3! { f32, dot_product_vector3_f32 }
     dot_product_vector3! { f64, dot_product_vector3_f64 }
-   
+
     // reflect on
 
     macro_rules! vector3_mul_assign {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut v = Vector3::new( 2 as $type, 4 as $type, 8 as $type );
-                let r = Vector3::new( 4 as $type, 8 as $type, 16 as $type );
+                let mut v = Vector3::new(2 as $type, 4 as $type, 8 as $type);
+                let r = Vector3::new(4 as $type, 8 as $type, 16 as $type);
 
                 v *= 2.0 as $type;
 
                 assert_eq!(v, r);
-
             }
-        }
+        };
     }
 
     vector3_mul_assign! { u16, vector3_mul_assign_u16 }
@@ -948,13 +950,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v = Vector3::new( 2 as $type, 4 as $type, 8 as $type );
-                let r = Vector3::new( 1 as $type, 2 as $type, 4 as $type );
+                let v = Vector3::new(2 as $type, 4 as $type, 8 as $type);
+                let r = Vector3::new(1 as $type, 2 as $type, 4 as $type);
 
                 assert_eq!(v / 2 as $type, r);
-
             }
-        }
+        };
     }
 
     vector3_div! { u8, vector3_div_u8 }
@@ -974,15 +975,14 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut v = Vector3::new( 2 as $type, 4 as $type, 8 as $type );
-                let r = Vector3::new( 1 as $type, 2 as $type, 4 as $type );
+                let mut v = Vector3::new(2 as $type, 4 as $type, 8 as $type);
+                let r = Vector3::new(1 as $type, 2 as $type, 4 as $type);
 
                 v /= 2.0 as $type;
 
                 assert_eq!(v, r);
-
             }
-        }
+        };
     }
 
     vector3_div_assign! { u16, vector3_div_assign_u16 }
@@ -1001,14 +1001,14 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let v1 = Vector3::new( 1 as $type, 2 as $type, -3 as $type);
+                let v1 = Vector3::new(1 as $type, 2 as $type, -3 as $type);
                 let v2 = -v1;
 
                 assert_eq!(v2.x, -1 as $type);
                 assert_eq!(v2.y, -2 as $type);
                 assert_eq!(v2.z, 3 as $type);
             }
-        }
+        };
     }
 
     vector3_neg! { i8, vector3_neg_i8 }
@@ -1023,15 +1023,15 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let x_vec = Vector3::new( 2 as $type, 0 as $type, 0 as $type );
-                let y_vec = Vector3::new( 0 as $type, 3 as $type, 0 as $type );
-                let z_vec = Vector3::new( 0 as $type, 0 as $type, 4 as $type );
+                let x_vec = Vector3::new(2 as $type, 0 as $type, 0 as $type);
+                let y_vec = Vector3::new(0 as $type, 3 as $type, 0 as $type);
+                let z_vec = Vector3::new(0 as $type, 0 as $type, 4 as $type);
 
                 assert_eq!(x_vec.magnitude(), 2 as $type);
                 assert_eq!(y_vec.magnitude(), 3 as $type);
                 assert_eq!(z_vec.magnitude(), 4 as $type);
             }
-        }
+        };
     }
 
     vector3_magnitude! { f32, vector3_magnitude_f32 }
@@ -1041,15 +1041,24 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let x_vec = Vector3::new( 2 as $type, 0 as $type, 0 as $type );
-                let y_vec = Vector3::new( 0 as $type, 3 as $type, 0 as $type );
-                let z_vec = Vector3::new( 0 as $type, 0 as $type, 4 as $type );
+                let x_vec = Vector3::new(2 as $type, 0 as $type, 0 as $type);
+                let y_vec = Vector3::new(0 as $type, 3 as $type, 0 as $type);
+                let z_vec = Vector3::new(0 as $type, 0 as $type, 4 as $type);
 
-                assert_eq!(x_vec.normalized(), Normal3::new( 1 as $type, 0 as $type, 0 as $type ));
-                assert_eq!(y_vec.normalized(), Normal3::new( 0 as $type, 1 as $type, 0 as $type ));
-                assert_eq!(z_vec.normalized(), Normal3::new( 0 as $type, 0 as $type, 1 as $type ));
+                assert_eq!(
+                    x_vec.normalized(),
+                    Normal3::new(1 as $type, 0 as $type, 0 as $type)
+                );
+                assert_eq!(
+                    y_vec.normalized(),
+                    Normal3::new(0 as $type, 1 as $type, 0 as $type)
+                );
+                assert_eq!(
+                    z_vec.normalized(),
+                    Normal3::new(0 as $type, 0 as $type, 1 as $type)
+                );
             }
-        }
+        };
     }
 
     vector3_normalized! { f32, vector3_normalized_f32 }

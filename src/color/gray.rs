@@ -27,11 +27,11 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let gray = Gray::new( 1 as $type );
+                let gray = Gray::new(1 as $type);
 
                 assert_eq!(gray.value, 1 as $type);
             }
-        }
+        };
     }
 
     new_gray! { u8, new_gray_u8 }
@@ -51,12 +51,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let gray1 = Gray::new( <$type>::default() );
+                let gray1 = Gray::new(<$type>::default());
                 let gray2 = Gray::<$type>::default();
 
                 assert_eq!(gray1, gray2);
             }
-        }
+        };
     }
 
     default_gray! { u8, default_gray_u8 }
@@ -76,11 +76,11 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let gray = Gray::new( 1 as $type );
+                let gray = Gray::new(1 as $type);
 
                 assert_eq!(gray[0], 1 as $type);
             }
-        }
+        };
     }
 
     gray_index! { u8, gray_index_u8 }

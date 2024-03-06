@@ -8,13 +8,14 @@ pub struct Clamp<T: Image> {
     max: <T as Image>::ColorType,
 }
 
-impl<T: Image>  Clamp<T> {
+impl<T: Image> Clamp<T> {
     pub fn new(source: T, min: <T as Image>::ColorType, max: <T as Image>::ColorType) -> Clamp<T> {
         Clamp { source, min, max }
     }
 }
 
-impl<T: Image> Image for Clamp<T> where
+impl<T: Image> Image for Clamp<T>
+where
     <T as Image>::ColorType: PartialEq,
     <<T as Image>::ColorType as ColorTrait>::ChannelType: PartialOrd,
 {

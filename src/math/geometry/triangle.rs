@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use std::ops::{Add, Div, Neg, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use super::{Intersect, ParametricLine};
 
@@ -7,7 +7,8 @@ use crate::math::{Mat3x3, NormalizableVector, Point, Point3, Vector3};
 use crate::traits::{One, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Triangle<T: Point> where
+pub struct Triangle<T: Point>
+where
     <T as Point>::VectorType: NormalizableVector,
     <<T as Point>::VectorType as NormalizableVector>::NormalType: PartialEq + Copy + Debug,
 {
@@ -19,48 +20,68 @@ pub struct Triangle<T: Point> where
     nc: <<T as Point>::VectorType as NormalizableVector>::NormalType,
 }
 
-impl<T: Point> Triangle<T> where
+impl<T: Point> Triangle<T>
+where
     <T as Point>::VectorType: NormalizableVector,
     <<T as Point>::VectorType as NormalizableVector>::NormalType: PartialEq + Copy + Debug,
 {
-    pub fn new(a: T, b: T, c: T, na: <<T as Point>::VectorType as NormalizableVector>::NormalType, nb: <<T as Point>::VectorType as NormalizableVector>::NormalType, nc: <<T as Point>::VectorType as NormalizableVector>::NormalType ) -> Triangle<T> {
-        Triangle { a, b, c, na, nb, nc }
+    pub fn new(
+        a: T,
+        b: T,
+        c: T,
+        na: <<T as Point>::VectorType as NormalizableVector>::NormalType,
+        nb: <<T as Point>::VectorType as NormalizableVector>::NormalType,
+        nc: <<T as Point>::VectorType as NormalizableVector>::NormalType,
+    ) -> Triangle<T> {
+        Triangle {
+            a,
+            b,
+            c,
+            na,
+            nb,
+            nc,
+        }
     }
 }
 
-impl<T> Intersect<Triangle<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>> where
-        <T as Div>::Output: Add<Output=<T as Div>::Output>
-                          + Sub<Output=<T as Div>::Output>
-                          + Mul<Output=<T as Div>::Output>
-                          + Div<Output=<T as Div>::Output>
-                          + Neg<Output=<T as Div>::Output>
-                          + Sqrt<Output=<T as Div>::Output>
-                          + One
-                          + Zero
-                          + Debug
-                          + PartialOrd
-                          + Copy
-                          + PartialEq,
-        T: Sub< Output = T> + Mul + Div + Copy ,
-        <T as Mul>::Output: Mul<T>,
-        <<T as Mul>::Output as Mul<T>>::Output: Add<Output=<<T as Mul>::Output as Mul<T>>::Output>
-                                              + Sub<Output=<<T as Mul>::Output as Mul<T>>::Output>
-                                              + Div<Output=<T as Div>::Output>,
-        <<T as Mul>::Output as Mul<T>>::Output: Zero 
-                                              + PartialEq 
-                                              + Copy, 
+impl<T> Intersect<Triangle<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>>
+where
+    <T as Div>::Output: Add<Output = <T as Div>::Output>
+        + Sub<Output = <T as Div>::Output>
+        + Mul<Output = <T as Div>::Output>
+        + Div<Output = <T as Div>::Output>
+        + Neg<Output = <T as Div>::Output>
+        + Sqrt<Output = <T as Div>::Output>
+        + One
+        + Zero
+        + Debug
+        + PartialOrd
+        + Copy
+        + PartialEq,
+    T: Sub<Output = T> + Mul + Div + Copy,
+    <T as Mul>::Output: Mul<T>,
+    <<T as Mul>::Output as Mul<T>>::Output: Add<Output = <<T as Mul>::Output as Mul<T>>::Output>
+        + Sub<Output = <<T as Mul>::Output as Mul<T>>::Output>
+        + Div<Output = <T as Div>::Output>,
+    <<T as Mul>::Output as Mul<T>>::Output: Zero + PartialEq + Copy,
 {
-    type Output = Vec<(<T as Div>::Output, <Vector3<T> as NormalizableVector>::NormalType)>; 
+    type Output = Vec<(
+        <T as Div>::Output,
+        <Vector3<T> as NormalizableVector>::NormalType,
+    )>;
 
-    fn intersect(self, triangle: Triangle<Point3<T>>) -> Self::Output 
-        {
-        let m = Mat3x3::from_vector3s( triangle.a - triangle.b, triangle.a - triangle.c, self.direction );
+    fn intersect(self, triangle: Triangle<Point3<T>>) -> Self::Output {
+        let m = Mat3x3::from_vector3s(
+            triangle.a - triangle.b,
+            triangle.a - triangle.c,
+            self.direction,
+        );
         let v = triangle.a - self.origin;
 
         let m_determinante = m.determinant();
-        
+
         if m_determinante == Zero::zero() {
-            return vec! { }
+            return vec![];
         }
 
         let m1 = m.change_column_1(v);
@@ -68,7 +89,7 @@ impl<T> Intersect<Triangle<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>>
         let beta = m1.determinant() / m_determinante;
 
         if beta < Zero::zero() || beta > One::one() {
-            return vec! { }
+            return vec![];
         }
 
         let m2 = m.change_column_2(v);
@@ -76,21 +97,21 @@ impl<T> Intersect<Triangle<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>>
         let gamma = m2.determinant() / m_determinante;
 
         if gamma < Zero::zero() || gamma > One::one() {
-            return vec! { }
+            return vec![];
         }
 
         if beta + gamma < Zero::zero() || beta + gamma > One::one() {
-            return vec! { }
+            return vec![];
         }
 
         let m3 = m.change_column_3(v);
 
         let t = m3.determinant() / m_determinante;
         let alpha = -beta - gamma + One::one();
-        
+
         let n = (triangle.na * alpha + triangle.nb * beta + triangle.nc * gamma).normalized();
 
-        vec! { (t, n) }
+        vec![(t, n)]
     }
 }
 
@@ -104,9 +125,9 @@ pub mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let a = Point3::new( 1 as $type, 2 as $type, 3 as $type ); 
-                let b = Point3::new( 4 as $type, 5 as $type, 6 as $type ); 
-                let c = Point3::new( 7 as $type, 8 as $type, 9 as $type ); 
+                let a = Point3::new(1 as $type, 2 as $type, 3 as $type);
+                let b = Point3::new(4 as $type, 5 as $type, 6 as $type);
+                let c = Point3::new(7 as $type, 8 as $type, 9 as $type);
 
                 let na = Normal3::new(1 as $type, 0 as $type, 0 as $type);
                 let nb = Normal3::new(0 as $type, 1 as $type, 0 as $type);
@@ -122,7 +143,7 @@ pub mod tests {
                 assert_eq!(triangle.nb, nb);
                 assert_eq!(triangle.nc, nc);
             }
-        }
+        };
     }
 
     new_triangle! { u8, new_triangle_u8 }
@@ -149,42 +170,41 @@ pub mod tests {
                     Point3::new(1 as $type, -1 as $type, -2 as $type),
                     n,
                     n,
-                    n
+                    n,
                 );
 
                 let line1 = ParametricLine::new(
                     Point3::new(0 as $type, 0 as $type, 0 as $type),
-                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                    Vector3::new(0 as $type, 0 as $type, -1 as $type),
                 );
-
 
                 let line2 = ParametricLine::new(
                     Point3::new(-1 as $type, 1 as $type, 0 as $type),
-                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                    Vector3::new(0 as $type, 0 as $type, -1 as $type),
                 );
 
                 let line3 = ParametricLine::new(
                     Point3::new(1 as $type, 1 as $type, 0 as $type),
-                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                    Vector3::new(0 as $type, 0 as $type, -1 as $type),
                 );
 
                 let line4 = ParametricLine::new(
                     Point3::new(1 as $type, -1 as $type, 0 as $type),
-                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                    Vector3::new(0 as $type, 0 as $type, -1 as $type),
                 );
 
                 let line5 = ParametricLine::new(
                     Point3::new(-1 as $type, -1 as $type, 0 as $type),
-                    Vector3::new(0 as $type, 0 as $type, -1 as $type)
+                    Vector3::new(0 as $type, 0 as $type, -1 as $type),
                 );
 
-                assert_eq!(line1.intersect(triangle),vec![(2 as $type, n)]);
-                assert_eq!(line2.intersect(triangle),vec![(2 as $type, n)]);
-                assert_eq!(line3.intersect(triangle),vec![(2 as $type, n)]);
-                assert_eq!(line4.intersect(triangle),vec![(2 as $type, n)]);
-                assert_eq!(line5.intersect(triangle),Vec::new());
+                assert_eq!(line1.intersect(triangle), vec![(2 as $type, n)]);
+                assert_eq!(line2.intersect(triangle), vec![(2 as $type, n)]);
+                assert_eq!(line3.intersect(triangle), vec![(2 as $type, n)]);
+                assert_eq!(line4.intersect(triangle), vec![(2 as $type, n)]);
+                assert_eq!(line5.intersect(triangle), Vec::new());
             }
-        }
+        };
     }
 
     parametric_line_intersect_triangle! { f32, parametric_line_intersect_triangle_f32 }

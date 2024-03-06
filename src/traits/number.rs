@@ -1,4 +1,3 @@
-
 use std::fmt::{Debug, Display, LowerExp, UpperExp};
 use std::iter::{Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
@@ -20,8 +19,7 @@ macro_rules! implement_one_parameter_proxy_trait_with_output {
     }
 }
 
-
-pub trait DivEuclid<RHS=Self> {
+pub trait DivEuclid<RHS = Self> {
     type Output;
 
     fn div_euclid(self, rhs: RHS) -> Self::Output;
@@ -47,12 +45,11 @@ macro_rules! implement_one_parameter_proxy_trait {
 
 implement_one_parameter_proxy_trait! { Midpoint, midpoint, f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }*/
 
-pub trait RemEuclid<RHS=Self> {
+pub trait RemEuclid<RHS = Self> {
     type Output;
 
     fn rem_euclid(self, rhs: RHS) -> Self::Output;
 }
-
 
 implement_one_parameter_proxy_trait_with_output! { RemEuclid, rem_euclid, f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
 
@@ -105,19 +102,11 @@ pub trait Number<N=Self>: DivEuclid
     const MIN: Self;
 }
 
-pub trait SelfMultiply<N=Self> : Number<N>
-                       + Mul
-{
-    
-}
+pub trait SelfMultiply<N = Self>: Number<N> + Mul {}
 
-pub trait MultiplyStable : SelfMultiply
-                         + Div<Output=Self>
-                         + Mul<Output=Self>
-                         + Product
-                         + for<'a> Product<&'a Self>
+pub trait MultiplyStable:
+    SelfMultiply + Div<Output = Self> + Mul<Output = Self> + Product + for<'a> Product<&'a Self>
 {
-    
 }
 
 macro_rules! implement_number_trait {
@@ -136,20 +125,17 @@ implement_number_trait! { f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 
 implement_marker_trait! { SelfMultiply, f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
 implement_marker_trait! { MultiplyStable, f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
 
-
 #[cfg(test)]
 mod tests {
 
     use super::*;
 
-    fn test<T: DivEuclid<Output=T>>(a: T, b: T) -> T {
+    fn test<T: DivEuclid<Output = T>>(a: T, b: T) -> T {
         a.div_euclid(b)
     }
 
     #[test]
     fn test_function() {
-        assert_eq!(test(5, 2), 2); 
+        assert_eq!(test(5, 2), 2);
     }
 }
-
-

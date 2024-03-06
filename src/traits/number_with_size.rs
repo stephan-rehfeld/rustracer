@@ -58,13 +58,15 @@ implement_to_bytes_trait! { ToBeBytes, to_be_bytes, f32 f64 i8 i16 i32 i64 i128 
 implement_to_bytes_trait! { ToLeBytes, to_le_bytes, f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
 implement_to_bytes_trait! { ToNeBytes, to_ne_bytes, f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
 
-pub trait NumberWithSize<const BYTES: usize>: Number
-                                            + FromBeBytes<BYTES>
-                                            + FromLeBytes<BYTES>
-                                            + FromNeBytes<BYTES>
-                                            + ToBeBytes<BYTES>
-                                            + ToLeBytes<BYTES>
-                                            + ToNeBytes<BYTES>  {
+pub trait NumberWithSize<const BYTES: usize>:
+    Number
+    + FromBeBytes<BYTES>
+    + FromLeBytes<BYTES>
+    + FromNeBytes<BYTES>
+    + ToBeBytes<BYTES>
+    + ToLeBytes<BYTES>
+    + ToNeBytes<BYTES>
+{
 }
 
 macro_rules! implement_number_with_size_trait {
@@ -76,4 +78,3 @@ macro_rules! implement_number_with_size_trait {
 }
 
 implement_number_with_size_trait! { f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
-

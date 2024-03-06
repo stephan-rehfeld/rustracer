@@ -3,18 +3,21 @@ use std::hash::Hash;
 use std::ops::Index;
 
 use crate::color::Color;
-use crate::math::Point2;
 use crate::image::Image;
+use crate::math::Point2;
 
 pub struct Histogram<C: Color> {
     data: HashMap<C, usize>,
     num_pixel: usize,
 }
 
-impl<C: Color> Histogram<C> where C: Eq + Hash {
-
-    pub fn from_image<T>(img: &T) -> Histogram<C> where
-        T: Image<ColorType=C, PointType=Point2<usize>>,
+impl<C: Color> Histogram<C>
+where
+    C: Eq + Hash,
+{
+    pub fn from_image<T>(img: &T) -> Histogram<C>
+    where
+        T: Image<ColorType = C, PointType = Point2<usize>>,
     {
         let mut data: HashMap<C, usize> = HashMap::new();
 
@@ -22,7 +25,7 @@ impl<C: Color> Histogram<C> where C: Eq + Hash {
 
         for x in 0..size.x {
             for y in 0..size.y {
-               let color = img.get(Point2::new(x, y));
+                let color = img.get(Point2::new(x, y));
                 match data.get_mut(&color) {
                     Some(counter) => {
                         *counter += 1;
@@ -34,14 +37,20 @@ impl<C: Color> Histogram<C> where C: Eq + Hash {
             }
         }
 
-        Histogram { data, num_pixel: size.x * size.y }
+        Histogram {
+            data,
+            num_pixel: size.x * size.y,
+        }
     }
 }
 
-impl<C: Color> Histogram<C> where C: Eq + Hash {
+impl<C: Color> Histogram<C>
+where
+    C: Eq + Hash,
+{
     pub fn entropy(&self) -> f32 {
         let len = self.num_pixel as f32;
-        
+
         let mut e = 0.0;
 
         for c in self.data.keys() {
@@ -58,13 +67,16 @@ impl<C: Color> Histogram<C> where C: Eq + Hash {
     }
 }
 
-impl<C: Color> Index<C> for Histogram<C> where C: Eq + Hash {
+impl<C: Color> Index<C> for Histogram<C>
+where
+    C: Eq + Hash,
+{
     type Output = usize;
 
     fn index(&self, index: C) -> &Self::Output {
         match self.data.get(&index) {
             Some(n) => n,
-            None => &0
+            None => &0,
         }
     }
 }
@@ -79,10 +91,11 @@ mod tests {
 
     #[test]
     fn histogram_from_image() {
-        let size = Vector2::new(16,16);
+        let size = Vector2::new(16, 16);
 
-        let black: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(0)); 
-        let mut all_tones: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(0)); 
+        let black: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(0));
+        let mut all_tones: ImageBuffer<Gray<u8>> =
+            ImageBuffer::new(Vector2::new(16, 16), Gray::new(0));
 
         for x in 0..size.x {
             for y in 0..size.y {
@@ -93,7 +106,7 @@ mod tests {
             }
         }
 
-        let white: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(255)); 
+        let white: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(255));
 
         let histogram_black = Histogram::from_image(&black);
         let histogram_all_tones = Histogram::from_image(&all_tones);
@@ -116,10 +129,11 @@ mod tests {
 
     #[test]
     fn histogram_entropy() {
-        let size = Vector2::new(16,16);
+        let size = Vector2::new(16, 16);
 
-        let black: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(0)); 
-        let mut all_tones: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(0)); 
+        let black: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(0));
+        let mut all_tones: ImageBuffer<Gray<u8>> =
+            ImageBuffer::new(Vector2::new(16, 16), Gray::new(0));
 
         for x in 0..size.x {
             for y in 0..size.y {
@@ -130,7 +144,7 @@ mod tests {
             }
         }
 
-        let white: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(255)); 
+        let white: ImageBuffer<Gray<u8>> = ImageBuffer::new(Vector2::new(16, 16), Gray::new(255));
 
         let histogram_black = Histogram::from_image(&black);
         let histogram_all_tones = Histogram::from_image(&all_tones);

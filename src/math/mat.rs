@@ -2,54 +2,83 @@ use std::ops;
 
 use crate::math::Vector3;
 
-#[derive(Debug,PartialEq,Clone,Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Mat3x3<T> {
-    m11: T, m12: T, m13: T,
-    m21: T, m22: T, m23: T,
-    m31: T, m32: T, m33: T
+    m11: T,
+    m12: T,
+    m13: T,
+    m21: T,
+    m22: T,
+    m23: T,
+    m31: T,
+    m32: T,
+    m33: T,
 }
 
 impl<T> Mat3x3<T> {
-    pub fn new(m11: T, m12: T, m13: T,
-               m21: T, m22: T, m23: T,
-               m31: T, m32: T, m33: T ) -> Mat3x3<T> {
-        Mat3x3 { m11, m12, m13,
-                 m21, m22, m23,
-                 m31, m32, m33 }
+    pub fn new(
+        m11: T,
+        m12: T,
+        m13: T,
+        m21: T,
+        m22: T,
+        m23: T,
+        m31: T,
+        m32: T,
+        m33: T,
+    ) -> Mat3x3<T> {
+        Mat3x3 {
+            m11,
+            m12,
+            m13,
+            m21,
+            m22,
+            m23,
+            m31,
+            m32,
+            m33,
+        }
     }
 
     pub fn from_vector3s(col1: Vector3<T>, col2: Vector3<T>, col3: Vector3<T>) -> Mat3x3<T> {
-        Mat3x3::new( col1.x, col2.x, col3.x,
-                     col1.y, col2.y, col3.y,
-                     col1.z, col2.z, col3.z )
-
+        Mat3x3::new(
+            col1.x, col2.x, col3.x, col1.y, col2.y, col3.y, col1.z, col2.z, col3.z,
+        )
     }
 
     pub fn change_column_1(self, v: Vector3<T>) -> Mat3x3<T> {
-        Mat3x3::new( v.x, self.m12, self.m13,
-                     v.y, self.m22, self.m23,
-                     v.z, self.m32, self.m33 )
+        Mat3x3::new(
+            v.x, self.m12, self.m13, v.y, self.m22, self.m23, v.z, self.m32, self.m33,
+        )
     }
 
     pub fn change_column_2(self, v: Vector3<T>) -> Mat3x3<T> {
-        Mat3x3::new( self.m11, v.x, self.m13,
-                     self.m21, v.y, self.m23,
-                     self.m31, v.z, self.m33 )
+        Mat3x3::new(
+            self.m11, v.x, self.m13, self.m21, v.y, self.m23, self.m31, v.z, self.m33,
+        )
     }
 
     pub fn change_column_3(self, v: Vector3<T>) -> Mat3x3<T> {
-        Mat3x3::new( self.m11, self.m12, v.x,
-                     self.m21, self.m22, v.y,
-                     self.m31, self.m32, v.z )
+        Mat3x3::new(
+            self.m11, self.m12, v.x, self.m21, self.m22, v.y, self.m31, self.m32, v.z,
+        )
     }
 
-    pub fn determinant(self) -> <<T as ops::Mul>::Output as ops::Mul<T>>::Output where
+    pub fn determinant(self) -> <<T as ops::Mul>::Output as ops::Mul<T>>::Output
+    where
         T: ops::Mul + Copy + Clone,
         <T as ops::Mul>::Output: ops::Mul<T>,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Add<Output=<<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output: ops::Sub<Output=<<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
+        <<T as ops::Mul>::Output as ops::Mul<T>>::Output:
+            ops::Add<Output = <<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
+        <<T as ops::Mul>::Output as ops::Mul<T>>::Output:
+            ops::Sub<Output = <<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
     {
-        self.m11 * self.m22 * self.m33 + self.m12 * self.m23 * self.m31 + self.m13 * self.m21 * self.m32 - self.m31 * self.m22 * self.m13 - self.m32 * self.m23 * self.m11 - self.m33 * self.m21 * self.m12    
+        self.m11 * self.m22 * self.m33
+            + self.m12 * self.m23 * self.m31
+            + self.m13 * self.m21 * self.m32
+            - self.m31 * self.m22 * self.m13
+            - self.m32 * self.m23 * self.m11
+            - self.m33 * self.m21 * self.m12
     }
 }
 
@@ -58,13 +87,12 @@ mod tests {
     use super::*;
 
     macro_rules! new_mat3x3 {
-        ($type: ty, $name: ident) => { 
+        ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
                 let m = Mat3x3::new(
-                    1 as $type, 2 as $type, 3 as $type,
-                    4 as $type, 5 as $type, 6 as $type,
-                    7 as $type, 8 as $type, 9 as $type
+                    1 as $type, 2 as $type, 3 as $type, 4 as $type, 5 as $type, 6 as $type,
+                    7 as $type, 8 as $type, 9 as $type,
                 );
 
                 assert_eq!(m.m11, 1 as $type);
@@ -77,7 +105,7 @@ mod tests {
                 assert_eq!(m.m32, 8 as $type);
                 assert_eq!(m.m33, 9 as $type);
             }
-        }
+        };
     }
 
     new_mat3x3! { u8, new_mat3x3_u8 }
@@ -94,12 +122,13 @@ mod tests {
     new_mat3x3! { f64, new_mat3x3_f64 }
 
     macro_rules! mat3x3_from_vector3s {
-        ($type: ty, $name: ident) => { 
+        ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let m = Mat3x3::from_vector3s( Vector3::new(1 as $type, 4 as $type, 7 as $type),
-                                               Vector3::new(2 as $type, 5 as $type, 8 as $type),
-                                               Vector3::new(3 as $type, 6 as $type, 9 as $type)
+                let m = Mat3x3::from_vector3s(
+                    Vector3::new(1 as $type, 4 as $type, 7 as $type),
+                    Vector3::new(2 as $type, 5 as $type, 8 as $type),
+                    Vector3::new(3 as $type, 6 as $type, 9 as $type),
                 );
 
                 assert_eq!(m.m11, 1 as $type);
@@ -112,7 +141,7 @@ mod tests {
                 assert_eq!(m.m32, 8 as $type);
                 assert_eq!(m.m33, 9 as $type);
             }
-        }
+        };
     }
 
     mat3x3_from_vector3s! { u8, mat3x3_from_vector3s_u8 }
@@ -133,9 +162,8 @@ mod tests {
             #[test]
             fn $name() {
                 let m = Mat3x3::new(
-                    1 as $type, 2 as $type, 3 as $type,
-                    4 as $type, 5 as $type, 6 as $type,
-                    7 as $type, 8 as $type, 9 as $type
+                    1 as $type, 2 as $type, 3 as $type, 4 as $type, 5 as $type, 6 as $type,
+                    7 as $type, 8 as $type, 9 as $type,
                 );
 
                 let v = Vector3::new(10 as $type, 11 as $type, 12 as $type);
@@ -152,7 +180,7 @@ mod tests {
                 assert_eq!(m.m32, 8 as $type);
                 assert_eq!(m.m33, 9 as $type);
             }
-        }
+        };
     }
 
     mat3x3_change_column_1! { u8, mat3x3_change_column_1_u8 }
@@ -167,15 +195,14 @@ mod tests {
     mat3x3_change_column_1! { i128, mat3x3_change_column_1_i128 }
     mat3x3_change_column_1! { f32, mat3x3_change_column_1_f32 }
     mat3x3_change_column_1! { f64, mat3x3_change_column_1_f64 }
- 
+
     macro_rules! mat3x3_change_column_2 {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
                 let m = Mat3x3::new(
-                    1 as $type, 2 as $type, 3 as $type,
-                    4 as $type, 5 as $type, 6 as $type,
-                    7 as $type, 8 as $type, 9 as $type
+                    1 as $type, 2 as $type, 3 as $type, 4 as $type, 5 as $type, 6 as $type,
+                    7 as $type, 8 as $type, 9 as $type,
                 );
 
                 let v = Vector3::new(10 as $type, 11 as $type, 12 as $type);
@@ -192,7 +219,7 @@ mod tests {
                 assert_eq!(m.m32, v.z);
                 assert_eq!(m.m33, 9 as $type);
             }
-        }
+        };
     }
 
     mat3x3_change_column_2! { u8, mat3x3_change_column_2_u8 }
@@ -207,15 +234,14 @@ mod tests {
     mat3x3_change_column_2! { i128, mat3x3_change_column_2_i128 }
     mat3x3_change_column_2! { f32, mat3x3_change_column_2_f32 }
     mat3x3_change_column_2! { f64, mat3x3_change_column_2_f64 }
- 
+
     macro_rules! mat3x3_change_column_3 {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
                 let m = Mat3x3::new(
-                    1 as $type, 2 as $type, 3 as $type,
-                    4 as $type, 5 as $type, 6 as $type,
-                    7 as $type, 8 as $type, 9 as $type
+                    1 as $type, 2 as $type, 3 as $type, 4 as $type, 5 as $type, 6 as $type,
+                    7 as $type, 8 as $type, 9 as $type,
                 );
 
                 let v = Vector3::new(10 as $type, 11 as $type, 12 as $type);
@@ -232,7 +258,7 @@ mod tests {
                 assert_eq!(m.m32, 8 as $type);
                 assert_eq!(m.m33, v.z);
             }
-        }
+        };
     }
 
     mat3x3_change_column_3! { u8, mat3x3_change_column_3_u8 }
@@ -253,38 +279,33 @@ mod tests {
             #[test]
             fn $name() {
                 let m1 = Mat3x3::new(
-                    1 as $type, 0 as $type, 0 as $type,
-                    0 as $type, 1 as $type, 0 as $type,
-                    0 as $type, 0 as $type, 1 as $type
+                    1 as $type, 0 as $type, 0 as $type, 0 as $type, 1 as $type, 0 as $type,
+                    0 as $type, 0 as $type, 1 as $type,
                 );
 
                 let m2 = Mat3x3::new(
-                    1 as $type, 0 as $type, 0 as $type,
-                    0 as $type, 1 as $type, 0 as $type,
-                    0 as $type, 0 as $type, 0 as $type
+                    1 as $type, 0 as $type, 0 as $type, 0 as $type, 1 as $type, 0 as $type,
+                    0 as $type, 0 as $type, 0 as $type,
                 );
 
                 let m3 = Mat3x3::new(
-                    1 as $type, 2 as $type, 3 as $type,
-                    4 as $type, 5 as $type, 6 as $type,
-                    7 as $type, 8 as $type, 9 as $type
+                    1 as $type, 2 as $type, 3 as $type, 4 as $type, 5 as $type, 6 as $type,
+                    7 as $type, 8 as $type, 9 as $type,
                 );
 
                 let m4 = Mat3x3::new(
-                    0 as $type, 0 as $type, 1 as $type,
-                    0 as $type, 1 as $type, 0 as $type,
-                    1 as $type, 0 as $type, 0 as $type
+                    0 as $type, 0 as $type, 1 as $type, 0 as $type, 1 as $type, 0 as $type,
+                    1 as $type, 0 as $type, 0 as $type,
                 );
-
 
                 assert_eq!(m1.determinant(), 1 as $type);
                 assert_eq!(m2.determinant(), 0 as $type);
                 assert_eq!(m3.determinant(), 0 as $type);
                 assert_eq!(m4.determinant(), -1 as $type);
             }
-        }
+        };
     }
-    
+
     mat3x3_determinant! { i16, mat3x3_determinant_i16 }
     mat3x3_determinant! { i32, mat3x3_determinant_i32 }
     mat3x3_determinant! { i64, mat3x3_determinant_i64 }

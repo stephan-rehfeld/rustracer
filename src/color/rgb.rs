@@ -3,8 +3,8 @@ use std::iter::Sum;
 use std::ops::{Add, Index, Mul};
 
 use super::Color;
-use super::RGBA;
 use super::YCbCr;
+use super::RGBA;
 
 use crate::traits::{MultiplyStable, Number, SelfMultiply};
 
@@ -17,10 +17,13 @@ impl From<YCbCr<u8>> for RGB<u8> {
         let cr = ycbcr.cr as f32;
 
         let red = (y + 1.402 * (cr - 128.0)).round().max(0.0).min(255.0) as u8;
-        let green = (y - (0.114 * 1.772 * (cb - 128.0) + 0.299 * 1.402 * (cr - 128.0)) / 0.587).round().max(0.0).min(255.0) as u8;
+        let green = (y - (0.114 * 1.772 * (cb - 128.0) + 0.299 * 1.402 * (cr - 128.0)) / 0.587)
+            .round()
+            .max(0.0)
+            .min(255.0) as u8;
         let blue = (y + 1.772 * (cb - 128.0)).round().max(0.0).min(255.0) as u8;
 
-        RGB::new( red, green, blue )
+        RGB::new(red, green, blue)
     }
 }
 
@@ -57,8 +60,8 @@ macro_rules! rgb_from_floating_to_integral {
     }
 }
 
-rgb_from_floating_to_integral! { f32, [u8, u16, i8, i16] } 
-rgb_from_floating_to_integral! { f64, [u8, u16, i8, i16] } 
+rgb_from_floating_to_integral! { f32, [u8, u16, i8, i16] }
+rgb_from_floating_to_integral! { f64, [u8, u16, i8, i16] }
 
 #[cfg(test)]
 mod tests {
@@ -68,13 +71,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let rgb = RGB::new( 1 as $type, 2 as $type, 3 as $type );
+                let rgb = RGB::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(rgb.red, 1 as $type);
                 assert_eq!(rgb.green, 2 as $type);
                 assert_eq!(rgb.blue, 3 as $type);
             }
-        }
+        };
     }
 
     new_rgb! { u8, new_rgb_u8 }
@@ -94,12 +97,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let rgb1 = RGB::new( <$type>::default(), <$type>::default(), <$type>::default() );
+                let rgb1 = RGB::new(<$type>::default(), <$type>::default(), <$type>::default());
                 let rgb2 = RGB::<$type>::default();
 
                 assert_eq!(rgb1, rgb2);
             }
-        }
+        };
     }
 
     default_rgb! { u8, default_rgb_u8 }
@@ -129,15 +132,20 @@ mod tests {
                 let min = RGB::new(0 as $type, 1 as $type, 2 as $type);
                 let max = RGB::new(2 as $type, 3 as $type, 4 as $type);
 
-                
                 assert_eq!(a.clamped(min, max), min);
-                assert_eq!(b.clamped(min, max), RGB::new(1 as $type, 1 as $type, 2 as $type));
+                assert_eq!(
+                    b.clamped(min, max),
+                    RGB::new(1 as $type, 1 as $type, 2 as $type)
+                );
                 assert_eq!(c.clamped(min, max), c);
-                assert_eq!(d.clamped(min, max), RGB::new(2 as $type, 3 as $type, 3 as $type));
+                assert_eq!(
+                    d.clamped(min, max),
+                    RGB::new(2 as $type, 3 as $type, 3 as $type)
+                );
                 assert_eq!(e.clamped(min, max), max);
                 assert_eq!(f.clamped(min, max), max);
             }
-        }
+        };
     }
 
     clamped_rgb! { u8, clamped_rgb_u8 }
@@ -157,20 +165,19 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let ycbcr_black = YCbCr::new( 0 as $type, 128 as $type, 128 as $type);
-                let ycbcr_white = YCbCr::new( 255 as $type, 128 as $type, 128 as $type);
-                let ycbcr_gray = YCbCr::new( 128 as $type, 128 as $type, 128 as $type);
-                let ycbcr_red = YCbCr::new( 76 as $type, 85 as $type, 255 as $type);
-                let ycbcr_green = YCbCr::new( 150 as $type, 44 as $type, 21 as $type);
-                let ycbcr_blue = YCbCr::new( 29 as $type, 255 as $type, 107 as $type);
+                let ycbcr_black = YCbCr::new(0 as $type, 128 as $type, 128 as $type);
+                let ycbcr_white = YCbCr::new(255 as $type, 128 as $type, 128 as $type);
+                let ycbcr_gray = YCbCr::new(128 as $type, 128 as $type, 128 as $type);
+                let ycbcr_red = YCbCr::new(76 as $type, 85 as $type, 255 as $type);
+                let ycbcr_green = YCbCr::new(150 as $type, 44 as $type, 21 as $type);
+                let ycbcr_blue = YCbCr::new(29 as $type, 255 as $type, 107 as $type);
 
-
-                let rgb_black = RGB::new( 0 as $type, 0 as $type, 0 as $type );
-                let rgb_white = RGB::new( 255 as $type, 255 as $type, 255 as $type );
-                let rgb_gray = RGB::new( 128 as $type, 128 as $type, 128 as $type );
-                let rgb_red = RGB::new( 254 as $type, 0 as $type, 0 as $type );
-                let rgb_green = RGB::new( 0 as $type, 255 as $type, 1 as $type );
-                let rgb_blue = RGB::new( 0 as $type, 0 as $type, 254 as $type );
+                let rgb_black = RGB::new(0 as $type, 0 as $type, 0 as $type);
+                let rgb_white = RGB::new(255 as $type, 255 as $type, 255 as $type);
+                let rgb_gray = RGB::new(128 as $type, 128 as $type, 128 as $type);
+                let rgb_red = RGB::new(254 as $type, 0 as $type, 0 as $type);
+                let rgb_green = RGB::new(0 as $type, 255 as $type, 1 as $type);
+                let rgb_blue = RGB::new(0 as $type, 0 as $type, 254 as $type);
 
                 assert_eq!(rgb_black, RGB::from(ycbcr_black));
                 assert_eq!(rgb_white, RGB::from(ycbcr_white));
@@ -179,7 +186,7 @@ mod tests {
                 assert_eq!(rgb_green, RGB::from(ycbcr_green));
                 assert_eq!(rgb_blue, RGB::from(ycbcr_blue));
             }
-        }
+        };
     }
 
     rgb_from_ycbcr! { u8, rgb_from_ycbcr_u8 }
@@ -188,13 +195,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let rgb = RGB::new( 1 as $type, 2 as $type, 3 as $type );
+                let rgb = RGB::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(rgb[0], 1 as $type);
                 assert_eq!(rgb[1], 2 as $type);
                 assert_eq!(rgb[2], 3 as $type);
             }
-        }
+        };
     }
 
     rgb_index! { u8, rgb_index_u8 }
@@ -214,12 +221,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let rgba = RGBA::new( 1 as $type, 2 as $type, 3 as $type, 4 as $type );
-                let rgb = RGB::new( 1 as $type, 2 as $type, 3 as $type );
+                let rgba = RGBA::new(1 as $type, 2 as $type, 3 as $type, 4 as $type);
+                let rgb = RGB::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(rgb, RGB::from(rgba));
             }
-        }
+        };
     }
 
     rgb_from_rgba! { u8, rgb_from_rgba_u8 }
@@ -245,13 +252,25 @@ mod tests {
                 let d = RGB::new(0.0 as $floating, 0.5 as $floating, 1.0 as $floating);
 
                 assert_eq!(RGB::<$integral>::from(a), RGB::<$integral>::new(0, 0, 0));
-                assert_eq!(RGB::<$integral>::from(b), RGB::<$integral>::new(<$integral>::MAX / 2, <$integral>::MAX / 2, <$integral>::MAX / 2));
-                assert_eq!(RGB::<$integral>::from(c), RGB::<$integral>::new(<$integral>::MAX, <$integral>::MAX, <$integral>::MAX ));
-                assert_eq!(RGB::<$integral>::from(d), RGB::<$integral>::new(0, <$integral>::MAX / 2,  <$integral>::MAX));
+                assert_eq!(
+                    RGB::<$integral>::from(b),
+                    RGB::<$integral>::new(
+                        <$integral>::MAX / 2,
+                        <$integral>::MAX / 2,
+                        <$integral>::MAX / 2
+                    )
+                );
+                assert_eq!(
+                    RGB::<$integral>::from(c),
+                    RGB::<$integral>::new(<$integral>::MAX, <$integral>::MAX, <$integral>::MAX)
+                );
+                assert_eq!(
+                    RGB::<$integral>::from(d),
+                    RGB::<$integral>::new(0, <$integral>::MAX / 2, <$integral>::MAX)
+                );
             }
-        }
+        };
     }
-
 
     integral_from_floating! { f32, u8, rgb_u8_from_rgb_f32 }
     integral_from_floating! { f32, u16, rgb_u16_from_rgb_f32 }

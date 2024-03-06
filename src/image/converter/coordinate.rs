@@ -6,16 +6,18 @@ use crate::math::{Point, Point2, Vector2};
 pub struct Coordinate<T: Image, P: Point> {
     source: T,
     _point: PhantomData<P>,
-
 }
 
 impl<T: Image, P: Point> Coordinate<T, P> {
     pub fn new(source: T) -> Coordinate<T, P> {
-        Coordinate { source, _point: PhantomData }
+        Coordinate {
+            source,
+            _point: PhantomData,
+        }
     }
 }
 
-impl<T: Image<PointType=Point2<f64>>> Image for Coordinate<T, Point2<usize>> {
+impl<T: Image<PointType = Point2<f64>>> Image for Coordinate<T, Point2<usize>> {
     type ColorType = <T as Image>::ColorType;
     type PointType = Point2<usize>;
 

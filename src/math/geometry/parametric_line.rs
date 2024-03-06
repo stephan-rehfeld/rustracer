@@ -1,23 +1,22 @@
 use std::ops::{Add, Mul};
 
-#[derive(Debug,PartialEq,Clone,Copy)]
-pub struct ParametricLine<P,V> {
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct ParametricLine<P, V> {
     pub origin: P,
-    pub direction: V
+    pub direction: V,
 }
 
-impl<P,V> ParametricLine<P,V> {
-    pub fn new( origin: P, direction: V ) -> ParametricLine<P,V> {
+impl<P, V> ParametricLine<P, V> {
+    pub fn new(origin: P, direction: V) -> ParametricLine<P, V> {
         ParametricLine { origin, direction }
     }
 
     pub fn at<T>(self, t: T) -> <P as Add<<V as Mul<T>>::Output>>::Output
     where
         V: Mul<T>,
-        P: Add<<V as Mul<T>>::Output>
-
+        P: Add<<V as Mul<T>>::Output>,
     {
-       self.origin + self.direction * t
+        self.origin + self.direction * t
     }
 }
 
@@ -31,15 +30,15 @@ mod tests {
         ( $type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let origin = Point3::new( 1 as $type, 2 as $type, 3 as $type );
-                let direction = Vector3::new( 4 as $type, 5 as $type, 6 as $type );
+                let origin = Point3::new(1 as $type, 2 as $type, 3 as $type);
+                let direction = Vector3::new(4 as $type, 5 as $type, 6 as $type);
 
                 let ray = ParametricLine::new(origin, direction);
 
                 assert_eq!(ray.origin, origin);
                 assert_eq!(ray.direction, direction);
             }
-        }
+        };
     }
 
     new_parametric_line! { u8, new_parametric_line_3_u8 }
@@ -59,16 +58,16 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let origin = Point3::new( 1 as $type, 2 as $type, 3 as $type );
-                let direction = Vector3::new( 4 as $type, 5 as $type, 6 as $type);
+                let origin = Point3::new(1 as $type, 2 as $type, 3 as $type);
+                let direction = Vector3::new(4 as $type, 5 as $type, 6 as $type);
 
                 let t = 10.0 as $type;
 
                 let ray = ParametricLine::new(origin, direction);
 
                 assert_eq!(ray.at(t), origin + direction * t);
-            }    
-        }
+            }
+        };
     }
 
     parametric_line_3_at! { u8, parametric_line_3_at_u8 }

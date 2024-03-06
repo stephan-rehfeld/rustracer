@@ -13,10 +13,11 @@ impl<T: Image> Splitter<'_, T> {
     }
 }
 
-impl<T: Image> Image for Splitter<'_, T> where
-    <<T as Image>::ColorType as ColorTrait>::ChannelType: Copy + Default + PartialEq
+impl<T: Image> Image for Splitter<'_, T>
+where
+    <<T as Image>::ColorType as ColorTrait>::ChannelType: Copy + Default + PartialEq,
 {
-    type ColorType = Gray< <<T as Image>::ColorType as ColorTrait>::ChannelType>;
+    type ColorType = Gray<<<T as Image>::ColorType as ColorTrait>::ChannelType>;
     type PointType = <T as Image>::PointType;
 
     fn size(&self) -> <Self::PointType as Point>::VectorType {
@@ -24,6 +25,6 @@ impl<T: Image> Image for Splitter<'_, T> where
     }
 
     fn get(&self, p: Self::PointType) -> Self::ColorType {
-        Gray::new( self.source.get(p)[self.channel] )
+        Gray::new(self.source.get(p)[self.channel])
     }
 }

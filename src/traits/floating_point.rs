@@ -34,7 +34,6 @@ create_and_implement_proxy_trait! { with name Copysign and function copysign and
 create_and_implement_proxy_trait! { with name Cos and function cos and different output for types [f32 f64] }
 create_and_implement_proxy_trait! { with name Cosh and function cosh and different output for types [f32 f64] }
 
-
 create_and_implement_proxy_trait! { with name Exp and function exp and different output for types [f32 f64] }
 create_and_implement_proxy_trait! { with name Exp2 and function exp2 and different output for types [f32 f64] }
 create_and_implement_proxy_trait! { with name ExpM1 and function exp_m1 and different output for types [f32 f64] }
@@ -78,7 +77,6 @@ create_and_implement_proxy_trait! { with name IsSubnormal and function is_subnor
 create_and_implement_proxy_trait! { with name Ln and function ln for types [f32 f64] }
 create_and_implement_proxy_trait! { with name Ln1p and function ln_1p for types [f32 f64] }
 
-
 create_and_implement_proxy_trait! { with name Log and function log and one parameter for types [f32 f64] }
 create_and_implement_proxy_trait! { with name Log10 and function log10 for types [f32 f64] }
 create_and_implement_proxy_trait! { with name Log2 and function log2 for types [f32 f64] }
@@ -88,7 +86,7 @@ create_and_implement_proxy_trait! { with name Max and function max and one param
 create_and_implement_proxy_trait! { with name Min and function min and one parameter for types [f32 f64] }
 // mimimum
 
-pub trait MulAdd<N=Self> {
+pub trait MulAdd<N = Self> {
     fn mul_add(self, a: N, b: Self) -> Self;
 }
 
@@ -139,7 +137,7 @@ pub trait SinCos {
 }
 
 impl SinCos for f32 {
-    type Output = (f32,f32);
+    type Output = (f32, f32);
 
     fn sin_cos(self) -> Self::Output {
         self.sin_cos()
@@ -147,7 +145,7 @@ impl SinCos for f32 {
 }
 
 impl SinCos for f64 {
-    type Output = (f64,f64);
+    type Output = (f64, f64);
 
     fn sin_cos(self) -> Self::Output {
         self.sin_cos()
@@ -155,7 +153,6 @@ impl SinCos for f64 {
 }
 
 create_and_implement_proxy_trait! { with name Sinh and function sinh and different output for types [f32 f64] }
-
 
 create_and_implement_proxy_trait! { with name Sqrt and function sqrt and different output for types  [f32 f64] }
 
@@ -263,7 +260,7 @@ pub trait FloatingPoint<N=Self>: SignedNumber<N>
         + ToDegrees
         //+ ToIntUnchecked
         + ToRadians
-        + TotalCmp 
+        + TotalCmp
         + Trunc
           {
     const DIGITS: u32;
@@ -328,11 +325,11 @@ mod tests {
     implement_test_for! { Asin, asin, asin_test, 1.0, [asin_f32, asin_f64], [f32, f64] }
     implement_test_for! { Asinh, asinh, asinh_test, 1.0, [asinh_f32, asinh_f64], [f32, f64] }
     implement_test_for! { Atan, atan, atan_test, 1.0, [atan_f32, atan_f64], [f32, f64] }
-    
+
     fn atan2_helper<T: Atan2>(v: T, other: T) -> <T as Atan2>::Output {
         v.atan2(other)
     }
-    
+
     #[test]
     fn atan2_f32() {
         assert_eq!(atan2_helper(1 as f32, 1 as f32), (1 as f32).atan2(1 as f32));
@@ -350,29 +347,59 @@ mod tests {
     fn clamp_helper<T: Clamp>(v: T, min: T, max: T) -> T {
         v.clamp(min, max)
     }
-    
+
     #[test]
     fn clamp_f32() {
-        assert_eq!(clamp_helper(5 as f32, 10 as f32, 20 as f32), (5 as f32).clamp(10 as f32, 20 as f32));
-        assert_eq!(clamp_helper(10 as f32, 10 as f32, 20 as f32), (10 as f32).clamp(10 as f32, 20 as f32));
-        assert_eq!(clamp_helper(15 as f32, 10 as f32, 20 as f32), (15 as f32).clamp(10 as f32, 20 as f32));
-        assert_eq!(clamp_helper(20 as f32, 10 as f32, 20 as f32), (20 as f32).clamp(10 as f32, 20 as f32));
-        assert_eq!(clamp_helper(25 as f32, 10 as f32, 20 as f32), (25 as f32).clamp(10 as f32, 20 as f32));
+        assert_eq!(
+            clamp_helper(5 as f32, 10 as f32, 20 as f32),
+            (5 as f32).clamp(10 as f32, 20 as f32)
+        );
+        assert_eq!(
+            clamp_helper(10 as f32, 10 as f32, 20 as f32),
+            (10 as f32).clamp(10 as f32, 20 as f32)
+        );
+        assert_eq!(
+            clamp_helper(15 as f32, 10 as f32, 20 as f32),
+            (15 as f32).clamp(10 as f32, 20 as f32)
+        );
+        assert_eq!(
+            clamp_helper(20 as f32, 10 as f32, 20 as f32),
+            (20 as f32).clamp(10 as f32, 20 as f32)
+        );
+        assert_eq!(
+            clamp_helper(25 as f32, 10 as f32, 20 as f32),
+            (25 as f32).clamp(10 as f32, 20 as f32)
+        );
     }
 
     #[test]
     fn clamp_f64() {
-        assert_eq!(clamp_helper(5 as f64, 10 as f64, 20 as f64), (5 as f64).clamp(10 as f64, 20 as f64));
-        assert_eq!(clamp_helper(10 as f64, 10 as f64, 20 as f64), (10 as f64).clamp(10 as f64, 20 as f64));
-        assert_eq!(clamp_helper(15 as f64, 10 as f64, 20 as f64), (15 as f64).clamp(10 as f64, 20 as f64));
-        assert_eq!(clamp_helper(20 as f64, 10 as f64, 20 as f64), (20 as f64).clamp(10 as f64, 20 as f64));
-        assert_eq!(clamp_helper(25 as f64, 10 as f64, 20 as f64), (25 as f64).clamp(10 as f64, 20 as f64));
+        assert_eq!(
+            clamp_helper(5 as f64, 10 as f64, 20 as f64),
+            (5 as f64).clamp(10 as f64, 20 as f64)
+        );
+        assert_eq!(
+            clamp_helper(10 as f64, 10 as f64, 20 as f64),
+            (10 as f64).clamp(10 as f64, 20 as f64)
+        );
+        assert_eq!(
+            clamp_helper(15 as f64, 10 as f64, 20 as f64),
+            (15 as f64).clamp(10 as f64, 20 as f64)
+        );
+        assert_eq!(
+            clamp_helper(20 as f64, 10 as f64, 20 as f64),
+            (20 as f64).clamp(10 as f64, 20 as f64)
+        );
+        assert_eq!(
+            clamp_helper(25 as f64, 10 as f64, 20 as f64),
+            (25 as f64).clamp(10 as f64, 20 as f64)
+        );
     }
 
     fn classify_helper<T: Classify>(v: T) -> FpCategory {
         v.classify()
     }
-    
+
     #[test]
     fn classify_f32() {
         assert_eq!(classify_helper(0 as f32), (0 as f32).classify());
@@ -387,11 +414,10 @@ mod tests {
         assert_eq!(classify_helper(f64::NAN), (f64::NAN).classify());
     }
 
-
     fn copysign_helper<T: Copysign>(v: T, rhs: T) -> T {
         v.copysign(rhs)
     }
-    
+
     #[test]
     fn copysign_f32() {
         let f: f32 = 3.5;
@@ -415,7 +441,6 @@ mod tests {
     implement_test_for! { Cos, cos, cos_test, 1.0, [cos_f32, cos_f64], [f32, f64] }
     implement_test_for! { Cosh, cosh, cosh_test, 1.0, [cosh_f32, cosh_f64], [f32, f64] }
 
-
     implement_test_for! { Exp, exp, exp_test, 3.0, [exp_f32, exp_f64], [f32, f64] }
     implement_test_for! { Exp2, exp2, exp2_test, 3.0, [exp2_f32, exp2_f64], [f32, f64] }
     implement_test_for! { ExpM1, exp_m1, exp_m1_test, 3.0, [exp_m1_f32, exp_m1_f64], [f32, f64] }
@@ -423,7 +448,7 @@ mod tests {
     fn floor_helper<T: Floor>(v: T) -> T {
         v.floor()
     }
-    
+
     #[test]
     fn floor_f32() {
         let f: f32 = 3.5;
@@ -441,7 +466,7 @@ mod tests {
     fn fract_helper<T: Fract>(v: T) -> T {
         v.fract()
     }
-    
+
     #[test]
     fn fract_f32() {
         let f: f32 = 3.67;
@@ -459,7 +484,7 @@ mod tests {
     fn from_bits_helper<T: FromBits>(v: <T as FromBits>::Source) -> T {
         T::from_bits(v)
     }
-    
+
     #[test]
     fn from_bits_f32() {
         let f: u32 = 134412;
@@ -474,11 +499,10 @@ mod tests {
         assert_eq!(from_bits_helper::<f64>(f), f64::from_bits(f));
     }
 
-
     fn hypot_helper<T: Hypot>(v: T, rhs: T) -> T {
         v.hypot(rhs)
     }
-    
+
     #[test]
     fn hypot_f32() {
         let a: f32 = 2.0;
@@ -494,8 +518,6 @@ mod tests {
 
         assert_eq!(hypot_helper(a, b), a.hypot(b));
     }
-
-
 
     fn is_finite_helper<T: IsFinite>(v: T) -> bool {
         v.is_finite()
@@ -626,8 +648,14 @@ mod tests {
         let positive: f32 = 23.24;
         let negative: f32 = -23.24;
 
-        assert_eq!(is_sign_negative_helper(positive), positive.is_sign_negative()); 
-        assert_eq!(is_sign_negative_helper(negative), negative.is_sign_negative()); 
+        assert_eq!(
+            is_sign_negative_helper(positive),
+            positive.is_sign_negative()
+        );
+        assert_eq!(
+            is_sign_negative_helper(negative),
+            negative.is_sign_negative()
+        );
     }
 
     #[test]
@@ -635,8 +663,14 @@ mod tests {
         let positive: f64 = 23.24;
         let negative: f64 = -23.24;
 
-        assert_eq!(is_sign_negative_helper(positive), positive.is_sign_negative()); 
-        assert_eq!(is_sign_negative_helper(negative), negative.is_sign_negative()); 
+        assert_eq!(
+            is_sign_negative_helper(positive),
+            positive.is_sign_negative()
+        );
+        assert_eq!(
+            is_sign_negative_helper(negative),
+            negative.is_sign_negative()
+        );
     }
 
     fn is_sign_positive_helper<T: IsSignPositive>(v: T) -> bool {
@@ -648,8 +682,14 @@ mod tests {
         let positive: f32 = 23.24;
         let negative: f32 = -23.24;
 
-        assert_eq!(is_sign_positive_helper(positive), positive.is_sign_positive()); 
-        assert_eq!(is_sign_positive_helper(negative), negative.is_sign_positive()); 
+        assert_eq!(
+            is_sign_positive_helper(positive),
+            positive.is_sign_positive()
+        );
+        assert_eq!(
+            is_sign_positive_helper(negative),
+            negative.is_sign_positive()
+        );
     }
 
     #[test]
@@ -657,8 +697,14 @@ mod tests {
         let positive: f64 = 23.24;
         let negative: f64 = -23.24;
 
-        assert_eq!(is_sign_positive_helper(positive), positive.is_sign_positive()); 
-        assert_eq!(is_sign_positive_helper(negative), negative.is_sign_positive()); 
+        assert_eq!(
+            is_sign_positive_helper(positive),
+            positive.is_sign_positive()
+        );
+        assert_eq!(
+            is_sign_positive_helper(negative),
+            negative.is_sign_positive()
+        );
     }
 
     fn is_subnormal_helper<T: IsSubnormal>(v: T) -> bool {
@@ -677,9 +723,15 @@ mod tests {
 
         assert_eq!(is_subnormal_helper(zero), zero.is_subnormal());
         assert_eq!(is_subnormal_helper(f32::NAN), f32::NAN.is_subnormal());
-        assert_eq!(is_subnormal_helper(f32::INFINITY), f32::INFINITY.is_subnormal());
+        assert_eq!(
+            is_subnormal_helper(f32::INFINITY),
+            f32::INFINITY.is_subnormal()
+        );
 
-        assert_eq!(is_subnormal_helper(lower_than_min), lower_than_min.is_subnormal());
+        assert_eq!(
+            is_subnormal_helper(lower_than_min),
+            lower_than_min.is_subnormal()
+        );
     }
 
     #[test]
@@ -694,9 +746,15 @@ mod tests {
 
         assert_eq!(is_subnormal_helper(zero), zero.is_subnormal());
         assert_eq!(is_subnormal_helper(f64::NAN), f64::NAN.is_subnormal());
-        assert_eq!(is_subnormal_helper(f64::INFINITY), f64::INFINITY.is_subnormal());
+        assert_eq!(
+            is_subnormal_helper(f64::INFINITY),
+            f64::INFINITY.is_subnormal()
+        );
 
-        assert_eq!(is_subnormal_helper(lower_than_min), lower_than_min.is_subnormal());
+        assert_eq!(
+            is_subnormal_helper(lower_than_min),
+            lower_than_min.is_subnormal()
+        );
     }
 
     fn ln_helper<T: Ln>(v: T) -> T {
@@ -707,14 +765,14 @@ mod tests {
     fn ln_f32() {
         let v: f32 = 23.24;
 
-        assert_eq!(ln_helper(v), v.ln()); 
+        assert_eq!(ln_helper(v), v.ln());
     }
 
     #[test]
     fn ln_f64() {
         let v: f64 = 23.24;
 
-        assert_eq!(ln_helper(v), v.ln()); 
+        assert_eq!(ln_helper(v), v.ln());
     }
 
     fn ln_1p_helper<T: Ln1p>(v: T) -> T {
@@ -725,14 +783,14 @@ mod tests {
     fn ln_1p_f32() {
         let v: f32 = 23.24;
 
-        assert_eq!(ln_1p_helper(v), v.ln_1p()); 
+        assert_eq!(ln_1p_helper(v), v.ln_1p());
     }
 
     #[test]
     fn ln_1p_f64() {
         let v: f64 = 23.24;
 
-        assert_eq!(ln_1p_helper(v), v.ln_1p()); 
+        assert_eq!(ln_1p_helper(v), v.ln_1p());
     }
 
     fn log_helper<T: Log>(v: T, base: T) -> T {
@@ -744,7 +802,7 @@ mod tests {
         let v: f32 = 23.24;
         let base: f32 = 5.0;
 
-        assert_eq!(log_helper(v, base), v.log(base)); 
+        assert_eq!(log_helper(v, base), v.log(base));
     }
 
     #[test]
@@ -752,7 +810,7 @@ mod tests {
         let v: f64 = 23.24;
         let base: f64 = 5.0;
 
-        assert_eq!(log_helper(v, base), v.log(base)); 
+        assert_eq!(log_helper(v, base), v.log(base));
     }
 
     fn log2_helper<T: Log2>(v: T) -> T {
@@ -763,14 +821,14 @@ mod tests {
     fn log2_f32() {
         let v: f32 = 23.24;
 
-        assert_eq!(log2_helper(v), v.log2()); 
+        assert_eq!(log2_helper(v), v.log2());
     }
 
     #[test]
     fn log2_f64() {
         let v: f64 = 23.24;
 
-        assert_eq!(log2_helper(v), v.log2()); 
+        assert_eq!(log2_helper(v), v.log2());
     }
 
     fn log10_helper<T: Log10>(v: T) -> T {
@@ -781,14 +839,14 @@ mod tests {
     fn log10_f32() {
         let v: f32 = 23.24;
 
-        assert_eq!(log10_helper(v), v.log10()); 
+        assert_eq!(log10_helper(v), v.log10());
     }
 
     #[test]
     fn log10_f64() {
         let v: f64 = 23.24;
 
-        assert_eq!(log10_helper(v), v.log10()); 
+        assert_eq!(log10_helper(v), v.log10());
     }
 
     fn max_helper<T: Max>(v: T, other: T) -> T {
@@ -800,7 +858,7 @@ mod tests {
         let v: f32 = 23.24;
         let other: f32 = 5.0;
 
-        assert_eq!(max_helper(v, other), v.max(other)); 
+        assert_eq!(max_helper(v, other), v.max(other));
     }
 
     #[test]
@@ -808,7 +866,7 @@ mod tests {
         let v: f64 = 23.24;
         let other: f64 = 5.0;
 
-        assert_eq!(max_helper(v, other), v.max(other)); 
+        assert_eq!(max_helper(v, other), v.max(other));
     }
 
     fn min_helper<T: Min>(v: T, other: T) -> T {
@@ -820,7 +878,7 @@ mod tests {
         let v: f32 = 23.24;
         let other: f32 = 5.0;
 
-        assert_eq!(min_helper(v, other), v.min(other)); 
+        assert_eq!(min_helper(v, other), v.min(other));
     }
 
     #[test]
@@ -828,7 +886,7 @@ mod tests {
         let v: f64 = 23.24;
         let other: f64 = 5.0;
 
-        assert_eq!(min_helper(v, other), v.min(other)); 
+        assert_eq!(min_helper(v, other), v.min(other));
     }
 
     fn mul_add_helper<T: MulAdd>(v: T, a: T, b: T) -> T {
@@ -862,7 +920,7 @@ mod tests {
         let v: f32 = 23.24;
         let exp: f32 = 5.0;
 
-        assert_eq!(powf_helper(v, exp), v.powf(exp)); 
+        assert_eq!(powf_helper(v, exp), v.powf(exp));
     }
 
     #[test]
@@ -870,7 +928,7 @@ mod tests {
         let v: f64 = 23.24;
         let exp: f64 = 5.0;
 
-        assert_eq!(powf_helper(v, exp), v.powf(exp)); 
+        assert_eq!(powf_helper(v, exp), v.powf(exp));
     }
 
     fn powi_helper<T: Powi>(v: T, exp: i32) -> T {
@@ -882,7 +940,7 @@ mod tests {
         let v: f32 = 23.24;
         let exp: i32 = 5;
 
-        assert_eq!(powi_helper(v, exp), v.powi(exp)); 
+        assert_eq!(powi_helper(v, exp), v.powi(exp));
     }
 
     #[test]
@@ -890,7 +948,7 @@ mod tests {
         let v: f64 = 23.24;
         let exp: i32 = 5;
 
-        assert_eq!(powi_helper(v, exp), v.powi(exp)); 
+        assert_eq!(powi_helper(v, exp), v.powi(exp));
     }
 
     fn recip_helper<T: Recip>(v: T) -> T {
@@ -901,14 +959,14 @@ mod tests {
     fn recip_f32() {
         let v: f32 = 23.24;
 
-        assert_eq!(recip_helper(v), v.recip()); 
+        assert_eq!(recip_helper(v), v.recip());
     }
 
     #[test]
     fn recip_f64() {
         let v: f64 = 23.24;
 
-        assert_eq!(recip_helper(v), v.recip()); 
+        assert_eq!(recip_helper(v), v.recip());
     }
 
     fn round_helper<T: Round>(v: T) -> T {
@@ -919,14 +977,14 @@ mod tests {
     fn round_f32() {
         let v: f32 = 23.24;
 
-        assert_eq!(round_helper(v), v.round()); 
+        assert_eq!(round_helper(v), v.round());
     }
 
     #[test]
     fn round_f64() {
         let v: f64 = 23.24;
 
-        assert_eq!(round_helper(v), v.round()); 
+        assert_eq!(round_helper(v), v.round());
     }
 
     fn to_bits_helper<T: ToBits>(v: T) -> <T as ToBits>::Output {
@@ -937,14 +995,14 @@ mod tests {
     fn to_bits_f32() {
         let v: f32 = 23.24;
 
-        assert_eq!(to_bits_helper(v), v.to_bits()); 
+        assert_eq!(to_bits_helper(v), v.to_bits());
     }
 
     #[test]
     fn to_bits_f64() {
         let v: f64 = 23.24;
 
-        assert_eq!(to_bits_helper(v), v.to_bits()); 
+        assert_eq!(to_bits_helper(v), v.to_bits());
     }
 
     implement_test_for! { Sin, sin, sin_test, 1.0, [sin_f32, sin_f64], [f32, f64] }
@@ -959,7 +1017,7 @@ mod tests {
     fn total_cmp_helper<T: TotalCmp>(v: &T, other: &T) -> Ordering {
         v.total_cmp(other)
     }
-    
+
     #[test]
     fn total_cmp_f32() {
         let neg_inf = f32::NEG_INFINITY;
@@ -992,12 +1050,11 @@ mod tests {
         assert_eq!(total_cmp_helper(&inf, &nan), inf.total_cmp(&nan));
     }
 
-
     fn trunc_helper<T: Trunc>(v: T) -> T {
         v.trunc()
     }
-   
-    #[test] 
+
+    #[test]
     fn trunc_f32() {
         let a: f32 = 2.3;
         let b: f32 = 2.0;
@@ -1008,7 +1065,7 @@ mod tests {
         assert_eq!(trunc_helper(c), c.trunc());
     }
 
-    #[test] 
+    #[test]
     fn trunc_f64() {
         let a: f64 = 2.3;
         let b: f64 = 2.0;

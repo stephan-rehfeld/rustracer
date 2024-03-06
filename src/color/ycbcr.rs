@@ -28,9 +28,18 @@ impl From<RGB<u8>> for YCbCr<u8> {
         let g = rgb.green as f32;
         let b = rgb.blue as f32;
 
-        let y = (0.299 * r + 0.587 * g + 0.114 * b).round().max(0.0).min(255.0) as u8;
-        let cb = ((-0.299 * r - 0.587 * g + 0.886 * b) / 1.772 + 128.0).round().max(0.0).min(255.0) as u8;
-        let cr = ((0.701 * r - 0.587 * g - 0.114 * b) / 1.402 + 128.0).round().max(0.0).min(255.0) as u8;
+        let y = (0.299 * r + 0.587 * g + 0.114 * b)
+            .round()
+            .max(0.0)
+            .min(255.0) as u8;
+        let cb = ((-0.299 * r - 0.587 * g + 0.886 * b) / 1.772 + 128.0)
+            .round()
+            .max(0.0)
+            .min(255.0) as u8;
+        let cr = ((0.701 * r - 0.587 * g - 0.114 * b) / 1.402 + 128.0)
+            .round()
+            .max(0.0)
+            .min(255.0) as u8;
 
         YCbCr::new(y, cb, cr)
     }
@@ -44,13 +53,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let ycbcr = YCbCr::new( 1 as $type, 2 as $type, 3 as $type );
+                let ycbcr = YCbCr::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(ycbcr.y, 1 as $type);
                 assert_eq!(ycbcr.cb, 2 as $type);
                 assert_eq!(ycbcr.cr, 3 as $type);
             }
-        }
+        };
     }
 
     new_ycbcr! { u8, new_ycbcr_u8 }
@@ -65,17 +74,17 @@ mod tests {
     new_ycbcr! { i128, new_ycbcr_i128 }
     new_ycbcr! { f32, new_ycbcr_f32 }
     new_ycbcr! { f64, new_ycbcr_f64 }
- 
+
     macro_rules! default_ycbcr {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let ycbcr1 = YCbCr::new( <$type>::default(), <$type>::default(), <$type>::default() );
+                let ycbcr1 = YCbCr::new(<$type>::default(), <$type>::default(), <$type>::default());
                 let ycbcr2 = YCbCr::<$type>::default();
 
                 assert_eq!(ycbcr1, ycbcr2);
             }
-        }
+        };
     }
 
     default_ycbcr! { u8, default_ycbcr_u8 }
@@ -95,20 +104,19 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let rgb_black = RGB::new( 0 as $type, 0 as $type, 0 as $type );
-                let rgb_white = RGB::new( 255 as $type, 255 as $type, 255 as $type );
-                let rgb_gray = RGB::new( 128 as $type, 128 as $type, 128 as $type );
-                let rgb_red = RGB::new( 255 as $type, 0 as $type, 0 as $type );
-                let rgb_green = RGB::new( 0 as $type, 255 as $type, 0 as $type );
-                let rgb_blue = RGB::new( 0 as $type, 0 as $type, 255 as $type );
+                let rgb_black = RGB::new(0 as $type, 0 as $type, 0 as $type);
+                let rgb_white = RGB::new(255 as $type, 255 as $type, 255 as $type);
+                let rgb_gray = RGB::new(128 as $type, 128 as $type, 128 as $type);
+                let rgb_red = RGB::new(255 as $type, 0 as $type, 0 as $type);
+                let rgb_green = RGB::new(0 as $type, 255 as $type, 0 as $type);
+                let rgb_blue = RGB::new(0 as $type, 0 as $type, 255 as $type);
 
-                let ycbcr_black = YCbCr::new( 0 as $type, 128 as $type, 128 as $type);
-                let ycbcr_white = YCbCr::new( 255 as $type, 128 as $type, 128 as $type);
-                let ycbcr_gray = YCbCr::new( 128 as $type, 128 as $type, 128 as $type);
-                let ycbcr_red = YCbCr::new( 76 as $type, 85 as $type, 255 as $type);
-                let ycbcr_green = YCbCr::new( 150 as $type, 44 as $type, 21 as $type);
-                let ycbcr_blue = YCbCr::new( 29 as $type, 255 as $type, 107 as $type);
-
+                let ycbcr_black = YCbCr::new(0 as $type, 128 as $type, 128 as $type);
+                let ycbcr_white = YCbCr::new(255 as $type, 128 as $type, 128 as $type);
+                let ycbcr_gray = YCbCr::new(128 as $type, 128 as $type, 128 as $type);
+                let ycbcr_red = YCbCr::new(76 as $type, 85 as $type, 255 as $type);
+                let ycbcr_green = YCbCr::new(150 as $type, 44 as $type, 21 as $type);
+                let ycbcr_blue = YCbCr::new(29 as $type, 255 as $type, 107 as $type);
 
                 assert_eq!(ycbcr_black, YCbCr::from(rgb_black));
                 assert_eq!(ycbcr_white, YCbCr::from(rgb_white));
@@ -117,7 +125,7 @@ mod tests {
                 assert_eq!(ycbcr_green, YCbCr::from(rgb_green));
                 assert_eq!(ycbcr_blue, YCbCr::from(rgb_blue));
             }
-        }
+        };
     }
 
     ycbcr_from_rgb! { u8, ycbcr_from_rgb_u8 }
@@ -126,13 +134,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let ycbcr = YCbCr::new( 1 as $type, 2 as $type, 3 as $type );
+                let ycbcr = YCbCr::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(ycbcr[0], 1 as $type);
                 assert_eq!(ycbcr[1], 2 as $type);
                 assert_eq!(ycbcr[2], 3 as $type);
             }
-        }
+        };
     }
 
     ycbcr_index! { u8, ycbcr_index_u8 }

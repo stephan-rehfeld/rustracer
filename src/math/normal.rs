@@ -1,4 +1,4 @@
-use std::ops::{Add, Neg, Mul};
+use std::ops::{Add, Mul, Neg};
 
 use crate::math::{Vector2, Vector3};
 use crate::traits::Zero;
@@ -43,7 +43,7 @@ macro_rules! create_normal_type {
                 $(a.$element * b.$element + )* Zero::zero()
             }
         }
-        
+
         impl<T> Normal for $name<T> {
             type ValueType = T;
         }
@@ -104,7 +104,6 @@ macro_rules! impl_mul_scalar_with_normal3 {
 
 impl_mul_scalar_with_normal3! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
-
 macro_rules! impl_orthonormal2_for {
     ($($type: ty)* ) => ($(
         impl Orthonormal2<$type> for Normal2<$type> {
@@ -149,12 +148,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let norm = Normal2::new( 1 as $type, 2 as $type );
+                let norm = Normal2::new(1 as $type, 2 as $type);
 
                 assert_eq!(norm.x, 1 as $type);
                 assert_eq!(norm.y, 2 as $type);
             }
-        }
+        };
     }
 
     new_normal2! { u8, new_normal2_u8 }
@@ -181,7 +180,7 @@ mod tests {
                 assert_eq!(Normal2::dot(x_norm, x_norm), 1 as $type);
                 assert_eq!(Normal2::dot(y_norm, y_norm), 1 as $type);
             }
-        }
+        };
     }
 
     dot_product_normal2! { u8, dot_product_normal2_u8 }
@@ -201,13 +200,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let n1 = Normal2::new( 1 as $type, 2 as $type);
+                let n1 = Normal2::new(1 as $type, 2 as $type);
                 let n2 = -n1;
 
                 assert_eq!(n2.x, -1 as $type);
                 assert_eq!(n2.y, -2 as $type);
             }
-        }
+        };
     }
 
     normal2_neg! { i8, normal2_neg_i8 }
@@ -227,7 +226,7 @@ mod tests {
 
                 assert_eq!(v, Vector2::new(2 as $type, 4 as $type));
             }
-        }
+        };
     }
 
     normal2_mul! { i8, normal2_mul_i8 }
@@ -242,12 +241,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let n = Normal2::new( 2 as $type, 3 as $type );
-                let r = Vector2::new( 4 as $type, 6 as $type );
+                let n = Normal2::new(2 as $type, 3 as $type);
+                let r = Vector2::new(4 as $type, 6 as $type);
 
-                assert_eq!( 2 as $type * n, r);
+                assert_eq!(2 as $type * n, r);
             }
-        }
+        };
     }
 
     mul_scalar_normal2! { i8, mul_scalar_normal2_i8 }
@@ -262,13 +261,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let norm = Normal3::new( 1 as $type, 2 as $type, 3 as $type );
+                let norm = Normal3::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(norm.x, 1 as $type);
                 assert_eq!(norm.y, 2 as $type);
                 assert_eq!(norm.z, 3 as $type);
             }
-        }
+        };
     }
 
     new_normal3! { u8, new_normal3_u8 }
@@ -300,7 +299,7 @@ mod tests {
                 assert_eq!(Normal3::dot(y_norm, y_norm), 1 as $type);
                 assert_eq!(Normal3::dot(z_norm, z_norm), 1 as $type);
             }
-        }
+        };
     }
 
     dot_product_normal3! { u8, dot_product_normal3_u8 }
@@ -320,14 +319,14 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let n1 = Normal3::new( 1 as $type, 2 as $type, -3 as $type);
+                let n1 = Normal3::new(1 as $type, 2 as $type, -3 as $type);
                 let n2 = -n1;
 
                 assert_eq!(n2.x, -1 as $type);
                 assert_eq!(n2.y, -2 as $type);
                 assert_eq!(n2.z, 3 as $type);
             }
-        }
+        };
     }
 
     normal3_neg! { i8, normal3_neg_i8 }
@@ -347,7 +346,7 @@ mod tests {
 
                 assert_eq!(v, Vector3::new(2 as $type, 4 as $type, 6 as $type));
             }
-        }
+        };
     }
 
     normal3_mul! { i8, normal3_mul_i8 }
@@ -362,12 +361,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let n = Normal3::new( 2 as $type, 3 as $type, 4 as $type );
-                let r = Vector3::new( 4 as $type, 6 as $type, 8 as $type );
+                let n = Normal3::new(2 as $type, 3 as $type, 4 as $type);
+                let r = Vector3::new(4 as $type, 6 as $type, 8 as $type);
 
-                assert_eq!( 2 as $type * n, r);
+                assert_eq!(2 as $type * n, r);
             }
-        }
+        };
     }
 
     mul_scalar_normal3! { i8, mul_scalar_normal3_i8 }
@@ -377,5 +376,4 @@ mod tests {
     mul_scalar_normal3! { i128, mul_scalar_normal3_i128 }
     mul_scalar_normal3! { f32, mul_scalar_normal3_f32 }
     mul_scalar_normal3! { f64, mul_scalar_normal3_f64 }
-
 }

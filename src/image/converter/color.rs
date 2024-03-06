@@ -11,12 +11,16 @@ pub struct Color<T: Image, C: ColorTrait> {
 
 impl<T: Image, C: ColorTrait> Color<T, C> {
     pub fn new(source: T) -> Color<T, C> {
-        Color { source, _color: PhantomData }
+        Color {
+            source,
+            _color: PhantomData,
+        }
     }
 }
 
-impl<T: Image, C: ColorTrait> Image for Color<T, C> where
-    C: From<<T as Image>::ColorType>
+impl<T: Image, C: ColorTrait> Image for Color<T, C>
+where
+    C: From<<T as Image>::ColorType>,
 {
     type ColorType = C;
     type PointType = <T as Image>::PointType;
@@ -26,6 +30,6 @@ impl<T: Image, C: ColorTrait> Image for Color<T, C> where
     }
 
     fn get(&self, p: Self::PointType) -> Self::ColorType {
-        C::from( self.source.get(p) )
+        C::from(self.source.get(p))
     }
 }

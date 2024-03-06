@@ -3,18 +3,22 @@ use std::ops::{Add, Index, Mul};
 
 use crate::traits::{MultiplyStable, Number, SelfMultiply};
 
-pub trait Color : Add<Output=Self>
-                + Mul<Self::ChannelType, Output=Self>
-                + Mul<Output=Self>
-                + Sum
-                + Default
-                + Clone
-                + Copy
-                + PartialEq
-                + Index<usize, Output=Self::ChannelType> {
+pub trait Color:
+    Add<Output = Self>
+    + Mul<Self::ChannelType, Output = Self>
+    + Mul<Output = Self>
+    + Sum
+    + Default
+    + Clone
+    + Copy
+    + PartialEq
+    + Index<usize, Output = Self::ChannelType>
+{
     type ChannelType: Number + SelfMultiply + MultiplyStable;
 
-    fn clamped(self, min: Self, max: Self) -> Self where <Self as Color>::ChannelType: PartialOrd;
+    fn clamped(self, min: Self, max: Self) -> Self
+    where
+        <Self as Color>::ChannelType: PartialOrd;
 }
 
 #[macro_export]
@@ -52,7 +56,7 @@ macro_rules! create_color_type {
                     } else {
                         self.$channel
                     }
-                
+
                 };
                 )+
                 $name::new( $($channel,)+ )
@@ -83,7 +87,7 @@ macro_rules! create_color_type {
                 $name::new( $( self.$channel * rhs.$channel, )* )
             }
         }
-        
+
         impl<T: Eq> Eq for $name<T> {
         }
 
@@ -107,12 +111,12 @@ macro_rules! create_color_type {
     }
 }
 
+pub mod gray;
 pub mod rgb;
 pub mod rgba;
 pub mod ycbcr;
-pub mod gray;
 
+pub use gray::Gray;
 pub use rgb::RGB;
 pub use rgba::RGBA;
 pub use ycbcr::YCbCr;
-pub use gray::Gray;

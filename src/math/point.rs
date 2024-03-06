@@ -76,12 +76,12 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let p = Point2::new( 1 as $type, 2 as $type );
+                let p = Point2::new(1 as $type, 2 as $type);
 
                 assert_eq!(p.x, 1 as $type);
                 assert_eq!(p.y, 2 as $type);
             }
-        }
+        };
     }
 
     new_point2! { u8, new_point2_u8 }
@@ -101,15 +101,15 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let p1 = Point2::new( 1 as $type, 2 as $type );
+                let p1 = Point2::new(1 as $type, 2 as $type);
 
-                let v1 = Vector2::new( 1 as $type, 0 as $type );
-                let v2 = Vector2::new( 0 as $type, 2 as $type );
+                let v1 = Vector2::new(1 as $type, 0 as $type);
+                let v2 = Vector2::new(0 as $type, 2 as $type);
 
                 assert_eq!(p1 + v1, Point2::new(2 as $type, 2 as $type));
                 assert_eq!(p1 + v2, Point2::new(1 as $type, 4 as $type));
             }
-        }
+        };
     }
 
     point2_add_vector2! { u8, point2_add_vector2_u8 }
@@ -129,13 +129,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut p = Point2::new( 1 as $type, 2 as $type );
+                let mut p = Point2::new(1 as $type, 2 as $type);
 
-                p += Vector2::new( 1 as $type, 2 as $type );
+                p += Vector2::new(1 as $type, 2 as $type);
 
-                assert_eq!(p, Point2::new(2 as $type, 4 as $type ));
+                assert_eq!(p, Point2::new(2 as $type, 4 as $type));
             }
-        }
+        };
     }
 
     point2_add_assign_vector2! { u8, point2_add_assign_vector2_u8 }
@@ -155,15 +155,15 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let p1 = Point2::new( 1 as $type, 2 as $type );
+                let p1 = Point2::new(1 as $type, 2 as $type);
 
-                let p2 = Point2::new( 1 as $type, 0 as $type );
-                let p3 = Point2::new( 0 as $type, 2 as $type );
+                let p2 = Point2::new(1 as $type, 0 as $type);
+                let p3 = Point2::new(0 as $type, 2 as $type);
 
                 assert_eq!(p1 - p2, Vector2::new(0 as $type, 2 as $type));
                 assert_eq!(p1 - p3, Vector2::new(1 as $type, 0 as $type));
             }
-        }
+        };
     }
 
     point2_sub_point2! { u8, point2_sub_point2_u8 }
@@ -178,20 +178,20 @@ mod tests {
     point2_sub_point2! { i128, point2_sub_point2_i128 }
     point2_sub_point2! { f32, point2_sub_point2_f32 }
     point2_sub_point2! { f64, point2_sub_point2_f64 }
-    
+
     macro_rules! point2_sub_vector2 {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let p1 = Point2::new( 1 as $type, 2 as $type );
+                let p1 = Point2::new(1 as $type, 2 as $type);
 
-                let v1 = Vector2::new( 1 as $type, 0 as $type );
-                let v2 = Vector2::new( 0 as $type, 2 as $type );
+                let v1 = Vector2::new(1 as $type, 0 as $type);
+                let v2 = Vector2::new(0 as $type, 2 as $type);
 
                 assert_eq!(p1 - v1, Point2::new(0 as $type, 2 as $type));
                 assert_eq!(p1 - v2, Point2::new(1 as $type, 0 as $type));
             }
-        }
+        };
     }
 
     point2_sub_vector2! { u8, point2_sub_vector2_u8 }
@@ -211,13 +211,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut p = Point2::new( 2 as $type, 4 as $type );
+                let mut p = Point2::new(2 as $type, 4 as $type);
 
-                p -= Vector2::new( 1 as $type, 2 as $type );
+                p -= Vector2::new(1 as $type, 2 as $type);
 
                 assert_eq!(p, Point2::new(1 as $type, 2 as $type));
             }
-        }
+        };
     }
 
     point2_sub_assign_vector2! { u8, point2_sub_assign_vector2_u8 }
@@ -237,13 +237,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let p = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+                let p = Point3::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(p.x, 1 as $type);
                 assert_eq!(p.y, 2 as $type);
                 assert_eq!(p.z, 3 as $type);
             }
-        }
+        };
     }
 
     new_point3! { u8, new_point3_u8 }
@@ -263,17 +263,17 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let p1 = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+                let p1 = Point3::new(1 as $type, 2 as $type, 3 as $type);
 
-                let v1 = Vector3::new( 1 as $type, 0 as $type, 0 as $type );
-                let v2 = Vector3::new( 0 as $type, 2 as $type, 0 as $type );
-                let v3 = Vector3::new( 0 as $type, 0 as $type, 3 as $type );
+                let v1 = Vector3::new(1 as $type, 0 as $type, 0 as $type);
+                let v2 = Vector3::new(0 as $type, 2 as $type, 0 as $type);
+                let v3 = Vector3::new(0 as $type, 0 as $type, 3 as $type);
 
                 assert_eq!(p1 + v1, Point3::new(2 as $type, 2 as $type, 3 as $type));
                 assert_eq!(p1 + v2, Point3::new(1 as $type, 4 as $type, 3 as $type));
                 assert_eq!(p1 + v3, Point3::new(1 as $type, 2 as $type, 6 as $type));
             }
-        }
+        };
     }
 
     point3_add_vector3! { u8, point3_add_vector3_u8 }
@@ -293,13 +293,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut p = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+                let mut p = Point3::new(1 as $type, 2 as $type, 3 as $type);
 
-                p += Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+                p += Vector3::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(p, Point3::new(2 as $type, 4 as $type, 6 as $type));
             }
-        }
+        };
     }
 
     point3_add_assign_vector3! { u8, point3_add_assign_vector3_u8 }
@@ -319,17 +319,17 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let p1 = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+                let p1 = Point3::new(1 as $type, 2 as $type, 3 as $type);
 
-                let p2 = Point3::new( 1 as $type, 0 as $type, 0 as $type );
-                let p3 = Point3::new( 0 as $type, 2 as $type, 0 as $type );
-                let p4 = Point3::new( 0 as $type, 0 as $type, 3 as $type );
+                let p2 = Point3::new(1 as $type, 0 as $type, 0 as $type);
+                let p3 = Point3::new(0 as $type, 2 as $type, 0 as $type);
+                let p4 = Point3::new(0 as $type, 0 as $type, 3 as $type);
 
                 assert_eq!(p1 - p2, Vector3::new(0 as $type, 2 as $type, 3 as $type));
                 assert_eq!(p1 - p3, Vector3::new(1 as $type, 0 as $type, 3 as $type));
                 assert_eq!(p1 - p4, Vector3::new(1 as $type, 2 as $type, 0 as $type));
             }
-        }
+        };
     }
 
     point3_sub_point3! { u8, point3_sub_point3_u8 }
@@ -344,22 +344,22 @@ mod tests {
     point3_sub_point3! { i128, point3_sub_point3_i128 }
     point3_sub_point3! { f32, point3_sub_point3_f32 }
     point3_sub_point3! { f64, point3_sub_point3_f64 }
-    
+
     macro_rules! point3_sub_vector3 {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let p1 = Point3::new( 1 as $type, 2 as $type, 3 as $type );
+                let p1 = Point3::new(1 as $type, 2 as $type, 3 as $type);
 
-                let v1 = Vector3::new( 1 as $type, 0 as $type, 0 as $type );
-                let v2 = Vector3::new( 0 as $type, 2 as $type, 0 as $type );
-                let v3 = Vector3::new( 0 as $type, 0 as $type, 3 as $type );
+                let v1 = Vector3::new(1 as $type, 0 as $type, 0 as $type);
+                let v2 = Vector3::new(0 as $type, 2 as $type, 0 as $type);
+                let v3 = Vector3::new(0 as $type, 0 as $type, 3 as $type);
 
                 assert_eq!(p1 - v1, Point3::new(0 as $type, 2 as $type, 3 as $type));
                 assert_eq!(p1 - v2, Point3::new(1 as $type, 0 as $type, 3 as $type));
                 assert_eq!(p1 - v3, Point3::new(1 as $type, 2 as $type, 0 as $type));
             }
-        }
+        };
     }
 
     point3_sub_vector3! { u8, point3_sub_vector3_u8 }
@@ -379,13 +379,13 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let mut p = Point3::new( 2 as $type, 4 as $type, 6 as $type );
+                let mut p = Point3::new(2 as $type, 4 as $type, 6 as $type);
 
-                p -= Vector3::new( 1 as $type, 2 as $type, 3 as $type );
+                p -= Vector3::new(1 as $type, 2 as $type, 3 as $type);
 
                 assert_eq!(p, Point3::new(1 as $type, 2 as $type, 3 as $type));
             }
-        }
+        };
     }
 
     point3_sub_assign_vector3! { u8, point3_sub_assign_vector3_u8 }

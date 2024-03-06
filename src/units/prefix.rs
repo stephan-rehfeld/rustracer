@@ -6,7 +6,7 @@ pub trait Prefix: Debug + PartialEq + PartialOrd + Clone + Copy {
     const PREFIX: &'static str;
 }
 
-#[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Milli;
 
 impl Prefix for Milli {
@@ -15,27 +15,25 @@ impl Prefix for Milli {
     const PREFIX: &'static str = "m";
 }
 
-#[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Centi;
 
 impl Prefix for Centi {
     const NUMERATOR: u64 = 1;
     const DENOMINATOR: u64 = 100;
     const PREFIX: &'static str = "c";
-
 }
 
-#[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Deci;
 
 impl Prefix for Deci {
     const NUMERATOR: u64 = 1;
     const DENOMINATOR: u64 = 10;
     const PREFIX: &'static str = "d";
-
 }
 
-#[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct None;
 
 impl Prefix for None {
@@ -44,7 +42,7 @@ impl Prefix for None {
     const PREFIX: &'static str = "";
 }
 
-#[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Deca;
 
 impl Prefix for Deca {
@@ -53,7 +51,7 @@ impl Prefix for Deca {
     const PREFIX: &'static str = "da";
 }
 
-#[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Hecto;
 
 impl Prefix for Hecto {
@@ -62,7 +60,7 @@ impl Prefix for Hecto {
     const PREFIX: &'static str = "h";
 }
 
-#[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Kilo;
 
 impl Prefix for Kilo {

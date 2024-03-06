@@ -1,10 +1,12 @@
-use std::fmt::{Debug, Display, Formatter, Result as FmtResult, LowerExp, UpperExp};
+use std::fmt::{Debug, Display, Formatter, LowerExp, Result as FmtResult, UpperExp};
 use std::iter::Sum;
 use std::marker::PhantomData;
-use std::ops::{Add, AddAssign, Div, DivAssign, Neg, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign,
+};
 use std::str::FromStr;
 
-use crate::traits::{DivEuclid, RemEuclid, Number, Half, One, Zero};
+use crate::traits::{DivEuclid, Half, Number, One, RemEuclid, Zero};
 
 pub mod angle;
 pub mod area;
@@ -16,19 +18,23 @@ pub mod volume;
 use prefix::Prefix;
 
 pub trait Unit: Debug + PartialEq + PartialOrd + Copy + Clone {
-    const UNIT: &'static str; 
+    const UNIT: &'static str;
 }
 
-#[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct ValueWithPrefixAndUnit<T, P, U> {
     value: T,
     _prefix: PhantomData<P>,
     _unit: PhantomData<U>,
-} 
+}
 
 impl<T, P, U> ValueWithPrefixAndUnit<T, P, U> {
     pub fn new(value: T) -> ValueWithPrefixAndUnit<T, P, U> {
-        ValueWithPrefixAndUnit { value: value, _prefix: PhantomData, _unit: PhantomData }
+        ValueWithPrefixAndUnit {
+            value: value,
+            _prefix: PhantomData,
+            _unit: PhantomData,
+        }
     }
 }
 
@@ -56,7 +62,7 @@ impl<T: Add, P, U> Add for ValueWithPrefixAndUnit<T, P, U> {
     }
 }
 
-impl<T: for<'a> Add<&'a T, Output=T>, P, U> Add<&Self> for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: for<'a> Add<&'a T, Output = T>, P, U> Add<&Self> for ValueWithPrefixAndUnit<T, P, U> {
     type Output = Self;
 
     fn add(self, rhs: &Self) -> Self::Output {
@@ -84,8 +90,7 @@ impl<T: Div, P, U> Div<T> for ValueWithPrefixAndUnit<T, P, U> {
     }
 }
 
-
-impl<T: for<'a> Div<&'a T, Output=T>, P, U> Div<&T> for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: for<'a> Div<&'a T, Output = T>, P, U> Div<&T> for ValueWithPrefixAndUnit<T, P, U> {
     type Output = Self;
 
     fn div(self, rhs: &T) -> Self::Output {
@@ -113,7 +118,9 @@ impl<T: Div, P, U> Div for ValueWithPrefixAndUnit<T, P, U> {
     }
 }
 
-impl<T: for<'a> Div<&'a T, Output=<T as Div>::Output> + Div, P, U> Div<&Self> for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: for<'a> Div<&'a T, Output = <T as Div>::Output> + Div, P, U> Div<&Self>
+    for ValueWithPrefixAndUnit<T, P, U>
+{
     type Output = <T as Div<T>>::Output;
 
     fn div(self, rhs: &Self) -> Self::Output {
@@ -123,10 +130,9 @@ impl<T: for<'a> Div<&'a T, Output=<T as Div>::Output> + Div, P, U> Div<&Self> fo
 
 impl<T: From<bool>, P: Prefix, U: Unit> From<bool> for ValueWithPrefixAndUnit<T, P, U> {
     fn from(value: bool) -> Self {
-        ValueWithPrefixAndUnit::new( T::from(value))
+        ValueWithPrefixAndUnit::new(T::from(value))
     }
 }
-
 
 impl<T: FromStr, P: Prefix, U: Unit> FromStr for ValueWithPrefixAndUnit<T, P, U> {
     type Err = T::Err;
@@ -139,14 +145,11 @@ impl<T: FromStr, P: Prefix, U: Unit> FromStr for ValueWithPrefixAndUnit<T, P, U>
     }
 }
 
-
-
 impl<T: LowerExp, P: Prefix, U: Unit> LowerExp for ValueWithPrefixAndUnit<T, P, U> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{:e}{}{}", self.value, P::PREFIX, U::UNIT)
     }
 }
-
 
 impl<T: Mul, P, U> Mul<T> for ValueWithPrefixAndUnit<T, P, U> {
     type Output = ValueWithPrefixAndUnit<<T as Mul>::Output, P, U>;
@@ -156,7 +159,7 @@ impl<T: Mul, P, U> Mul<T> for ValueWithPrefixAndUnit<T, P, U> {
     }
 }
 
-impl<T: for<'a> Mul<&'a T, Output=T>, P, U> Mul<&T> for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: for<'a> Mul<&'a T, Output = T>, P, U> Mul<&T> for ValueWithPrefixAndUnit<T, P, U> {
     type Output = Self;
 
     fn mul(self, rhs: &T) -> Self::Output {
@@ -191,7 +194,6 @@ impl<T: for<'a> MulAssign<&'a T>, P, U> MulAssign<&T> for ValueWithPrefixAndUnit
         self.value *= &rhs;
     }
 }
-
 
 impl<T: Neg, P, U> Neg for ValueWithPrefixAndUnit<T, P, U> {
     type Output = ValueWithPrefixAndUnit<<T as Neg>::Output, P, U>;
@@ -241,7 +243,7 @@ impl<T: Rem, P, U> Rem for ValueWithPrefixAndUnit<T, P, U> {
     }
 }
 
-impl<T: for<'a> Rem<&'a T, Output=T>, P, U> Rem<&Self> for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: for<'a> Rem<&'a T, Output = T>, P, U> Rem<&Self> for ValueWithPrefixAndUnit<T, P, U> {
     type Output = Self;
 
     fn rem(self, rhs: &Self) -> Self::Output {
@@ -249,7 +251,7 @@ impl<T: for<'a> Rem<&'a T, Output=T>, P, U> Rem<&Self> for ValueWithPrefixAndUni
     }
 }
 
-impl<T: for<'a> Rem<&'a T, Output=T>, P, U> Rem<&T> for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: for<'a> Rem<&'a T, Output = T>, P, U> Rem<&T> for ValueWithPrefixAndUnit<T, P, U> {
     type Output = Self;
 
     fn rem(self, rhs: &T) -> Self::Output {
@@ -277,7 +279,7 @@ impl<T: Sub, P, U> Sub for ValueWithPrefixAndUnit<T, P, U> {
     }
 }
 
-impl<T: for<'a> Sub<&'a T, Output=T>, P, U> Sub<&Self> for ValueWithPrefixAndUnit<T, P, U> {
+impl<T: for<'a> Sub<&'a T, Output = T>, P, U> Sub<&Self> for ValueWithPrefixAndUnit<T, P, U> {
     type Output = Self;
 
     fn sub(self, rhs: &Self) -> Self::Output {
@@ -297,21 +299,17 @@ impl<T: for<'a> SubAssign<&'a T>, P, U> SubAssign<&Self> for ValueWithPrefixAndU
     }
 }
 
-impl<T: Add<Output=T> + Zero, P, U> Sum for ValueWithPrefixAndUnit<T, P, U> {
-    fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
-        iter.fold(
-            Zero::zero(),
-            |a, b| a + b,
-        )
+impl<T: Add<Output = T> + Zero, P, U> Sum for ValueWithPrefixAndUnit<T, P, U> {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Zero::zero(), |a, b| a + b)
     }
 }
 
-impl<'a, T: for<'b> Add<&'b T, Output=T> + Zero, P, U> Sum<&'a Self> for ValueWithPrefixAndUnit<T, P, U> {
-    fn sum<I: Iterator<Item=&'a Self>>(iter: I) -> Self {
-        iter.fold(
-            Zero::zero(),
-            |a, b| a + b,
-        )
+impl<'a, T: for<'b> Add<&'b T, Output = T> + Zero, P, U> Sum<&'a Self>
+    for ValueWithPrefixAndUnit<T, P, U>
+{
+    fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+        iter.fold(Zero::zero(), |a, b| a + b)
     }
 }
 
@@ -340,7 +338,14 @@ impl<T: Zero, P, U> Zero for ValueWithPrefixAndUnit<T, P, U> {
 }
 
 impl<T: Number, P: Prefix, U: Unit> Number<T> for ValueWithPrefixAndUnit<T, P, U> {
-    const MAX: Self = ValueWithPrefixAndUnit { value: T::MAX, _prefix: PhantomData, _unit: PhantomData };
-    const MIN: Self = ValueWithPrefixAndUnit { value: T::MIN, _prefix: PhantomData, _unit: PhantomData };
+    const MAX: Self = ValueWithPrefixAndUnit {
+        value: T::MAX,
+        _prefix: PhantomData,
+        _unit: PhantomData,
+    };
+    const MIN: Self = ValueWithPrefixAndUnit {
+        value: T::MIN,
+        _prefix: PhantomData,
+        _unit: PhantomData,
+    };
 }
-

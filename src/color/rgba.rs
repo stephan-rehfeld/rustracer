@@ -37,8 +37,8 @@ macro_rules! rgba_from_floating_to_integral {
     }
 }
 
-rgba_from_floating_to_integral! { f32, [u8, u16, i8, i16] } 
-rgba_from_floating_to_integral! { f64, [u8, u16, i8, i16] } 
+rgba_from_floating_to_integral! { f32, [u8, u16, i8, i16] }
+rgba_from_floating_to_integral! { f64, [u8, u16, i8, i16] }
 
 macro_rules! rgba_floating_from_rgb {
     ($($type: ty),+) => {
@@ -76,14 +76,14 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let rgba = RGBA::new( 1 as $type, 2 as $type, 3 as $type, 4 as $type );
+                let rgba = RGBA::new(1 as $type, 2 as $type, 3 as $type, 4 as $type);
 
                 assert_eq!(rgba.red, 1 as $type);
                 assert_eq!(rgba.green, 2 as $type);
                 assert_eq!(rgba.blue, 3 as $type);
                 assert_eq!(rgba.alpha, 4 as $type);
             }
-        }
+        };
     }
 
     new_rgba! { u8, new_rgba_u8 }
@@ -103,12 +103,17 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let rgba1 = RGBA::new( <$type>::default(), <$type>::default(), <$type>::default(), <$type>::default() );
+                let rgba1 = RGBA::new(
+                    <$type>::default(),
+                    <$type>::default(),
+                    <$type>::default(),
+                    <$type>::default(),
+                );
                 let rgba2 = RGBA::<$type>::default();
 
                 assert_eq!(rgba1, rgba2);
             }
-        }
+        };
     }
 
     default_rgba! { u8, default_rgba_u8 }
@@ -128,14 +133,14 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let rgba = RGBA::new( 1 as $type, 2 as $type, 3 as $type, 4 as $type );
+                let rgba = RGBA::new(1 as $type, 2 as $type, 3 as $type, 4 as $type);
 
                 assert_eq!(rgba[0], 1 as $type);
                 assert_eq!(rgba[1], 2 as $type);
                 assert_eq!(rgba[2], 3 as $type);
                 assert_eq!(rgba[3], 4 as $type);
             }
-        }
+        };
     }
 
     rgba_index! { u8, rgba_index_u8 }
@@ -155,17 +160,64 @@ mod tests {
         ($floating:ty, $integral:ty, $name: ident) => {
             #[test]
             fn $name() {
-                let a = RGBA::new(0.0 as $floating, 0.0 as $floating, 0.0 as $floating, 0.0 as $floating);
-                let b = RGBA::new(0.5 as $floating, 0.5 as $floating, 0.5 as $floating, 0.5 as $floating);
-                let c = RGBA::new(1.0 as $floating, 1.0 as $floating, 1.0 as $floating, 1.0 as $floating);
-                let d = RGBA::new(0.0 as $floating, 0.5 as $floating, 1.0 as $floating, 1.0 as $floating);
+                let a = RGBA::new(
+                    0.0 as $floating,
+                    0.0 as $floating,
+                    0.0 as $floating,
+                    0.0 as $floating,
+                );
+                let b = RGBA::new(
+                    0.5 as $floating,
+                    0.5 as $floating,
+                    0.5 as $floating,
+                    0.5 as $floating,
+                );
+                let c = RGBA::new(
+                    1.0 as $floating,
+                    1.0 as $floating,
+                    1.0 as $floating,
+                    1.0 as $floating,
+                );
+                let d = RGBA::new(
+                    0.0 as $floating,
+                    0.5 as $floating,
+                    1.0 as $floating,
+                    1.0 as $floating,
+                );
 
-                assert_eq!(RGBA::<$integral>::from(a), RGBA::<$integral>::new(0, 0, 0, 0));
-                assert_eq!(RGBA::<$integral>::from(b), RGBA::<$integral>::new(<$integral>::MAX / 2, <$integral>::MAX / 2, <$integral>::MAX / 2, <$integral>::MAX / 2));
-                assert_eq!(RGBA::<$integral>::from(c), RGBA::<$integral>::new(<$integral>::MAX, <$integral>::MAX, <$integral>::MAX, <$integral>::MAX));
-                assert_eq!(RGBA::<$integral>::from(d), RGBA::<$integral>::new(0, <$integral>::MAX / 2, <$integral>::MAX, <$integral>::MAX));
+                assert_eq!(
+                    RGBA::<$integral>::from(a),
+                    RGBA::<$integral>::new(0, 0, 0, 0)
+                );
+                assert_eq!(
+                    RGBA::<$integral>::from(b),
+                    RGBA::<$integral>::new(
+                        <$integral>::MAX / 2,
+                        <$integral>::MAX / 2,
+                        <$integral>::MAX / 2,
+                        <$integral>::MAX / 2
+                    )
+                );
+                assert_eq!(
+                    RGBA::<$integral>::from(c),
+                    RGBA::<$integral>::new(
+                        <$integral>::MAX,
+                        <$integral>::MAX,
+                        <$integral>::MAX,
+                        <$integral>::MAX
+                    )
+                );
+                assert_eq!(
+                    RGBA::<$integral>::from(d),
+                    RGBA::<$integral>::new(
+                        0,
+                        <$integral>::MAX / 2,
+                        <$integral>::MAX,
+                        <$integral>::MAX
+                    )
+                );
             }
-        }
+        };
     }
 
     integral_from_floating! { f32, u8, rgba_u8_from_rgb_f32 }
@@ -185,7 +237,7 @@ mod tests {
 
                 assert_eq!(RGBA::from(a), RGBA::new(0.1, 0.5, 0.99, 1.0));
             }
-        }
+        };
     }
 
     rgba_from_rgb_floating! { f32, rgba_from_rgb_f32 }
@@ -199,7 +251,7 @@ mod tests {
 
                 assert_eq!(RGBA::from(a), RGBA::new(23, 42, 100, <$type>::MAX));
             }
-        }
+        };
     }
 
     rgba_from_rgb_integral! { u8, rgba_from_rgb_u8 }

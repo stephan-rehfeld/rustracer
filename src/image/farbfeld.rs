@@ -3,16 +3,16 @@ use crate::image::Image;
 use crate::math::Point2;
 
 pub trait Encoder {
-    fn encode(&self) -> Vec<u8>; 
+    fn encode(&self) -> Vec<u8>;
 }
 
-impl<T: Image<PointType=Point2<usize>, ColorType=RGBA<u16>>> Encoder for T {
+impl<T: Image<PointType = Point2<usize>, ColorType = RGBA<u16>>> Encoder for T {
     fn encode(&self) -> Vec<u8> {
         let size = self.size();
         let num_pixel = size.x * size.y;
 
         let mut result = Vec::with_capacity(8 + 4 + 4 + num_pixel * 8);
-        
+
         result.append(&mut "farbfeld".as_bytes().to_vec());
 
         result.append(&mut (size.x as u32).to_be_bytes().to_vec());

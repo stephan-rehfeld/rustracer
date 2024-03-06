@@ -1,5 +1,5 @@
-use super::ValueWithPrefixAndUnit;
 use super::prefix::None;
+use super::ValueWithPrefixAndUnit;
 
 use std::ops::Div;
 
@@ -8,17 +8,16 @@ use crate::units::area::SquareMeter;
 use crate::units::length::Meter;
 use crate::units::volume::CubicMeter;
 
-#[derive(Debug,PartialEq,PartialOrd,Clone,Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct MeterToThePowerOfFourUnit;
 
 impl super::Unit for MeterToThePowerOfFourUnit {
-    const UNIT: &'static str = "m⁴"; 
+    const UNIT: &'static str = "m⁴";
 }
 
 pub type SecondMomentOfArea<T> = ValueWithPrefixAndUnit<T, None, MeterToThePowerOfFourUnit>;
 
 impl<T: Div> Div<Meter<T>> for SecondMomentOfArea<T> {
-
     type Output = CubicMeter<<T as Div>::Output>;
 
     fn div(self, rhs: Meter<T>) -> Self::Output {
@@ -27,7 +26,6 @@ impl<T: Div> Div<Meter<T>> for SecondMomentOfArea<T> {
 }
 
 impl<T: Div> Div<SquareMeter<T>> for SecondMomentOfArea<T> {
-
     type Output = SquareMeter<<T as Div>::Output>;
 
     fn div(self, rhs: SquareMeter<T>) -> Self::Output {

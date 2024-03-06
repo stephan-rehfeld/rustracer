@@ -1,9 +1,9 @@
 use crate::color::Color;
 use crate::math::{Point, Point2};
 
-pub mod farbfeld;
-pub mod converter;
 pub mod analyzer;
+pub mod converter;
+pub mod farbfeld;
 
 pub trait Image {
     type ColorType: Color;
@@ -13,7 +13,7 @@ pub trait Image {
     fn get(&self, p: Self::PointType) -> Self::ColorType;
 }
 
-pub trait WritableImage : Image {
+pub trait WritableImage: Image {
     fn get_mut(&mut self, p: Self::PointType) -> &mut Self::ColorType;
 }
 
@@ -24,8 +24,11 @@ pub struct ImageBuffer<C: Color> {
 
 impl<C: Color> ImageBuffer<C> {
     pub fn new(size: <Point2<usize> as Point>::VectorType, color: C) -> ImageBuffer<C> {
-        ImageBuffer{ pixel_data: vec![color; size.x * size.y], size }
-    }    
+        ImageBuffer {
+            pixel_data: vec![color; size.x * size.y],
+            size,
+        }
+    }
 }
 
 impl<C: Color> Image for ImageBuffer<C> {
@@ -37,7 +40,7 @@ impl<C: Color> Image for ImageBuffer<C> {
     }
 
     fn get(&self, p: Self::PointType) -> Self::ColorType {
-        self.pixel_data[ p.y * self.size.x + p.x ]
+        self.pixel_data[p.y * self.size.x + p.x]
     }
 }
 
