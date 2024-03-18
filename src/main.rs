@@ -1,4 +1,5 @@
 use rustracer::camera::Perspective;
+use rustracer::classic_raytracer::ClassicRaytracer;
 use rustracer::color::{RGB, RGBA};
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
@@ -9,7 +10,7 @@ use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
 use rustracer::traits::ToRadians;
 use rustracer::units::angle::Degrees;
 use rustracer::units::length::Meter;
-use rustracer::{ClassicRaytracer, Raytracer, RenderableGeometry};
+use rustracer::{Raytracer, RenderableGeometry};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
