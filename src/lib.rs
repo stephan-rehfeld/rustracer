@@ -204,6 +204,7 @@ mod tests {
 
     use color::RGB;
     use math::Normal3;
+    use traits::number::MultiplyStable;
 
     use crate::units::length::Meter;
 
@@ -235,13 +236,14 @@ mod tests {
         color: RGB<<T as Length>::ValueType>,
     }
 
-    impl<T: Length> Material<T> for MockMaterial<T> {
+    impl<T: Length> Material<T> for MockMaterial<T>  where <T as Length>::ValueType: MultiplyStable {
         type ColorType = RGB<<T as Length>::ValueType>;
 
         fn color_for(
             &self,
             _p: Point3<T>,
             _n: Normal3<<T as Length>::ValueType>,
+            _d: Vector3<T>,
             _lights: &Vec<Box<dyn Light<T, RGB<<T as Length>::ValueType>>>>,
         ) -> RGB<<T as Length>::ValueType> {
             self.color
