@@ -114,6 +114,7 @@ mod tests {
     use traits::number::MultiplyStable;
 
     use crate::units::length::Meter;
+    use crate::light::Light;
 
     #[derive(Debug, PartialEq, Clone, Copy)]
     struct MockGeometry<T>
