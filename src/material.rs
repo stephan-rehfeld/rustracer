@@ -14,7 +14,7 @@ pub trait Material<T: Length> {
         p: Point3<T>,
         n: Normal3<<T as Length>::ValueType>,
         d: Vector3<T>,
-        lights: &Vec<Box<dyn Light<T, Self::ColorType>>>,
+        lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
     ) -> Self::ColorType;
 }
 
@@ -36,7 +36,7 @@ impl<T: Length, C: Color> Material<T> for SingleColorMaterial<C> {
         _p: Point3<T>,
         _n: Normal3<<T as Length>::ValueType>,
         _d: Vector3<T>,
-        _lights: &Vec<Box<dyn Light<T, C>>>,
+        _lights: Vec<&Box<dyn Light<T, C>>>,
     ) -> C {
         self.color
     }
@@ -63,12 +63,10 @@ where
         p: Point3<T>,
         n: Normal3<<T as Length>::ValueType>,
         _d: Vector3<T>,
-        lights: &Vec<Box<dyn Light<T, C>>>,
+        lights: Vec<&Box<dyn Light<T, C>>>,
     ) -> C {
         lights
             .iter()
-            .filter(|light| light.illuminates(p, n))
-            .filter(|light| Normal3::dot(light.direction_from(p), n) > Zero::zero())
             .map(|light| self.color * light.get_color() * Normal3::dot(light.direction_from(p), n))
             .sum()
     }
@@ -103,12 +101,10 @@ where
         p: Point3<T>,
         n: Normal3<<T as Length>::ValueType>,
         d: Vector3<T>,
-        lights: &Vec<Box<dyn Light<T, C>>>,
+        lights: Vec<&Box<dyn Light<T, C>>>,
     ) -> C {
         lights
             .iter()
-            .filter(|light| light.illuminates(p, n))
-            .filter(|light| Normal3::dot(light.direction_from(p), n) > Zero::zero())
             .map(|light| {
                 let diffuse_term =
                     self.diffuse * light.get_color() * Normal3::dot(light.direction_from(p), n);

@@ -9,12 +9,12 @@ use math::{Normal, NormalizableVector, Point, Point3, Vector, Vector3};
 use crate::units::length::Length;
 
 pub mod camera;
-pub mod classic_raytracer;
 pub mod color;
 pub mod image;
 pub mod light;
 pub mod material;
 pub mod math;
+pub mod ray_casting;
 pub mod traits;
 pub mod units;
 
@@ -113,8 +113,8 @@ mod tests {
     use math::Normal3;
     use traits::number::MultiplyStable;
 
-    use crate::units::length::Meter;
     use crate::light::Light;
+    use crate::units::length::Meter;
 
     #[derive(Debug, PartialEq, Clone, Copy)]
     struct MockGeometry<T>

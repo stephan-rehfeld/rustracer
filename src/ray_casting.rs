@@ -11,7 +11,7 @@ use crate::traits::{One, Zero};
 use crate::units::length::Length;
 use crate::{Raytracer, Renderable};
 
-pub struct ClassicRaytracer<T: Length, C>
+pub struct RayCaster<T: Length, C>
 where
     C: Color<ChannelType = <T as Length>::ValueType>,
 {
@@ -19,9 +19,10 @@ where
     scene: Vec<Box<<Self as Raytracer>::RenderableTraitType>>,
     lights: Vec<Box<dyn Light<T, C>>>,
     bg_color: C,
+    shadow_tolerance: <T as Length>::ValueType,
 }
 
-impl<T: Length, C> ClassicRaytracer<T, C>
+impl<T: Length, C> RayCaster<T, C>
 where
     C: Color<ChannelType = <T as Length>::ValueType>,
 {
@@ -30,17 +31,19 @@ where
         scene: Vec<Box<<Self as Raytracer>::RenderableTraitType>>,
         lights: Vec<Box<dyn Light<T, C>>>,
         bg_color: C,
-    ) -> ClassicRaytracer<T, C> {
-        ClassicRaytracer {
+        shadow_tolerance: <T as Length>::ValueType,
+    ) -> RayCaster<T, C> {
+        RayCaster {
             camera,
             scene,
             lights,
             bg_color,
+            shadow_tolerance,
         }
     }
 }
 
-impl<T: Length, C> Image for ClassicRaytracer<T, C>
+impl<T: Length, C> Image for RayCaster<T, C>
 where
     C: Color<ChannelType = <T as Length>::ValueType>,
 {
@@ -72,12 +75,30 @@ where
         } else {
             let (t, n, material) = hits[0];
             let p = ray.at(t);
-            material.color_for(p, n, ray.direction, &self.lights)
+            let lights: Vec<&Box<dyn Light<T, C>>> = self
+                .lights
+                .iter()
+                .filter(|light| {
+                    light.illuminates(p, n, &|shadow_ray| {
+                        let mut hits: Vec<<Self as Raytracer>::ScalarType> = self
+                            .scene
+                            .iter()
+                            .flat_map(|g| g.intersect(shadow_ray))
+                            .map(|(t, _, _)| t)
+                            .filter(|t| *t > self.shadow_tolerance)
+                            .collect();
+                        hits.sort_by(|t1, t2| t1.partial_cmp(t2).unwrap());
+                        hits.first().copied()
+                    })
+                })
+                .collect();
+
+            material.color_for(p, n, ray.direction, lights)
         }
     }
 }
 
-impl<T, C> Raytracer for ClassicRaytracer<T, C>
+impl<T, C> Raytracer for RayCaster<T, C>
 where
     T: Length,
     C: Color<ChannelType = <T as Div>::Output>,

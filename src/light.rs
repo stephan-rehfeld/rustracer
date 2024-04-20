@@ -1,8 +1,10 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Div, Mul, Neg};
 
-use crate::math::{Normal3, NormalizableVector, Point3};
-use crate::traits::{Cos, Sqrt, Zero};
+use crate::math::geometry::ParametricLine;
+use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
+use crate::traits::{Cos, MultiplyStable, Sqrt, Zero};
 use crate::units::angle::Radians;
+use crate::units::length::Length;
 
 pub trait Light<T, C>
 where
@@ -10,7 +12,12 @@ where
 {
     fn direction_from(&self, p: Point3<T>) -> Normal3<<T as Div>::Output>;
     fn get_color(&self) -> C;
-    fn illuminates(&self, p: Point3<T>, n: Normal3<<T as Div>::Output>) -> bool;
+    fn illuminates(
+        &self,
+        p: Point3<T>,
+        n: Normal3<<T as Div>::Output>,
+        shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+    ) -> bool;
 }
 
 pub struct DirectionalLight<T, C>
@@ -33,13 +40,9 @@ where
 impl<T, C> Light<T, C> for DirectionalLight<T, C>
 where
     C: Copy,
-    T: Div + Mul,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Neg<Output = <T as Div>::Output>
-        + Copy
-        + PartialOrd
-        + Zero,
+    T: Length,
+    <T as Length>::ValueType:
+        MultiplyStable + Mul<T, Output = T> + Neg<Output = <T as Length>::ValueType>,
 {
     fn direction_from(&self, _p: Point3<T>) -> Normal3<<T as Div>::Output> {
         -self.direction
@@ -49,8 +52,14 @@ where
         self.color
     }
 
-    fn illuminates(&self, _p: Point3<T>, n: Normal3<<T as Div>::Output>) -> bool {
+    fn illuminates(
+        &self,
+        p: Point3<T>,
+        n: Normal3<<T as Div>::Output>,
+        shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+    ) -> bool {
         Normal3::dot(self.direction, n) > Zero::zero()
+            && shadow_check(ParametricLine::new(p, self.direction_from(p) * T::one())).is_none()
     }
 }
 
@@ -68,13 +77,10 @@ impl<T, C> PointLight<T, C> {
 impl<T, C> Light<T, C> for PointLight<T, C>
 where
     C: Copy,
-    T: Div + Mul + Sub<Output = T> + Copy,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Copy
-        + PartialOrd
-        + Zero,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Sqrt<Output = T> + Zero,
+    T: Length,
+    <T as Length>::ValueType:
+        MultiplyStable + Mul<T, Output = T> + Neg<Output = <T as Length>::ValueType>,
+    <T as Length>::AreaType: Sqrt<Output = T>,
 {
     fn direction_from(&self, p: Point3<T>) -> Normal3<<T as Div>::Output> {
         (self.position - p).normalized()
@@ -84,8 +90,21 @@ where
         self.color
     }
 
-    fn illuminates(&self, p: Point3<T>, n: Normal3<<T as Div>::Output>) -> bool {
-        Normal3::dot(self.direction_from(p), n) > Zero::zero()
+    fn illuminates(
+        &self,
+        p: Point3<T>,
+        n: Normal3<<T as Div>::Output>,
+        shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+    ) -> bool {
+        if Normal3::dot(self.direction_from(p), n) > Zero::zero() {
+            let ot = shadow_check(ParametricLine::new(p, self.direction_from(p) * T::one()));
+            match ot {
+                Some(t) => t > ((self.position - p).magnitude() / T::one()),
+                None => true,
+            }
+        } else {
+            false
+        }
     }
 }
 
@@ -121,15 +140,12 @@ where
 impl<T, C> Light<T, C> for SpotLight<T, C>
 where
     C: Copy,
-    T: Div + Mul + Sub<Output = T> + Copy,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Cos<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Neg<Output = <T as Div>::Output>
-        + Zero
-        + PartialOrd
-        + Copy,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Sqrt<Output = T> + Zero,
+    T: Length,
+    <T as Length>::ValueType: Cos<Output = <T as Length>::ValueType>
+        + MultiplyStable
+        + Mul<T, Output = T>
+        + Neg<Output = <T as Length>::ValueType>,
+    <T as Length>::AreaType: Sqrt<Output = T>,
 {
     fn direction_from(&self, p: Point3<T>) -> Normal3<<T as Div>::Output> {
         (self.position - p).normalized()
@@ -139,11 +155,22 @@ where
         self.color
     }
 
-    fn illuminates(&self, p: Point3<T>, n: Normal3<<T as Div>::Output>) -> bool {
+    fn illuminates(
+        &self,
+        p: Point3<T>,
+        n: Normal3<<T as Div>::Output>,
+        shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+    ) -> bool {
         let direction = self.direction_from(p);
 
-        if Normal3::dot(direction, n) > Zero::zero() {
-            Normal3::dot(-direction, self.direction) > self.angle.cos()
+        if Normal3::dot(direction, n) > Zero::zero()
+            && Normal3::dot(-direction, self.direction) > self.angle.cos()
+        {
+            let ot = shadow_check(ParametricLine::new(p, self.direction_from(p) * T::one()));
+            match ot {
+                Some(t) => t > ((self.position - p).magnitude() / T::one()),
+                None => true,
+            }
         } else {
             false
         }

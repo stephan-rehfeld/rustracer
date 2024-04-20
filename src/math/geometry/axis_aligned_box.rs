@@ -101,7 +101,7 @@ where
         if t.len() > 0 {
             let p = self.at(t[0].0);
 
-            if p.x > aab.a.x && p.x < aab.b.x && p.y > aab.a.z && p.y < aab.b.y {
+            if p.x > aab.a.x && p.x < aab.b.x && p.y > aab.a.y && p.y < aab.b.y {
                 results.push(t[0]);
             }
         }
@@ -111,7 +111,7 @@ where
         if t.len() > 0 {
             let p = self.at(t[0].0);
 
-            if p.x > aab.a.x && p.x < aab.b.x && p.y > aab.a.z && p.y < aab.b.y {
+            if p.x > aab.a.x && p.x < aab.b.x && p.y > aab.a.y && p.y < aab.b.y {
                 results.push(t[0]);
             }
         }

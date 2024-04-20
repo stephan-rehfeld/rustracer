@@ -1,12 +1,12 @@
 use rustracer::camera::Perspective;
-use rustracer::classic_raytracer::ClassicRaytracer;
 use rustracer::color::{RGB, RGBA};
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
-use rustracer::light::{Light, PointLight};
+use rustracer::light::{Light, PointLight, SpotLight};
 use rustracer::material::{LambertMaterial, PhongMaterial};
 use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle};
 use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
+use rustracer::ray_casting::RayCaster;
 use rustracer::traits::ToRadians;
 use rustracer::units::angle::Degrees;
 use rustracer::units::length::Meter;
@@ -28,8 +28,8 @@ fn main() {
     );
 
     let aab = AxisAlignedBox::new(
-        Point3::new(Meter::new(-0.5), Meter::new(-0.5), Meter::new(-0.5)),
-        Point3::new(Meter::new(0.5), Meter::new(0.5), Meter::new(0.5)),
+        Point3::new(Meter::new(-0.5), Meter::new(0.5), Meter::new(-0.5)),
+        Point3::new(Meter::new(0.5), Meter::new(1.5), Meter::new(0.5)),
     );
 
     let n = Normal3::new(0.0, 0.0, 1.0);
@@ -60,9 +60,7 @@ fn main() {
         LambertMaterial::new(RGB::new(1.0, 1.0, 0.0)),
     ));
 
-    let geometries: Vec<
-        Box<<ClassicRaytracer<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>,
-    > = vec![
+    let geometries: Vec<Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>> = vec![
         plane_geometry,
         aab_geometry,
         sphere_geometry,
@@ -70,11 +68,19 @@ fn main() {
     ];
 
     let point_light = Box::new(PointLight::new(
-        RGB::new(1.0, 1.0, 1.0),
-        Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),
+        RGB::new(0.8, 0.8, 0.8),
+        //Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),
+        Point3::new(Meter::new(0.0), Meter::new(5.0), Meter::new(0.0)),
     ));
 
-    let lights: Vec<Box<dyn Light<Meter<f64>, RGB<f64>>>> = vec![point_light];
+    let spot_light = Box::new(SpotLight::new(
+        RGB::new(0.5, 0.5, 0.5),
+        Point3::new(Meter::new(0.0), Meter::new(4.0), Meter::new(0.0)),
+        Normal3::new(0.0, -1.0, 0.0),
+        Degrees::new(30.0).to_radians(),
+    ));
+
+    let lights: Vec<Box<dyn Light<Meter<f64>, RGB<f64>>>> = vec![point_light, spot_light];
 
     let cam = Box::new(Perspective::new(
         Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),
@@ -84,7 +90,7 @@ fn main() {
         size,
     ));
 
-    let raytracer = ClassicRaytracer::new(cam, geometries, lights, RGB::new(0.0, 0.0, 0.0));
+    let raytracer = RayCaster::new(cam, geometries, lights, RGB::new(0.0, 0.0, 0.0), 0.0001);
 
     let image_data = raytracer
         .clamp_color(RGB::new(0.0, 0.0, 0.0), RGB::new(1.0, 1.0, 1.0))
