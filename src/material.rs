@@ -15,6 +15,7 @@ pub trait Material<T: Length> {
         n: Normal3<<T as Length>::ValueType>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
+        ambient_light: Self::ColorType,
     ) -> Self::ColorType;
 }
 
@@ -37,6 +38,7 @@ impl<T: Length, C: Color> Material<T> for SingleColorMaterial<C> {
         _n: Normal3<<T as Length>::ValueType>,
         _d: Vector3<T>,
         _lights: Vec<&Box<dyn Light<T, C>>>,
+        _ambient_light: C,
     ) -> C {
         self.color
     }
@@ -64,8 +66,9 @@ where
         n: Normal3<<T as Length>::ValueType>,
         _d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, C>>>,
+        ambient_light: C,
     ) -> C {
-        lights
+        self.color * ambient_light + lights
             .iter()
             .map(|light| self.color * light.get_color() * Normal3::dot(light.direction_from(p), n))
             .sum()
@@ -102,10 +105,12 @@ where
         n: Normal3<<T as Length>::ValueType>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, C>>>,
+        ambient_light: C,
     ) -> C {
         lights
             .iter()
             .map(|light| {
+                let ambient_term = self.diffuse * ambient_light;
                 let diffuse_term =
                     self.diffuse * light.get_color() * Normal3::dot(light.direction_from(p), n);
                 let reflected_light = light
@@ -118,7 +123,7 @@ where
                     * Normal3::dot(reflected_light, d.normalized())
                         .max(Zero::zero())
                         .powf(self.exponent);
-                diffuse_term + specular_term
+                ambient_term + diffuse_term + specular_term
             })
             .sum()
     }

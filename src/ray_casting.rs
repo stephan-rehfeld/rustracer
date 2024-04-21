@@ -18,6 +18,7 @@ where
     camera: Box<dyn RaytracingCamera<T>>,
     scene: Vec<Box<<Self as Raytracer>::RenderableTraitType>>,
     lights: Vec<Box<dyn Light<T, C>>>,
+    ambient_light: C,
     bg_color: C,
     shadow_tolerance: <T as Length>::ValueType,
 }
@@ -30,6 +31,7 @@ where
         camera: Box<dyn RaytracingCamera<T>>,
         scene: Vec<Box<<Self as Raytracer>::RenderableTraitType>>,
         lights: Vec<Box<dyn Light<T, C>>>,
+        ambient_light: C,
         bg_color: C,
         shadow_tolerance: <T as Length>::ValueType,
     ) -> RayCaster<T, C> {
@@ -37,6 +39,7 @@ where
             camera,
             scene,
             lights,
+            ambient_light,
             bg_color,
             shadow_tolerance,
         }
@@ -93,7 +96,7 @@ where
                 })
                 .collect();
 
-            material.color_for(p, n, ray.direction, lights)
+            material.color_for(p, n, ray.direction, lights, self.ambient_light)
         }
     }
 }
