@@ -4,6 +4,7 @@ use crate::math::{Point, Point2};
 pub mod analyzer;
 pub mod converter;
 pub mod farbfeld;
+pub mod repeater;
 
 pub trait Image {
     type ColorType: Color;

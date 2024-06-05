@@ -90,7 +90,14 @@ fn main() {
         size,
     ));
 
-    let raytracer = RayCaster::new(cam, geometries, lights, RGB::new(0.1, 0.1, 0.1), RGB::new(0.0, 0.0, 0.0), 0.0001);
+    let raytracer = RayCaster::new(
+        cam,
+        geometries,
+        lights,
+        RGB::new(0.1, 0.1, 0.1),
+        RGB::new(0.0, 0.0, 0.0),
+        0.0001,
+    );
 
     let image_data = raytracer
         .clamp_color(RGB::new(0.0, 0.0, 0.0), RGB::new(1.0, 1.0, 1.0))

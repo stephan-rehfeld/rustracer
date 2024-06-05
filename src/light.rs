@@ -183,6 +183,7 @@ mod tests {
 
     use crate::color::RGB;
     use crate::math::Vector3;
+    use crate::units::length::Meter;
 
     macro_rules! new_directional_light {
         ($type: ty, $name: ident) => {
@@ -209,11 +210,23 @@ mod tests {
                 let color = RGB::new(0.0, 0.5, 1.0);
                 let direction = Vector3::<$type>::new(1.0, -2.0, 3.0).normalized();
 
-                let light = DirectionalLight::<$type, RGB<$type>>::new(color, direction);
+                let light = DirectionalLight::<Meter<$type>, RGB<$type>>::new(color, direction);
 
-                let p1 = Point3::new(0.0, 0.0, 0.0);
-                let p2 = Point3::new(1.0, -1.0, 2.0);
-                let p3 = Point3::new(21341.0, 11234.0, 20989.0);
+                let p1 = Point3::new(
+                    Meter::<$type>::new(0.0),
+                    Meter::<$type>::new(0.0),
+                    Meter::<$type>::new(0.0),
+                );
+                let p2 = Point3::new(
+                    Meter::<$type>::new(1.0),
+                    Meter::<$type>::new(-1.0),
+                    Meter::<$type>::new(2.0),
+                );
+                let p3 = Point3::new(
+                    Meter::<$type>::new(21341.0),
+                    Meter::<$type>::new(11234.0),
+                    Meter::<$type>::new(20989.0),
+                );
 
                 assert_eq!(-direction, light.direction_from(p1));
                 assert_eq!(-direction, light.direction_from(p2));
@@ -232,7 +245,7 @@ mod tests {
                 let color = RGB::new(0.0, 0.5, 1.0);
                 let direction = Vector3::<$type>::new(1.0, -2.0, 3.0).normalized();
 
-                let light = DirectionalLight::<$type, RGB<$type>>::new(color, direction);
+                let light = DirectionalLight::<Meter<$type>, RGB<$type>>::new(color, direction);
 
                 assert_eq!(color, light.get_color());
             }
@@ -265,35 +278,63 @@ mod tests {
             #[test]
             fn $name() {
                 let color = RGB::new(0.0, 0.5, 1.0);
-                let position = Point3::new(0.0, 1.0, 0.0);
+                let position = Point3::new(
+                    Meter::<$type>::new(0.0),
+                    Meter::<$type>::new(1.0),
+                    Meter::<$type>::new(0.0),
+                );
 
-                let light = PointLight::<$type, RGB<$type>>::new(color, position);
+                let light = PointLight::<Meter<$type>, RGB<$type>>::new(color, position);
 
                 assert_eq!(
                     Normal3::new(0.0, 1.0, 0.0),
-                    light.direction_from(Point3::new(0.0, -1.0, 0.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(0.0),
+                        Meter::<$type>::new(-1.0),
+                        Meter::<$type>::new(0.0)
+                    ))
                 );
                 assert_eq!(
                     Normal3::new(0.0, -1.0, 0.0),
-                    light.direction_from(Point3::new(0.0, 10.0, 0.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(0.0),
+                        Meter::<$type>::new(10.0),
+                        Meter::<$type>::new(0.0)
+                    ))
                 );
 
                 assert_eq!(
                     Normal3::new(-1.0, 0.0, 0.0),
-                    light.direction_from(Point3::new(123.0, 1.0, 0.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(123.0),
+                        Meter::<$type>::new(1.0),
+                        Meter::<$type>::new(0.0)
+                    ))
                 );
                 assert_eq!(
                     Normal3::new(1.0, 0.0, 0.0),
-                    light.direction_from(Point3::new(-5234.0, 1.0, 0.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(-5234.0),
+                        Meter::<$type>::new(1.0),
+                        Meter::<$type>::new(0.0)
+                    ))
                 );
 
                 assert_eq!(
                     Normal3::new(0.0, 0.0, -1.0),
-                    light.direction_from(Point3::new(0.0, 1.0, 53737.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(0.0),
+                        Meter::<$type>::new(1.0),
+                        Meter::<$type>::new(53737.0)
+                    ))
                 );
                 assert_eq!(
                     Normal3::new(0.0, 0.0, 1.0),
-                    light.direction_from(Point3::new(0.0, 1.0, -236.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(0.0),
+                        Meter::<$type>::new(1.0),
+                        Meter::<$type>::new(-236.0)
+                    ))
                 );
             }
         };
@@ -307,9 +348,13 @@ mod tests {
             #[test]
             fn $name() {
                 let color = RGB::new(0.0, 0.5, 1.0);
-                let position = Point3::new(0.0, 1.0, 0.0);
+                let position = Point3::new(
+                    Meter::<$type>::new(0.0),
+                    Meter::<$type>::new(1.0),
+                    Meter::<$type>::new(0.0),
+                );
 
-                let light = PointLight::<$type, RGB<$type>>::new(color, position);
+                let light = PointLight::<Meter<$type>, RGB<$type>>::new(color, position);
 
                 assert_eq!(color, light.get_color());
             }
@@ -324,11 +369,21 @@ mod tests {
             #[test]
             fn $name() {
                 let color = RGB::new(0.0, 0.5, 1.0);
-                let position = Point3::new(1.0, -2.0, 3.0);
-                let direction = Vector3::<$type>::new(1.0, -2.0, 3.0).normalized();
+                let position = Point3::new(
+                    Meter::<$type>::new(1.0),
+                    Meter::<$type>::new(-2.0),
+                    Meter::<$type>::new(3.0),
+                );
+                let direction = Vector3::<Meter<$type>>::new(
+                    Meter::<$type>::new(1.0),
+                    -Meter::<$type>::new(2.0),
+                    Meter::<$type>::new(3.0),
+                )
+                .normalized();
                 let angle = Radians::new(1.23);
 
-                let light = SpotLight::<$type, RGB<$type>>::new(color, position, direction, angle);
+                let light =
+                    SpotLight::<Meter<$type>, RGB<$type>>::new(color, position, direction, angle);
 
                 assert_eq!(color, light.color);
                 assert_eq!(position, light.position);
@@ -346,37 +401,71 @@ mod tests {
             #[test]
             fn $name() {
                 let color = RGB::new(0.0, 0.5, 1.0);
-                let position = Point3::new(0.0, 1.0, 0.0);
-                let direction = Vector3::<$type>::new(1.0, -2.0, 3.0).normalized();
+                let position = Point3::new(
+                    Meter::<$type>::new(0.0),
+                    Meter::<$type>::new(1.0),
+                    Meter::<$type>::new(0.0),
+                );
+                let direction = Vector3::<Meter<$type>>::new(
+                    Meter::<$type>::new(1.0),
+                    Meter::<$type>::new(-2.0),
+                    Meter::<$type>::new(3.0),
+                )
+                .normalized();
                 let angle = Radians::new(1.23);
 
-                let light = SpotLight::<$type, RGB<$type>>::new(color, position, direction, angle);
+                let light =
+                    SpotLight::<Meter<$type>, RGB<$type>>::new(color, position, direction, angle);
 
                 assert_eq!(
                     Normal3::new(0.0, 1.0, 0.0),
-                    light.direction_from(Point3::new(0.0, -1.0, 0.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(0.0),
+                        Meter::<$type>::new(-1.0),
+                        Meter::<$type>::new(0.0)
+                    ))
                 );
                 assert_eq!(
                     Normal3::new(0.0, -1.0, 0.0),
-                    light.direction_from(Point3::new(0.0, 10.0, 0.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(0.0),
+                        Meter::<$type>::new(10.0),
+                        Meter::<$type>::new(0.0)
+                    ))
                 );
 
                 assert_eq!(
                     Normal3::new(-1.0, 0.0, 0.0),
-                    light.direction_from(Point3::new(123.0, 1.0, 0.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(123.0),
+                        Meter::<$type>::new(1.0),
+                        Meter::<$type>::new(0.0)
+                    ))
                 );
                 assert_eq!(
                     Normal3::new(1.0, 0.0, 0.0),
-                    light.direction_from(Point3::new(-5234.0, 1.0, 0.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(-5234.0),
+                        Meter::<$type>::new(1.0),
+                        Meter::<$type>::new(0.0)
+                    ))
                 );
 
                 assert_eq!(
                     Normal3::new(0.0, 0.0, -1.0),
-                    light.direction_from(Point3::new(0.0, 1.0, 53737.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(0.0),
+                        Meter::<$type>::new(1.0),
+                        Meter::<$type>::new(53737.0)
+                    ))
                 );
                 assert_eq!(
                     Normal3::new(0.0, 0.0, 1.0),
-                    light.direction_from(Point3::new(0.0, 1.0, -236.0))
+                    light.direction_from(Point3::new(
+                        Meter::<$type>::new(0.0),
+                        Meter::<$type>::new(1.0),
+                        Meter::<$type>::new(-236.0)
+                    ))
                 );
             }
         };
@@ -390,11 +479,21 @@ mod tests {
             #[test]
             fn $name() {
                 let color = RGB::new(0.0, 0.5, 1.0);
-                let position = Point3::new(0.0, 1.0, 0.0);
-                let direction = Vector3::<$type>::new(1.0, -2.0, 3.0).normalized();
+                let position = Point3::new(
+                    Meter::<$type>::new(0.0),
+                    Meter::<$type>::new(1.0),
+                    Meter::<$type>::new(0.0),
+                );
+                let direction = Vector3::<Meter<$type>>::new(
+                    Meter::<$type>::new(1.0),
+                    Meter::<$type>::new(-2.0),
+                    Meter::<$type>::new(3.0),
+                )
+                .normalized();
                 let angle = Radians::new(1.23);
 
-                let light = SpotLight::<$type, RGB<$type>>::new(color, position, direction, angle);
+                let light =
+                    SpotLight::<Meter<$type>, RGB<$type>>::new(color, position, direction, angle);
 
                 assert_eq!(color, light.get_color());
             }

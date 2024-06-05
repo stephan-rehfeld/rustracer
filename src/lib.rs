@@ -155,7 +155,8 @@ mod tests {
             _p: Point3<T>,
             _n: Normal3<<T as Length>::ValueType>,
             _d: Vector3<T>,
-            _lights: &Vec<Box<dyn Light<T, RGB<<T as Length>::ValueType>>>>,
+            _lights: Vec<&Box<dyn Light<T, RGB<<T as Length>::ValueType>>>>,
+            _ambient_light: RGB<<T as Length>::ValueType>,
         ) -> RGB<<T as Length>::ValueType> {
             self.color
         }

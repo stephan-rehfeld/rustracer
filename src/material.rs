@@ -68,10 +68,13 @@ where
         lights: Vec<&Box<dyn Light<T, C>>>,
         ambient_light: C,
     ) -> C {
-        self.color * ambient_light + lights
-            .iter()
-            .map(|light| self.color * light.get_color() * Normal3::dot(light.direction_from(p), n))
-            .sum()
+        self.color * ambient_light
+            + lights
+                .iter()
+                .map(|light| {
+                    self.color * light.get_color() * Normal3::dot(light.direction_from(p), n)
+                })
+                .sum()
     }
 }
 
