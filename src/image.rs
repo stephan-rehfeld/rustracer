@@ -1,5 +1,5 @@
 use crate::color::Color;
-use crate::math::{Point, Point2};
+use crate::math::{Point, Point2, Vector};
 
 pub mod analyzer;
 pub mod converter;
@@ -48,6 +48,33 @@ impl<C: Color> Image for ImageBuffer<C> {
 impl<C: Color> WritableImage for ImageBuffer<C> {
     fn get_mut(&mut self, p: Self::PointType) -> &mut Self::ColorType {
         self.pixel_data.get_mut(p.y * self.size.x + p.x).unwrap()
+    }
+}
+
+pub struct SingleColorImage<C: Color, S: Vector> {
+    color: C,
+    size: S,
+}
+
+impl<C: Color, S: Vector> SingleColorImage<C, S> {
+    pub fn new(color: C, size: S) -> SingleColorImage<C, S> {
+        SingleColorImage { color, size }
+    }
+}
+
+impl<C: Color, S: Vector + Copy + Clone> Image for SingleColorImage<C, S>
+    where
+        <S as Vector>::PointType: Point<VectorType=S>,
+{
+    type ColorType = C;
+    type PointType = <S as Vector>::PointType;
+
+    fn size(&self) -> S {
+        self.size
+    }
+
+    fn get(&self, _p: <S as Vector>::PointType) -> C {
+        self.color
     }
 }
 

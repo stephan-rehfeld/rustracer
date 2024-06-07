@@ -1,5 +1,6 @@
 use rustracer::camera::Perspective;
 use rustracer::color::{RGB, RGBA};
+use rustracer::image::SingleColorImage;
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
 use rustracer::light::{Light, PointLight, SpotLight};
@@ -45,19 +46,19 @@ fn main() {
 
     let plane_geometry = Box::new(RenderableGeometry::new(
         plane,
-        LambertMaterial::new(RGB::new(1.0, 0.0, 0.0)),
+        LambertMaterial::new(SingleColorImage::new(RGB::new(1.0, 0.0, 0.0), Vector2::new(1.0, 1.0))),
     ));
     let sphere_geometry = Box::new(RenderableGeometry::new(
         sphere,
-        PhongMaterial::new(RGB::new(0.0, 1.0, 0.0), RGB::new(1.0, 1.0, 1.0), 64.0),
+        PhongMaterial::new(SingleColorImage::new(RGB::new(0.0, 1.0, 0.0), Vector2::new(1.0, 1.0)), SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)), 64.0),
     ));
     let aab_geometry = Box::new(RenderableGeometry::new(
         aab,
-        LambertMaterial::new(RGB::new(0.0, 0.0, 1.0)),
+        LambertMaterial::new(SingleColorImage::new(RGB::new(0.0, 0.0, 1.0), Vector2::new(1.0, 1.0))),
     ));
     let triangle_geometry = Box::new(RenderableGeometry::new(
         triangle,
-        LambertMaterial::new(RGB::new(1.0, 1.0, 0.0)),
+        LambertMaterial::new(SingleColorImage::new(RGB::new(1.0, 1.0, 0.0), Vector2::new(1.0, 1.0))),
     ));
 
     let geometries: Vec<Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>> = vec![
