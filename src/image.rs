@@ -63,8 +63,8 @@ impl<C: Color, S: Vector> SingleColorImage<C, S> {
 }
 
 impl<C: Color, S: Vector + Copy + Clone> Image for SingleColorImage<C, S>
-    where
-        <S as Vector>::PointType: Point<VectorType=S>,
+where
+    <S as Vector>::PointType: Point<VectorType = S>,
 {
     type ColorType = C;
     type PointType = <S as Vector>::PointType;

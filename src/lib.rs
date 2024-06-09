@@ -110,7 +110,7 @@ mod tests {
     use std::fmt::Debug;
 
     use color::RGB;
-    use math::Normal3;
+    use math::{Normal3, Point2};
     use traits::number::MultiplyStable;
 
     use crate::light::Light;
@@ -154,6 +154,7 @@ mod tests {
             &self,
             _p: Point3<T>,
             _n: Normal3<<T as Length>::ValueType>,
+            _tex: Point2<<T as Length>::ValueType>,
             _d: Vector3<T>,
             _lights: Vec<&Box<dyn Light<T, RGB<<T as Length>::ValueType>>>>,
             _ambient_light: RGB<<T as Length>::ValueType>,

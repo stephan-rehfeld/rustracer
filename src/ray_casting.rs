@@ -96,7 +96,8 @@ where
                 })
                 .collect();
 
-            material.color_for(p, n, ray.direction, lights, self.ambient_light)
+            let tex = Point2::new(Zero::zero(), Zero::zero());
+            material.color_for(p, n, tex, ray.direction, lights, self.ambient_light)
         }
     }
 }

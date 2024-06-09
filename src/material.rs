@@ -14,6 +14,7 @@ pub trait Material<T: Length> {
         &self,
         p: Point3<T>,
         n: Normal3<<T as Length>::ValueType>,
+        tex: Point2<<T as Length>::ValueType>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         ambient_light: Self::ColorType,
@@ -30,7 +31,8 @@ impl<I> UnshadedMaterial<I> {
     }
 }
 
-impl<T: Length, I: Image<PointType=Point2<<T as Length>::ValueType>>> Material<T> for UnshadedMaterial<I>
+impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
+    for UnshadedMaterial<I>
 {
     type ColorType = <I as Image>::ColorType;
 
@@ -38,11 +40,12 @@ impl<T: Length, I: Image<PointType=Point2<<T as Length>::ValueType>>> Material<T
         &self,
         _p: Point3<T>,
         _n: Normal3<<T as Length>::ValueType>,
+        tex: Point2<<T as Length>::ValueType>,
         _d: Vector3<T>,
         _lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         _ambient_light: Self::ColorType,
     ) -> Self::ColorType {
-        self.texture.get(Point2::new(Zero::zero(), Zero::zero()))
+        self.texture.get(tex)
     }
 }
 
@@ -56,7 +59,9 @@ impl<I> LambertMaterial<I> {
     }
 }
 
-impl<T: Length, I: Image<PointType=Point2<<T as Length>::ValueType>>> Material<T> for LambertMaterial<I> where
+impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
+    for LambertMaterial<I>
+where
     <I as Image>::ColorType: Color<ChannelType = <T as Length>::ValueType>,
 {
     type ColorType = <I as Image>::ColorType;
@@ -65,16 +70,18 @@ impl<T: Length, I: Image<PointType=Point2<<T as Length>::ValueType>>> Material<T
         &self,
         p: Point3<T>,
         n: Normal3<<T as Length>::ValueType>,
+        tex: Point2<<T as Length>::ValueType>,
         _d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         ambient_light: Self::ColorType,
     ) -> Self::ColorType {
-        let tex = Point2::new(Zero::zero(), Zero::zero());
         self.texture.get(tex) * ambient_light
             + lights
                 .iter()
                 .map(|light| {
-                    self.texture.get(tex) * light.get_color() * Normal3::dot(light.direction_from(p), n)
+                    self.texture.get(tex)
+                        * light.get_color()
+                        * Normal3::dot(light.direction_from(p), n)
                 })
                 .sum()
     }
@@ -87,7 +94,11 @@ pub struct PhongMaterial<I: Image> {
 }
 
 impl<I: Image> PhongMaterial<I> {
-    pub fn new(diffuse_texture: I, specular_texture: I, exponent: <<I as Image>::ColorType as Color>::ChannelType) -> PhongMaterial<I> {
+    pub fn new(
+        diffuse_texture: I,
+        specular_texture: I,
+        exponent: <<I as Image>::ColorType as Color>::ChannelType,
+    ) -> PhongMaterial<I> {
         PhongMaterial {
             diffuse_texture,
             specular_texture,
@@ -96,7 +107,8 @@ impl<I: Image> PhongMaterial<I> {
     }
 }
 
-impl<T: Length, I: Image<PointType=Point2<<T as Length>::ValueType>>> Material<T> for PhongMaterial<I>
+impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
+    for PhongMaterial<I>
 where
     <T as Length>::ValueType: FloatingPoint + Sqrt<Output = <T as Length>::ValueType>,
     <T as Length>::AreaType: Sqrt<Output = T>,
@@ -108,17 +120,18 @@ where
         &self,
         p: Point3<T>,
         n: Normal3<<T as Length>::ValueType>,
+        tex: Point2<<T as Length>::ValueType>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         ambient_light: Self::ColorType,
     ) -> Self::ColorType {
-        let tex = Point2::new(Zero::zero(), Zero::zero());
         lights
             .iter()
             .map(|light| {
                 let ambient_term = self.diffuse_texture.get(tex) * ambient_light;
-                let diffuse_term =
-                    self.diffuse_texture.get(tex) * light.get_color() * Normal3::dot(light.direction_from(p), n);
+                let diffuse_term = self.diffuse_texture.get(tex)
+                    * light.get_color()
+                    * Normal3::dot(light.direction_from(p), n);
                 let reflected_light = light
                     .direction_from(p)
                     .as_vector()
