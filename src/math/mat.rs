@@ -1,6 +1,7 @@
-use std::ops;
+use std::ops::{Add, Mul, Sub};
 
-use crate::math::Vector3;
+use crate::math::{Point3, Vector3};
+use crate::traits::One;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Mat3x3<T> {
@@ -64,14 +65,14 @@ impl<T> Mat3x3<T> {
         )
     }
 
-    pub fn determinant(self) -> <<T as ops::Mul>::Output as ops::Mul<T>>::Output
+    pub fn determinant(self) -> <<T as Mul>::Output as Mul<T>>::Output
     where
-        T: ops::Mul + Copy + Clone,
-        <T as ops::Mul>::Output: ops::Mul<T>,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output:
-            ops::Add<Output = <<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
-        <<T as ops::Mul>::Output as ops::Mul<T>>::Output:
-            ops::Sub<Output = <<T as ops::Mul>::Output as ops::Mul<T>>::Output>,
+        T: Mul + Copy + Clone,
+        <T as Mul>::Output: Mul<T>,
+        <<T as Mul>::Output as Mul<T>>::Output:
+            Add<Output = <<T as Mul>::Output as Mul<T>>::Output>,
+        <<T as Mul>::Output as Mul<T>>::Output:
+            Sub<Output = <<T as Mul>::Output as Mul<T>>::Output>,
     {
         self.m11 * self.m22 * self.m33
             + self.m12 * self.m23 * self.m31
@@ -79,6 +80,98 @@ impl<T> Mat3x3<T> {
             - self.m31 * self.m22 * self.m13
             - self.m32 * self.m23 * self.m11
             - self.m33 * self.m21 * self.m12
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct Mat4x4<T> {
+    m11: T,
+    m12: T,
+    m13: T,
+    m14: T,
+    m21: T,
+    m22: T,
+    m23: T,
+    m24: T,
+    m31: T,
+    m32: T,
+    m33: T,
+    m34: T,
+    m41: T,
+    m42: T,
+    m43: T,
+    m44: T,
+}
+
+impl<T> Mat4x4<T> {
+    pub fn new(
+        m11: T,
+        m12: T,
+        m13: T,
+        m14: T,
+        m21: T,
+        m22: T,
+        m23: T,
+        m24: T,
+        m31: T,
+        m32: T,
+        m33: T,
+        m34: T,
+        m41: T,
+        m42: T,
+        m43: T,
+        m44: T,
+    ) -> Mat4x4<T> {
+        Mat4x4 {
+            m11,
+            m12,
+            m13,
+            m14,
+            m21,
+            m22,
+            m23,
+            m24,
+            m31,
+            m32,
+            m33,
+            m34,
+            m41,
+            m42,
+            m43,
+            m44,
+        }
+    }
+}
+
+impl<T> Mul<Vector3<T>> for Mat4x4<T>
+where
+    T: Mul + Copy,
+    <T as Mul>::Output: Add<Output = <T as Mul>::Output>,
+{
+    type Output = Vector3<<T as Mul>::Output>;
+
+    fn mul(self, rhs: Vector3<T>) -> Self::Output {
+        Vector3::new(
+            self.m11 * rhs.x + self.m12 * rhs.y + self.m13 * rhs.z,
+            self.m21 * rhs.x + self.m22 * rhs.y + self.m23 * rhs.z,
+            self.m31 * rhs.x + self.m32 * rhs.y + self.m33 * rhs.z,
+        )
+    }
+}
+
+impl<T> Mul<Point3<T>> for Mat4x4<T>
+where
+    T: Mul + One + Copy,
+    <T as Mul>::Output: Add<Output = <T as Mul>::Output>,
+{
+    type Output = Point3<<T as Mul>::Output>;
+
+    fn mul(self, rhs: Point3<T>) -> Self::Output {
+        Point3::new(
+            self.m11 * rhs.x + self.m12 * rhs.y + self.m13 * rhs.z + self.m14 * One::one(),
+            self.m21 * rhs.x + self.m22 * rhs.y + self.m23 * rhs.z + self.m24 * One::one(),
+            self.m31 * rhs.x + self.m32 * rhs.y + self.m33 * rhs.z + self.m34 * One::one(),
+        )
     }
 }
 
@@ -312,4 +405,150 @@ mod tests {
     mat3x3_determinant! { i128, mat3x3_determinant_i128 }
     mat3x3_determinant! { f32, mat3x3_determinant_f32 }
     mat3x3_determinant! { f64, mat3x3_determinant_f64 }
+
+    macro_rules! new_mat4x4 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let m = Mat4x4::new(
+                    1 as $type,
+                    2 as $type,
+                    3 as $type,
+                    4 as $type,
+                    5 as $type,
+                    6 as $type,
+                    7 as $type,
+                    8 as $type,
+                    9 as $type,
+                    10 as $type,
+                    11 as $type,
+                    12 as $type,
+                    13 as $type,
+                    14 as $type,
+                    15 as $type,
+                    16 as $type,
+                );
+
+                assert_eq!(m.m11, 1 as $type);
+                assert_eq!(m.m12, 2 as $type);
+                assert_eq!(m.m13, 3 as $type);
+                assert_eq!(m.m14, 4 as $type);
+                assert_eq!(m.m21, 5 as $type);
+                assert_eq!(m.m22, 6 as $type);
+                assert_eq!(m.m23, 7 as $type);
+                assert_eq!(m.m24, 8 as $type);
+                assert_eq!(m.m31, 9 as $type);
+                assert_eq!(m.m32, 10 as $type);
+                assert_eq!(m.m33, 11 as $type);
+                assert_eq!(m.m34, 12 as $type);
+                assert_eq!(m.m41, 13 as $type);
+                assert_eq!(m.m42, 14 as $type);
+                assert_eq!(m.m43, 15 as $type);
+                assert_eq!(m.m44, 16 as $type);
+            }
+        };
+    }
+
+    new_mat4x4! { u8, new_mat4x4_u8 }
+    new_mat4x4! { u16, new_mat4x4_u16 }
+    new_mat4x4! { u32, new_mat4x4_u32 }
+    new_mat4x4! { u64, new_mat4x4_u64 }
+    new_mat4x4! { u128, new_mat4x4_u128 }
+    new_mat4x4! { i8, new_mat4x4_i8 }
+    new_mat4x4! { i16, new_mat4x4_i16 }
+    new_mat4x4! { i32, new_mat4x4_i32 }
+    new_mat4x4! { i64, new_mat4x4_i64 }
+    new_mat4x4! { i128, new_mat4x4_i128 }
+    new_mat4x4! { f32, new_mat4x4_f32 }
+    new_mat4x4! { f64, new_mat4x4_f64 }
+
+    macro_rules! mat4x4_mul_vector3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let m = Mat4x4::new(
+                    1 as $type,
+                    2 as $type,
+                    3 as $type,
+                    4 as $type,
+                    5 as $type,
+                    6 as $type,
+                    7 as $type,
+                    8 as $type,
+                    9 as $type,
+                    10 as $type,
+                    11 as $type,
+                    12 as $type,
+                    13 as $type,
+                    14 as $type,
+                    15 as $type,
+                    16 as $type,
+                );
+
+                let v = Vector3::new(1 as $type, 2 as $type, 3 as $type);
+
+                let expected = Vector3::new(14 as $type, 38 as $type, 62 as $type);
+
+                assert_eq!(m * v, expected);
+            }
+        };
+    }
+
+    mat4x4_mul_vector3! { u8, mat4x4_mul_vector3_u8 }
+    mat4x4_mul_vector3! { u16, mat4x4_mul_vector3_u16 }
+    mat4x4_mul_vector3! { u32, mat4x4_mul_vector3_u32 }
+    mat4x4_mul_vector3! { u64, mat4x4_mul_vector3_u64 }
+    mat4x4_mul_vector3! { u128, mat4x4_mul_vector3_u128 }
+    mat4x4_mul_vector3! { i8, mat4x4_mul_vector3_i8 }
+    mat4x4_mul_vector3! { i16, mat4x4_mul_vector3_i16 }
+    mat4x4_mul_vector3! { i32, mat4x4_mul_vector3_i32 }
+    mat4x4_mul_vector3! { i64, mat4x4_mul_vector3_i64 }
+    mat4x4_mul_vector3! { i128, mat4x4_mul_vector3_i128 }
+    mat4x4_mul_vector3! { f32, mat4x4_mul_vector3_f32 }
+    mat4x4_mul_vector3! { f64, mat4x4_mul_vector3_f64 }
+
+    macro_rules! mat4x4_mul_point3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let m = Mat4x4::new(
+                    1 as $type,
+                    2 as $type,
+                    3 as $type,
+                    4 as $type,
+                    5 as $type,
+                    6 as $type,
+                    7 as $type,
+                    8 as $type,
+                    9 as $type,
+                    10 as $type,
+                    11 as $type,
+                    12 as $type,
+                    13 as $type,
+                    14 as $type,
+                    15 as $type,
+                    16 as $type,
+                );
+
+                let v = Point3::new(1 as $type, 2 as $type, 3 as $type);
+
+                let expected = Point3::new(18 as $type, 46 as $type, 74 as $type);
+
+                assert_eq!(m * v, expected);
+            }
+        };
+    }
+
+    mat4x4_mul_point3! { u8, mat4x4_mul_point3_u8 }
+    mat4x4_mul_point3! { u16, mat4x4_mul_point3_u16 }
+    mat4x4_mul_point3! { u32, mat4x4_mul_point3_u32 }
+    mat4x4_mul_point3! { u64, mat4x4_mul_point3_u64 }
+    mat4x4_mul_point3! { u128, mat4x4_mul_point3_u128 }
+    mat4x4_mul_point3! { i8, mat4x4_mul_point3_i8 }
+    mat4x4_mul_point3! { i16, mat4x4_mul_point3_i16 }
+    mat4x4_mul_point3! { i32, mat4x4_mul_point3_i32 }
+    mat4x4_mul_point3! { i64, mat4x4_mul_point3_i64 }
+    mat4x4_mul_point3! { i128, mat4x4_mul_point3_i128 }
+    mat4x4_mul_point3! { f32, mat4x4_mul_point3_f32 }
+    mat4x4_mul_point3! { f64, mat4x4_mul_point3_f64 }
 }
