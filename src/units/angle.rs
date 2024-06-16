@@ -20,14 +20,19 @@ impl super::Unit for RadiansUnit {
     const UNIT: &'static str = "rad";
 }
 
-pub trait Angle<T>: ToDegrees + ToRadians {}
+pub trait Angle: Cos + ToDegrees + ToRadians + Sin {}
 
 pub type Degrees<T> = ValueWithPrefixAndUnit<T, None, DegreesUnit>;
 pub type Radians<T> = ValueWithPrefixAndUnit<T, None, RadiansUnit>;
 
-impl<T> Angle<T> for Degrees<T> where T: ToDegrees + ToRadians {}
+impl<T> Angle for Degrees<T>
+where
+    T: ToDegrees + ToRadians,
+    <T as ToRadians>::Output: Cos + Sin,
+{
+}
 
-impl<T> Angle<T> for Radians<T> where T: ToDegrees + ToRadians {}
+impl<T> Angle for Radians<T> where T: Cos + ToDegrees + ToRadians + Sin {}
 
 impl<T> Radians<T> {
     pub fn acos(v: T) -> Radians<<T as Acos>::Output>

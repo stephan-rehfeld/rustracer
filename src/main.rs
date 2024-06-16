@@ -11,7 +11,7 @@ use rustracer::ray_casting::RayCaster;
 use rustracer::traits::ToRadians;
 use rustracer::units::angle::Degrees;
 use rustracer::units::length::Meter;
-use rustracer::{Raytracer, RenderableGeometry};
+use rustracer::{Node, Raytracer, RenderableGeometry, Transform};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
@@ -74,11 +74,36 @@ fn main() {
         )),
     ));
 
+    let sphere2 = ImplicitNSphere::new(
+        Point3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(0.0)),
+        Meter::new(1.0),
+    );
+
+    let sphere2_geometry = Box::new(RenderableGeometry::new(
+        sphere2,
+        PhongMaterial::new(
+            SingleColorImage::new(RGB::new(0.0, 1.0, 0.0), Vector2::new(1.0, 1.0)),
+            SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
+            64.0,
+        ),
+    ));
+
+    let transform = Transform::<f64>::ident()
+        .translate(-1.0, 0.0, 1.0)
+        .scale(0.1, 0.1, 0.1);
+
+    let node_geometries: Vec<
+        Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>,
+    > = vec![sphere2_geometry];
+
+    let node = Box::new(Node::new(transform, node_geometries));
+
     let geometries: Vec<Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>> = vec![
         plane_geometry,
         aab_geometry,
         sphere_geometry,
         triangle_geometry,
+        node,
     ];
 
     let point_light = Box::new(PointLight::new(

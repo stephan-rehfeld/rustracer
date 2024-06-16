@@ -5,6 +5,7 @@ pub mod point;
 pub mod vector;
 
 pub use mat::Mat3x3;
+pub use mat::Mat4x4;
 pub use normal::Normal;
 pub use normal::Normal2;
 pub use normal::Normal3;

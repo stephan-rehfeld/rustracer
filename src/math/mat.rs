@@ -1,7 +1,7 @@
 use std::ops::{Add, Mul, Sub};
 
 use crate::math::{Point3, Vector3};
-use crate::traits::One;
+use crate::traits::{One, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Mat3x3<T> {
@@ -143,14 +143,38 @@ impl<T> Mat4x4<T> {
     }
 }
 
-impl<T> Mul<Vector3<T>> for Mat4x4<T>
-where
-    T: Mul + Copy,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output>,
-{
-    type Output = Vector3<<T as Mul>::Output>;
+impl<T: One + Zero> Mat4x4<T> {
+    pub fn ident() -> Mat4x4<T> {
+        Mat4x4::new(
+            One::one(),
+            Zero::zero(),
+            Zero::zero(),
+            Zero::zero(),
+            Zero::zero(),
+            One::one(),
+            Zero::zero(),
+            Zero::zero(),
+            Zero::zero(),
+            Zero::zero(),
+            One::one(),
+            Zero::zero(),
+            Zero::zero(),
+            Zero::zero(),
+            Zero::zero(),
+            One::one(),
+        )
+    }
+}
 
-    fn mul(self, rhs: Vector3<T>) -> Self::Output {
+impl<T, U> Mul<Vector3<U>> for Mat4x4<T>
+where
+    U: Copy,
+    T: Mul<U> + Copy,
+    <T as Mul<U>>::Output: Add<Output = <T as Mul<U>>::Output>,
+{
+    type Output = Vector3<<T as Mul<U>>::Output>;
+
+    fn mul(self, rhs: Vector3<U>) -> Self::Output {
         Vector3::new(
             self.m11 * rhs.x + self.m12 * rhs.y + self.m13 * rhs.z,
             self.m21 * rhs.x + self.m22 * rhs.y + self.m23 * rhs.z,
@@ -159,18 +183,53 @@ where
     }
 }
 
-impl<T> Mul<Point3<T>> for Mat4x4<T>
+impl<T, U> Mul<Point3<U>> for Mat4x4<T>
 where
-    T: Mul + One + Copy,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output>,
+    T: Mul<U> + Copy,
+    U: One + Copy,
+    <T as Mul<U>>::Output: Add<Output = <T as Mul<U>>::Output>,
 {
-    type Output = Point3<<T as Mul>::Output>;
+    type Output = Point3<<T as Mul<U>>::Output>;
 
-    fn mul(self, rhs: Point3<T>) -> Self::Output {
+    fn mul(self, rhs: Point3<U>) -> Self::Output {
         Point3::new(
             self.m11 * rhs.x + self.m12 * rhs.y + self.m13 * rhs.z + self.m14 * One::one(),
             self.m21 * rhs.x + self.m22 * rhs.y + self.m23 * rhs.z + self.m24 * One::one(),
             self.m31 * rhs.x + self.m32 * rhs.y + self.m33 * rhs.z + self.m34 * One::one(),
+        )
+    }
+}
+
+impl<T> Mul for Mat4x4<T>
+where
+    T: Mul + Copy,
+    <T as Mul>::Output: Add<Output = <T as Mul>::Output>,
+{
+    type Output = Mat4x4<<T as Mul>::Output>;
+
+    fn mul(self, rhs: Mat4x4<T>) -> Self::Output {
+        let m11 = self.m11 * rhs.m11 + self.m12 * rhs.m21 + self.m13 * rhs.m31 + self.m14 * rhs.m41;
+        let m12 = self.m11 * rhs.m12 + self.m12 * rhs.m22 + self.m13 * rhs.m32 + self.m14 * rhs.m42;
+        let m13 = self.m11 * rhs.m13 + self.m12 * rhs.m23 + self.m13 * rhs.m33 + self.m14 * rhs.m43;
+        let m14 = self.m11 * rhs.m14 + self.m12 * rhs.m24 + self.m13 * rhs.m34 + self.m14 * rhs.m44;
+
+        let m21 = self.m21 * rhs.m11 + self.m22 * rhs.m21 + self.m23 * rhs.m31 + self.m24 * rhs.m41;
+        let m22 = self.m21 * rhs.m12 + self.m22 * rhs.m22 + self.m23 * rhs.m32 + self.m24 * rhs.m42;
+        let m23 = self.m21 * rhs.m13 + self.m22 * rhs.m23 + self.m23 * rhs.m33 + self.m24 * rhs.m43;
+        let m24 = self.m21 * rhs.m14 + self.m22 * rhs.m24 + self.m23 * rhs.m34 + self.m24 * rhs.m44;
+
+        let m31 = self.m31 * rhs.m11 + self.m32 * rhs.m21 + self.m33 * rhs.m31 + self.m34 * rhs.m41;
+        let m32 = self.m31 * rhs.m12 + self.m32 * rhs.m22 + self.m33 * rhs.m32 + self.m34 * rhs.m42;
+        let m33 = self.m31 * rhs.m13 + self.m32 * rhs.m23 + self.m33 * rhs.m33 + self.m34 * rhs.m43;
+        let m34 = self.m31 * rhs.m14 + self.m32 * rhs.m24 + self.m33 * rhs.m34 + self.m34 * rhs.m44;
+
+        let m41 = self.m41 * rhs.m11 + self.m42 * rhs.m21 + self.m43 * rhs.m31 + self.m44 * rhs.m41;
+        let m42 = self.m41 * rhs.m12 + self.m42 * rhs.m22 + self.m43 * rhs.m32 + self.m44 * rhs.m42;
+        let m43 = self.m41 * rhs.m13 + self.m42 * rhs.m23 + self.m43 * rhs.m33 + self.m44 * rhs.m43;
+        let m44 = self.m41 * rhs.m14 + self.m42 * rhs.m24 + self.m43 * rhs.m34 + self.m44 * rhs.m44;
+
+        Mat4x4::new(
+            m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44,
         )
     }
 }
@@ -551,4 +610,6 @@ mod tests {
     mat4x4_mul_point3! { i128, mat4x4_mul_point3_i128 }
     mat4x4_mul_point3! { f32, mat4x4_mul_point3_f32 }
     mat4x4_mul_point3! { f64, mat4x4_mul_point3_f64 }
+
+    // mat4x4 mul mat4x4
 }
