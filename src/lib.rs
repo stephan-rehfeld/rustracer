@@ -5,7 +5,7 @@ use image::Image;
 use material::Material;
 use math::geometry::{Intersect, ParametricLine};
 use math::{Mat4x4, Normal, NormalizableVector, Point, Point3, Vector, Vector3};
-use traits::{Cos, One, Recip, Sin, Zero};
+use traits::{Cos, One, Recip, Sin, Sqrt, Zero};
 use units::length::Length;
 
 pub mod camera;
@@ -132,7 +132,7 @@ impl<T: Length, C: Color> Node<T, C> {
 
 impl<T: Length, C: Color<ChannelType = <T as Length>::ValueType>> Renderable<T> for Node<T, C>
 where
-    <T as Length>::ValueType: Mul<T, Output = T>,
+    <T as Length>::ValueType: Mul<T, Output = T> + Sqrt<Output = <T as Length>::ValueType>,
 {
     type ScalarType = <T as Div>::Output;
     type LengthType = T;

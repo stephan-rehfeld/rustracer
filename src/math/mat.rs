@@ -1,7 +1,7 @@
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
-use crate::math::{Normal3, Point3, Vector3};
-use crate::traits::{One, Zero};
+use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
+use crate::traits::{One, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Mat3x3<T> {
@@ -196,7 +196,13 @@ impl<T, U> Mul<Normal3<U>> for Mat4x4<T>
 where
     U: Copy,
     T: Mul<U> + Copy,
-    <T as Mul<U>>::Output: Add<Output = <T as Mul<U>>::Output>,
+    <T as Mul<U>>::Output: Add<Output = <T as Mul<U>>::Output>
+        + Div<Output = <T as Mul<U>>::Output>
+        + Mul<Output = <T as Mul<U>>::Output>
+        + Sqrt<Output = <T as Mul<U>>::Output>
+        + Zero
+        + Copy
+        + Clone,
 {
     type Output = Normal3<<T as Mul<U>>::Output>;
 
@@ -206,6 +212,8 @@ where
             self.m21 * rhs.x + self.m22 * rhs.y + self.m23 * rhs.z,
             self.m31 * rhs.x + self.m32 * rhs.y + self.m33 * rhs.z,
         )
+        .as_vector()
+        .normalized()
     }
 }
 
@@ -617,25 +625,15 @@ mod tests {
                     16 as $type,
                 );
 
-                let v = Normal3::new(1 as $type, 2 as $type, 3 as $type);
+                let n = Normal3::new(1 as $type, 2 as $type, 3 as $type);
 
-                let expected = Normal3::new(14 as $type, 38 as $type, 62 as $type);
+                let expected = Vector3::new(14 as $type, 38 as $type, 62 as $type).normalized();
 
-                assert_eq!(m * v, expected);
+                assert_eq!(m * n, expected);
             }
         };
     }
 
-    mat4x4_mul_normal3! { u8, mat4x4_mul_normal3_u8 }
-    mat4x4_mul_normal3! { u16, mat4x4_mul_normal3_u16 }
-    mat4x4_mul_normal3! { u32, mat4x4_mul_normal3_u32 }
-    mat4x4_mul_normal3! { u64, mat4x4_mul_normal3_u64 }
-    mat4x4_mul_normal3! { u128, mat4x4_mul_normal3_u128 }
-    mat4x4_mul_normal3! { i8, mat4x4_mul_normal3_i8 }
-    mat4x4_mul_normal3! { i16, mat4x4_mul_normal3_i16 }
-    mat4x4_mul_normal3! { i32, mat4x4_mul_normal3_i32 }
-    mat4x4_mul_normal3! { i64, mat4x4_mul_normal3_i64 }
-    mat4x4_mul_normal3! { i128, mat4x4_mul_normal3_i128 }
     mat4x4_mul_normal3! { f32, mat4x4_mul_normal3_f32 }
     mat4x4_mul_normal3! { f64, mat4x4_mul_normal3_f64 }
 
