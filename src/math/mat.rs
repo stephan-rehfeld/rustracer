@@ -1,6 +1,6 @@
 use std::ops::{Add, Mul, Sub};
 
-use crate::math::{Point3, Vector3};
+use crate::math::{Normal3, Point3, Vector3};
 use crate::traits::{One, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -166,6 +166,15 @@ impl<T: One + Zero> Mat4x4<T> {
     }
 }
 
+impl<T> Mat4x4<T> {
+    pub fn transposed(self) -> Mat4x4<T> {
+        Mat4x4::new(
+            self.m11, self.m21, self.m31, self.m41, self.m12, self.m22, self.m32, self.m42,
+            self.m13, self.m23, self.m33, self.m43, self.m14, self.m24, self.m34, self.m44,
+        )
+    }
+}
+
 impl<T, U> Mul<Vector3<U>> for Mat4x4<T>
 where
     U: Copy,
@@ -176,6 +185,23 @@ where
 
     fn mul(self, rhs: Vector3<U>) -> Self::Output {
         Vector3::new(
+            self.m11 * rhs.x + self.m12 * rhs.y + self.m13 * rhs.z,
+            self.m21 * rhs.x + self.m22 * rhs.y + self.m23 * rhs.z,
+            self.m31 * rhs.x + self.m32 * rhs.y + self.m33 * rhs.z,
+        )
+    }
+}
+
+impl<T, U> Mul<Normal3<U>> for Mat4x4<T>
+where
+    U: Copy,
+    T: Mul<U> + Copy,
+    <T as Mul<U>>::Output: Add<Output = <T as Mul<U>>::Output>,
+{
+    type Output = Normal3<<T as Mul<U>>::Output>;
+
+    fn mul(self, rhs: Normal3<U>) -> Self::Output {
+        Normal3::new(
             self.m11 * rhs.x + self.m12 * rhs.y + self.m13 * rhs.z,
             self.m21 * rhs.x + self.m22 * rhs.y + self.m23 * rhs.z,
             self.m31 * rhs.x + self.m32 * rhs.y + self.m33 * rhs.z,
@@ -272,6 +298,8 @@ mod tests {
     new_mat3x3! { i128, new_mat3x3_i128 }
     new_mat3x3! { f32, new_mat3x3_f32 }
     new_mat3x3! { f64, new_mat3x3_f64 }
+
+    // Transposed
 
     macro_rules! mat3x3_from_vector3s {
         ($type: ty, $name: ident) => {
@@ -565,6 +593,51 @@ mod tests {
     mat4x4_mul_vector3! { i128, mat4x4_mul_vector3_i128 }
     mat4x4_mul_vector3! { f32, mat4x4_mul_vector3_f32 }
     mat4x4_mul_vector3! { f64, mat4x4_mul_vector3_f64 }
+
+    macro_rules! mat4x4_mul_normal3 {
+        ($type: ty, $name: ident) => {
+            #[test]
+            fn $name() {
+                let m = Mat4x4::new(
+                    1 as $type,
+                    2 as $type,
+                    3 as $type,
+                    4 as $type,
+                    5 as $type,
+                    6 as $type,
+                    7 as $type,
+                    8 as $type,
+                    9 as $type,
+                    10 as $type,
+                    11 as $type,
+                    12 as $type,
+                    13 as $type,
+                    14 as $type,
+                    15 as $type,
+                    16 as $type,
+                );
+
+                let v = Normal3::new(1 as $type, 2 as $type, 3 as $type);
+
+                let expected = Normal3::new(14 as $type, 38 as $type, 62 as $type);
+
+                assert_eq!(m * v, expected);
+            }
+        };
+    }
+
+    mat4x4_mul_normal3! { u8, mat4x4_mul_normal3_u8 }
+    mat4x4_mul_normal3! { u16, mat4x4_mul_normal3_u16 }
+    mat4x4_mul_normal3! { u32, mat4x4_mul_normal3_u32 }
+    mat4x4_mul_normal3! { u64, mat4x4_mul_normal3_u64 }
+    mat4x4_mul_normal3! { u128, mat4x4_mul_normal3_u128 }
+    mat4x4_mul_normal3! { i8, mat4x4_mul_normal3_i8 }
+    mat4x4_mul_normal3! { i16, mat4x4_mul_normal3_i16 }
+    mat4x4_mul_normal3! { i32, mat4x4_mul_normal3_i32 }
+    mat4x4_mul_normal3! { i64, mat4x4_mul_normal3_i64 }
+    mat4x4_mul_normal3! { i128, mat4x4_mul_normal3_i128 }
+    mat4x4_mul_normal3! { f32, mat4x4_mul_normal3_f32 }
+    mat4x4_mul_normal3! { f64, mat4x4_mul_normal3_f64 }
 
     macro_rules! mat4x4_mul_point3 {
         ($type: ty, $name: ident) => {

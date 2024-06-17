@@ -166,6 +166,13 @@ where
             .collect();
         hits.sort_by(|(t1, _, _), (t2, _, _)| t1.partial_cmp(t2).unwrap());
 
+        let transposed_inverse = self.transform.inverse.transposed();
+
+        hits = hits
+            .iter()
+            .map(|(t, n, m)| (*t, transposed_inverse * *n, *m))
+            .collect();
+
         hits
     }
 }
