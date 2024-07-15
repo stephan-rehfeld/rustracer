@@ -51,6 +51,7 @@ impl<C: Color> WritableImage for ImageBuffer<C> {
     }
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SingleColorImage<C: Color, S: Vector> {
     color: C,
     size: S,

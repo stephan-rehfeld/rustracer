@@ -1,0 +1,15 @@
+sphere {
+    material: unshaded_material {
+        texture: single_color_texture {
+            color: 1.0 0.0 0.0
+        }
+    }
+}
+  
+perspective_camera {
+    id: main
+    eye_position: 0.0 0.0 5.0
+    gaze_direction: 0.0 0.0 -1.0
+    up_vector: 0.0 1.0 0.0
+    field_of_view: 90
+}

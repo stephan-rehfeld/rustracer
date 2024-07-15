@@ -46,32 +46,38 @@ fn main() {
 
     let plane_geometry = Box::new(RenderableGeometry::new(
         plane,
-        LambertMaterial::new(SingleColorImage::new(
+        LambertMaterial::new(Box::new(SingleColorImage::new(
             RGB::new(1.0, 0.0, 0.0),
             Vector2::new(1.0, 1.0),
-        )),
+        ))),
     ));
     let sphere_geometry = Box::new(RenderableGeometry::new(
         sphere,
         PhongMaterial::new(
-            SingleColorImage::new(RGB::new(0.0, 1.0, 0.0), Vector2::new(1.0, 1.0)),
-            SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
+            Box::new(SingleColorImage::new(
+                RGB::new(0.0, 1.0, 0.0),
+                Vector2::new(1.0, 1.0),
+            )),
+            Box::new(SingleColorImage::new(
+                RGB::new(1.0, 1.0, 1.0),
+                Vector2::new(1.0, 1.0),
+            )),
             64.0,
         ),
     ));
     let aab_geometry = Box::new(RenderableGeometry::new(
         aab,
-        LambertMaterial::new(SingleColorImage::new(
+        LambertMaterial::new(Box::new(SingleColorImage::new(
             RGB::new(0.0, 0.0, 1.0),
             Vector2::new(1.0, 1.0),
-        )),
+        ))),
     ));
     let triangle_geometry = Box::new(RenderableGeometry::new(
         triangle,
-        LambertMaterial::new(SingleColorImage::new(
+        LambertMaterial::new(Box::new(SingleColorImage::new(
             RGB::new(1.0, 1.0, 0.0),
             Vector2::new(1.0, 1.0),
-        )),
+        ))),
     ));
 
     let sphere2 = ImplicitNSphere::new(
@@ -82,8 +88,14 @@ fn main() {
     let sphere2_geometry = Box::new(RenderableGeometry::new(
         sphere2,
         PhongMaterial::new(
-            SingleColorImage::new(RGB::new(0.0, 1.0, 0.0), Vector2::new(1.0, 1.0)),
-            SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
+            Box::new(SingleColorImage::new(
+                RGB::new(0.0, 1.0, 0.0),
+                Vector2::new(1.0, 1.0),
+            )),
+            Box::new(SingleColorImage::new(
+                RGB::new(1.0, 1.0, 1.0),
+                Vector2::new(1.0, 1.0),
+            )),
             64.0,
         ),
     ));
@@ -129,12 +141,17 @@ fn main() {
         size,
     ));
 
+    let mut scene = rustracer::parser::parse_scene::<Meter<f64>>("example.scene", size).unwrap();
+
     let raytracer = RayCaster::new(
-        cam,
-        geometries,
-        lights,
-        RGB::new(0.1, 0.1, 0.1),
-        RGB::new(0.0, 0.0, 0.0),
+        //cam,
+        scene.cameras.remove("main").unwrap(),
+        //geometries,
+        scene.geometries,
+        //lights,
+        scene.lights,
+        scene.ambient_light,
+        scene.bg_color,
         0.0001,
     );
 

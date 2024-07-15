@@ -1,0 +1,70 @@
+background_color: 0.0 0.0 0.0
+
+ambient_light: 0.0 0.0 0.0
+
+plane {
+    position: 0.0 -1.0 0.0
+    scale: 1.0 1.0 1.0
+    rotation: 0.0 0.0 0.0
+    material: lambert_material {
+        texture: single_color_texture {
+            color: 1.0 1.0 1.0
+        }
+    }
+}
+
+triangle {
+    position: 0.0 0.0 0.0
+    scale: 1.0 1.0 1.0
+    rotation: 0.0 0.0 0.0
+    a: -3.0 3.0 -3.0
+    b: -1.0 3.0 -3.0
+    c: -1.0 1.0 -3.0
+    na: 0.0 0.0 1.0
+    nb: 0.0 0.0 1.0
+    nc: 0.0 0.0 1.0
+    material: lambert_material {
+        texture: single_color_texture {
+            color: 1.0 0.0 0.0
+        }
+    }
+}
+
+box {
+    position: -2.0 0.0 0.0
+    scale: 1.0 1.0 1.0
+    rotation: 35.0 45.0 0.0
+    material: lambert_material {
+        texture: single_color_texture {
+            color: 0.0 0.0 1.0
+        }
+    }
+}
+
+sphere {
+    position: 1.0 1.0 0.0
+    scale: 1.0 1.0 1.0
+    rotation: 0.0 0.0 45.0
+    material: phong_material {
+        diffuse_texture: single_color_texture {
+            color: 1.0 1.0 0.0
+        }
+        specular_texture: single_color_texture {
+            color: 1.0 1.0 1.0
+        }
+        exponent: 64.0
+    }
+}
+  
+perspective_camera {
+    id: main
+    eye_position: 0.0 0.0 3.0
+    gaze_direction: 0.0 0.0 -1.0
+    up_vector: 0.0 1.0 0.0
+    field_of_view: 90
+}
+
+point_light {
+    position: 0.0 2.0 3.0
+    color: 0.8 0.8 0.8
+}

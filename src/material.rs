@@ -21,20 +21,22 @@ pub trait Material<T: Length> {
     ) -> Self::ColorType;
 }
 
-pub struct UnshadedMaterial<I> {
-    texture: I,
+pub struct UnshadedMaterial<C: Color> {
+    texture: Box<dyn Image<ColorType = C, PointType = Point2<<C as Color>::ChannelType>>>,
 }
 
-impl<I> UnshadedMaterial<I> {
-    pub fn new(texture: I) -> UnshadedMaterial<I> {
+impl<C: Color> UnshadedMaterial<C> {
+    pub fn new(
+        texture: Box<dyn Image<ColorType = C, PointType = Point2<<C as Color>::ChannelType>>>,
+    ) -> UnshadedMaterial<C> {
         UnshadedMaterial { texture }
     }
 }
 
-impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
-    for UnshadedMaterial<I>
+impl<T: Length, C: Color<ChannelType = <T as Length>::ValueType>> Material<T>
+    for UnshadedMaterial<C>
 {
-    type ColorType = <I as Image>::ColorType;
+    type ColorType = C;
 
     fn color_for(
         &self,
@@ -49,22 +51,22 @@ impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material
     }
 }
 
-pub struct LambertMaterial<I> {
-    texture: I,
+pub struct LambertMaterial<C: Color> {
+    texture: Box<dyn Image<ColorType = C, PointType = Point2<<C as Color>::ChannelType>>>,
 }
 
-impl<I> LambertMaterial<I> {
-    pub fn new(texture: I) -> LambertMaterial<I> {
+impl<C: Color> LambertMaterial<C> {
+    pub fn new(
+        texture: Box<dyn Image<ColorType = C, PointType = Point2<<C as Color>::ChannelType>>>,
+    ) -> LambertMaterial<C> {
         LambertMaterial { texture }
     }
 }
 
-impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
-    for LambertMaterial<I>
-where
-    <I as Image>::ColorType: Color<ChannelType = <T as Length>::ValueType>,
+impl<T: Length, C: Color<ChannelType = <T as Length>::ValueType>> Material<T>
+    for LambertMaterial<C>
 {
-    type ColorType = <I as Image>::ColorType;
+    type ColorType = C;
 
     fn color_for(
         &self,
@@ -87,18 +89,22 @@ where
     }
 }
 
-pub struct PhongMaterial<I: Image> {
-    diffuse_texture: I,
-    specular_texture: I,
-    exponent: <<I as Image>::ColorType as Color>::ChannelType,
+pub struct PhongMaterial<C: Color> {
+    diffuse_texture: Box<dyn Image<ColorType = C, PointType = Point2<<C as Color>::ChannelType>>>,
+    specular_texture: Box<dyn Image<ColorType = C, PointType = Point2<<C as Color>::ChannelType>>>,
+    exponent: <C as Color>::ChannelType,
 }
 
-impl<I: Image> PhongMaterial<I> {
+impl<C: Color> PhongMaterial<C> {
     pub fn new(
-        diffuse_texture: I,
-        specular_texture: I,
-        exponent: <<I as Image>::ColorType as Color>::ChannelType,
-    ) -> PhongMaterial<I> {
+        diffuse_texture: Box<
+            dyn Image<ColorType = C, PointType = Point2<<C as Color>::ChannelType>>,
+        >,
+        specular_texture: Box<
+            dyn Image<ColorType = C, PointType = Point2<<C as Color>::ChannelType>>,
+        >,
+        exponent: <C as Color>::ChannelType,
+    ) -> PhongMaterial<C> {
         PhongMaterial {
             diffuse_texture,
             specular_texture,
@@ -107,14 +113,12 @@ impl<I: Image> PhongMaterial<I> {
     }
 }
 
-impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
-    for PhongMaterial<I>
+impl<T: Length, C: Color<ChannelType = <T as Length>::ValueType>> Material<T> for PhongMaterial<C>
 where
     <T as Length>::ValueType: FloatingPoint + Sqrt<Output = <T as Length>::ValueType>,
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <I as Image>::ColorType: Color<ChannelType = <T as Length>::ValueType>,
 {
-    type ColorType = <I as Image>::ColorType;
+    type ColorType = C;
 
     fn color_for(
         &self,

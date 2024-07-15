@@ -14,6 +14,7 @@ pub mod image;
 pub mod light;
 pub mod material;
 pub mod math;
+pub mod parser;
 pub mod ray_casting;
 pub mod traits;
 pub mod units;
