@@ -68,3 +68,10 @@ point_light {
     position: 0.0 2.0 3.0
     color: 0.8 0.8 0.8
 }
+
+spot_light {
+    color: 0.3 0.3 0.3
+    position: -6.0 4.0 0.0
+    direction: 1.0 -1.0 0.0
+    angle: 15.0 
+}

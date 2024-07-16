@@ -10,7 +10,7 @@ use crate::camera::{Perspective, RaytracingCamera};
 use crate::color::RGB;
 use crate::image::Image;
 use crate::image::SingleColorImage;
-use crate::light::{Light, PointLight};
+use crate::light::{Light, PointLight, SpotLight};
 use crate::material::{LambertMaterial, Material, PhongMaterial, UnshadedMaterial};
 use crate::math::geometry::{
     AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Intersect, ParametricLine, Triangle,
@@ -122,6 +122,7 @@ pub enum ParsingError {
     TriangleParsingError(Box<ParsingError>),
     PerspectiveCameraParsingError(Box<ParsingError>),
     PointLightParsingError(Box<ParsingError>),
+    SpotLightParsingError(Box<ParsingError>),
     MissingElement(&'static str),
 }
 
@@ -1016,6 +1017,88 @@ where
     ))
 }
 
+pub fn parse_spot_light<'a, T: Length + 'static>(
+    tokens: &mut impl Iterator<Item = &'a str>,
+) -> Result<SpotLight<T, RGB<<T as Length>::ValueType>>, ParsingError>
+where
+    <T as Length>::AreaType: Sqrt<Output = T>,
+    <T as Length>::ValueType: ToRadians<Output=<T as Length>::ValueType> + 
+        Neg<Output = <T as Length>::ValueType> + MultiplyStable + Mul<T, Output = T>,
+    <T as FromStr>::Err: Error + Debug,
+    <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
+{
+    if let Err(cause) = check_next_token(tokens, "{") {
+        return Err(ParsingError::SpotLightParsingError(Box::new(cause)));
+    }
+
+    let mut color = RGB::new(Zero::zero(), Zero::zero(), Zero::zero());
+    let mut position: Point3<T> = Point3::new(Zero::zero(), Zero::zero(), Zero::zero());
+    let mut direction: Option<Normal3<<T as Length>::ValueType>> = None;
+    let mut angle: Option<Degrees<<T as Length>::ValueType>> = None;
+
+    while let Some(token) = tokens.next() {
+        match token {
+            "color:" => match parse_color(tokens) {
+                Ok(col) => {
+                    color = col;
+                }
+                Err(cause) => {
+                    return Err(ParsingError::SpotLightParsingError(Box::new(cause)));
+                }
+            },
+
+            "position:" => match parse_point(tokens) {
+                Ok(pos) => {
+                    position = pos;
+                }
+                Err(cause) => {
+                    return Err(ParsingError::SpotLightParsingError(Box::new(cause)));
+                }
+            },
+            "direction:" => match parse_vector::<T>(tokens) {
+                Ok(vec) => {
+                    direction = Some(vec.normalized());
+                }
+                Err(cause) => {
+                    return Err(ParsingError::SpotLightParsingError(Box::new(cause)));
+                }
+            }
+            "angle:" => match tokens.next() {
+                Some(angle_string) => match angle_string.parse() {
+                    Ok(a) => angle = Some(a),
+                    Err(_) => {
+                        return Err(ParsingError::NumberParsingError(
+                            "Unable to parse field of number.",
+                        ));
+                    }
+                },
+                None => {
+                    return Err(ParsingError::UnexpectedEndOfTokens);
+                }
+            },
+            "}" => {
+                break;
+            }
+            token => {
+                return Err(ParsingError::UnexpectedToken {
+                    expected: "color:, position:, }",
+                    found: token.to_string(),
+                });
+            }
+        }
+    }
+    let spot_light = SpotLight::new(
+        color,
+        position,
+        direction.unwrap(),
+        angle.unwrap().to_radians(),
+    );
+
+
+    Ok(spot_light)
+}
+
+
 pub fn parse_point_light<'a, T: Length + 'static>(
     tokens: &mut impl Iterator<Item = &'a str>,
 ) -> Result<PointLight<T, RGB<<T as Length>::ValueType>>, ParsingError>
@@ -1148,6 +1231,9 @@ where
             }
             "point_light" => {
                 lights.push(Box::new(parse_point_light(&mut tokens).unwrap()));
+            }
+            "spot_light" => {
+                lights.push(Box::new(parse_spot_light(&mut tokens).unwrap()));
             }
             "background_color:" => {
                 background_color = parse_color(&mut tokens).unwrap();

@@ -14,6 +14,20 @@ pub trait Image {
     fn get(&self, p: Self::PointType) -> Self::ColorType;
 }
 
+/*
+impl<C: Color, P: Point> Image for Box<dyn Image<ColorType=C, PointType=P>> {
+    type ColorType = C;
+    type PointType = P;
+
+    fn size(&self) -> <<Self as Image>::PointType as Point>::VectorType {
+        *self.size()    
+    }
+    
+    fn get(&self, p: Self::PointType) -> Self::ColorType {
+        *self.get(p)
+    }
+}*/
+
 pub trait WritableImage: Image {
     fn get_mut(&mut self, p: Self::PointType) -> &mut Self::ColorType;
 }
