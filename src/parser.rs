@@ -106,6 +106,7 @@ pub enum ParsingError {
     ColorParsingError(Box<ParsingError>),
     PointParsingError(Box<ParsingError>),
     VectorParsingError(Box<ParsingError>),
+    NormalParsingError(Box<ParsingError>),
     UnexpectedToken {
         expected: &'static str,
         found: String,
@@ -139,101 +140,37 @@ where
     }
 }
 
-fn parse_color<'a, T: FromStr>(
-    tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<RGB<T>, ParsingError>
-where
-    <T as FromStr>::Err: Error + Debug,
-{
-    let red = parse_next(tokens);
-    if let Err(cause) = red {
-        return Err(ParsingError::ColorParsingError(Box::new(cause)));
-    }
+pub trait FromTokens : Sized {
+    type Err;
 
-    let green = parse_next(tokens);
-    if let Err(cause) = green {
-        return Err(ParsingError::ColorParsingError(Box::new(cause)));
-    }
-
-    let blue = parse_next(tokens);
-    if let Err(cause) = blue {
-        return Err(ParsingError::ColorParsingError(Box::new(cause)));
-    }
-
-    Ok(RGB::new(red.unwrap(), green.unwrap(), blue.unwrap()))
+    fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err>; 
 }
 
-fn parse_point<'a, T: FromStr>(
-    tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<Point3<T>, ParsingError>
-where
-    <T as FromStr>::Err: Error + Debug,
-{
-    let x = parse_next(tokens);
-    if let Err(cause) = x {
-        return Err(ParsingError::PointParsingError(Box::new(cause)));
-    }
+macro_rules! create_simple_token_parser {
+    ($type: ident, $errorType: ident, $error: ident, [$($element: ident)+]) => {
+    impl<T: FromStr> FromTokens for $type<T> where
+        <T as FromStr>::Err: Error + Debug,
+        {
+            type Err = ParsingError;
+    
+            fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
+                $(
+                let $element = parse_next(tokens);
+                if let Err(cause) = $element {
+                    return Err($errorType::$error(Box::new(cause)));
+                }
 
-    let y = parse_next(tokens);
-    if let Err(cause) = y {
-        return Err(ParsingError::PointParsingError(Box::new(cause)));
+                )*
+                Ok($type::new($($element.unwrap(), )*))
+            }
+        }
     }
-
-    let z = parse_next(tokens);
-    if let Err(cause) = z {
-        return Err(ParsingError::PointParsingError(Box::new(cause)));
-    }
-
-    Ok(Point3::new(x.unwrap(), y.unwrap(), z.unwrap()))
 }
 
-fn parse_vector<'a, T: FromStr>(
-    tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<Vector3<T>, ParsingError>
-where
-    <T as FromStr>::Err: Error + Debug,
-{
-    let x = parse_next(tokens);
-    if let Err(cause) = x {
-        return Err(ParsingError::VectorParsingError(Box::new(cause)));
-    }
-
-    let y = parse_next(tokens);
-    if let Err(cause) = y {
-        return Err(ParsingError::VectorParsingError(Box::new(cause)));
-    }
-
-    let z = parse_next(tokens);
-    if let Err(cause) = z {
-        return Err(ParsingError::VectorParsingError(Box::new(cause)));
-    }
-
-    Ok(Vector3::new(x.unwrap(), y.unwrap(), z.unwrap()))
-}
-
-fn parse_normal<'a, T: FromStr>(
-    tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<Normal3<T>, ParsingError>
-where
-    <T as FromStr>::Err: Error + Debug,
-{
-    let x = parse_next(tokens);
-    if let Err(cause) = x {
-        return Err(ParsingError::VectorParsingError(Box::new(cause)));
-    }
-
-    let y = parse_next(tokens);
-    if let Err(cause) = y {
-        return Err(ParsingError::VectorParsingError(Box::new(cause)));
-    }
-
-    let z = parse_next(tokens);
-    if let Err(cause) = z {
-        return Err(ParsingError::VectorParsingError(Box::new(cause)));
-    }
-
-    Ok(Normal3::new(x.unwrap(), y.unwrap(), z.unwrap()))
-}
+create_simple_token_parser! { RGB, ParsingError, ColorParsingError, [red green blue] }
+create_simple_token_parser! { Point3, ParsingError, PointParsingError, [x y z] }
+create_simple_token_parser! { Vector3, ParsingError, VectorParsingError, [x y z] }
+create_simple_token_parser! { Normal3, ParsingError, NormalParsingError, [x y z] }
 
 fn check_next_token<'a, I: Iterator<Item = &'a str>>(
     tokens: &mut I,
@@ -276,7 +213,7 @@ where
         )));
     }
 
-    let color = parse_color(tokens);
+    let color = RGB::from_tokens(tokens);
 
     if let Err(cause) = color {
         return Err(ParsingError::SingleColorTextureParsingError(Box::new(
@@ -489,7 +426,7 @@ where
 
     while let Some(token) = tokens.next() {
         match token {
-            "a:" => match parse_point(tokens) {
+            "a:" => match Point3::from_tokens(tokens) {
                 Ok(point) => {
                     a = Some(point);
                 }
@@ -497,7 +434,7 @@ where
                     return Err(ParsingError::TriangleParsingError(Box::new(cause)));
                 }
             },
-            "b:" => match parse_point(tokens) {
+            "b:" => match Point3::from_tokens(tokens) {
                 Ok(point) => {
                     b = Some(point);
                 }
@@ -505,7 +442,7 @@ where
                     return Err(ParsingError::TriangleParsingError(Box::new(cause)));
                 }
             },
-            "c:" => match parse_point(tokens) {
+            "c:" => match Point3::from_tokens(tokens) {
                 Ok(point) => {
                     c = Some(point);
                 }
@@ -513,7 +450,7 @@ where
                     return Err(ParsingError::TriangleParsingError(Box::new(cause)));
                 }
             },
-            "na:" => match parse_normal(tokens) {
+            "na:" => match Normal3::from_tokens(tokens) {
                 Ok(point) => {
                     na = Some(point);
                 }
@@ -521,7 +458,7 @@ where
                     return Err(ParsingError::TriangleParsingError(Box::new(cause)));
                 }
             },
-            "nb:" => match parse_normal(tokens) {
+            "nb:" => match Normal3::from_tokens(tokens) {
                 Ok(point) => {
                     nb = Some(point);
                 }
@@ -529,7 +466,7 @@ where
                     return Err(ParsingError::TriangleParsingError(Box::new(cause)));
                 }
             },
-            "nc:" => match parse_normal(tokens) {
+            "nc:" => match Normal3::from_tokens(tokens) {
                 Ok(point) => {
                     nc = Some(point);
                 }
@@ -546,7 +483,7 @@ where
                     return Err(ParsingError::TriangleParsingError(Box::new(cause)));
                 }
             },
-            "position:" => match parse_vector(tokens) {
+            "position:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     position = vec;
                 }
@@ -554,7 +491,7 @@ where
                     return Err(ParsingError::TriangleParsingError(Box::new(cause)));
                 }
             },
-            "scale:" => match parse_vector(tokens) {
+            "scale:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     scale = vec;
                 }
@@ -562,7 +499,7 @@ where
                     return Err(ParsingError::TriangleParsingError(Box::new(cause)));
                 }
             },
-            "rotation:" => match parse_vector(tokens) {
+            "rotation:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     rotation = vec;
                 }
@@ -666,7 +603,7 @@ where
                     return Err(ParsingError::BoxParsingError(Box::new(cause)));
                 }
             },
-            "position:" => match parse_vector(tokens) {
+            "position:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     position = vec;
                 }
@@ -674,7 +611,7 @@ where
                     return Err(ParsingError::BoxParsingError(Box::new(cause)));
                 }
             },
-            "scale:" => match parse_vector(tokens) {
+            "scale:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     scale = vec;
                 }
@@ -682,7 +619,7 @@ where
                     return Err(ParsingError::BoxParsingError(Box::new(cause)));
                 }
             },
-            "rotation:" => match parse_vector(tokens) {
+            "rotation:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     rotation = vec;
                 }
@@ -764,7 +701,7 @@ where
                     return Err(ParsingError::PlaneParsingError(Box::new(cause)));
                 }
             },
-            "position:" => match parse_vector(tokens) {
+            "position:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     position = vec;
                 }
@@ -772,7 +709,7 @@ where
                     return Err(ParsingError::PlaneParsingError(Box::new(cause)));
                 }
             },
-            "scale:" => match parse_vector(tokens) {
+            "scale:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     scale = vec;
                 }
@@ -780,7 +717,7 @@ where
                     return Err(ParsingError::PlaneParsingError(Box::new(cause)));
                 }
             },
-            "rotation:" => match parse_vector(tokens) {
+            "rotation:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     rotation = vec;
                 }
@@ -862,7 +799,7 @@ where
                     return Err(ParsingError::SphereParsingError(Box::new(cause)));
                 }
             },
-            "position:" => match parse_vector(tokens) {
+            "position:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     position = vec;
                 }
@@ -870,7 +807,7 @@ where
                     return Err(ParsingError::SphereParsingError(Box::new(cause)));
                 }
             },
-            "scale:" => match parse_vector(tokens) {
+            "scale:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     scale = vec;
                 }
@@ -878,7 +815,7 @@ where
                     return Err(ParsingError::SphereParsingError(Box::new(cause)));
                 }
             },
-            "rotation:" => match parse_vector(tokens) {
+            "rotation:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     rotation = vec;
                 }
@@ -957,7 +894,7 @@ where
                     return Err(ParsingError::UnexpectedEndOfTokens);
                 }
             },
-            "eye_position:" => match parse_point(tokens) {
+            "eye_position:" => match Point3::from_tokens(tokens) {
                 Ok(pos) => {
                     eye_position = pos;
                 }
@@ -965,7 +902,7 @@ where
                     return Err(ParsingError::PerspectiveCameraParsingError(Box::new(cause)));
                 }
             },
-            "gaze_direction:" => match parse_vector(tokens) {
+            "gaze_direction:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     gaze_direction = vec;
                 }
@@ -973,7 +910,7 @@ where
                     return Err(ParsingError::PerspectiveCameraParsingError(Box::new(cause)));
                 }
             },
-            "up_vector:" => match parse_vector(tokens) {
+            "up_vector:" => match Vector3::from_tokens(tokens) {
                 Ok(vec) => {
                     up_vector = vec;
                 }
@@ -1038,7 +975,7 @@ where
 
     while let Some(token) = tokens.next() {
         match token {
-            "color:" => match parse_color(tokens) {
+            "color:" => match RGB::from_tokens(tokens) {
                 Ok(col) => {
                     color = col;
                 }
@@ -1047,7 +984,7 @@ where
                 }
             },
 
-            "position:" => match parse_point(tokens) {
+            "position:" => match Point3::from_tokens(tokens) {
                 Ok(pos) => {
                     position = pos;
                 }
@@ -1055,7 +992,7 @@ where
                     return Err(ParsingError::SpotLightParsingError(Box::new(cause)));
                 }
             },
-            "direction:" => match parse_vector::<T>(tokens) {
+            "direction:" => match Vector3::<T>::from_tokens(tokens) {
                 Ok(vec) => {
                     direction = Some(vec.normalized());
                 }
@@ -1118,7 +1055,7 @@ where
 
     while let Some(token) = tokens.next() {
         match token {
-            "color:" => match parse_color(tokens) {
+            "color:" => match RGB::from_tokens(tokens) {
                 Ok(col) => {
                     color = col;
                 }
@@ -1127,7 +1064,7 @@ where
                 }
             },
 
-            "position:" => match parse_point(tokens) {
+            "position:" => match Point3::from_tokens(tokens) {
                 Ok(pos) => {
                     position = pos;
                 }
@@ -1236,10 +1173,10 @@ where
                 lights.push(Box::new(parse_spot_light(&mut tokens).unwrap()));
             }
             "background_color:" => {
-                background_color = parse_color(&mut tokens).unwrap();
+                background_color = RGB::from_tokens(&mut tokens).unwrap();
             }
             "ambient_light:" => {
-                ambient_light = parse_color(&mut tokens).unwrap();
+                ambient_light = RGB::from_tokens(&mut tokens).unwrap();
             }
             &_ => {
                 println!("Unexpected token while parsing root of scene: {}", token);
