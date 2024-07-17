@@ -15,20 +15,6 @@ use rustracer::{Node, Raytracer, RenderableGeometry, Transform};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
-
-use rustracer::image::Image;
-
-struct Container<T: Image<ColorType=RGB<f64>, PointType=Point2<f64>>> {
-    texture: T,
-}
-
-impl<T: Image<ColorType=RGB<f64>, PointType=Point2<f64>>> Container<T> {
-    fn new(texture: T) -> Container<T> {
-        Container { texture }
-    }
-}
-
-
 fn main() {
     let size = Vector2::new(640.0, 480.0);
 
@@ -58,12 +44,6 @@ fn main() {
         n,
     );
 
-    let _container1 = Container::new(SingleColorImage::new(RGB::new(0.0, 0.0, 0.0), Vector2::new(1.0, 1.0)));
-    let tc: Box<dyn Image<ColorType = RGB<f64>, PointType = Point2<f64>>> = Box::new(SingleColorImage::new(RGB::new(0.0, 0.0, 0.0), Vector2::new(1.0, 1.0)));
-    let _container2 = Container::new(tc);
-
-    //tc.get(Point2::new(1.0, 1.0));
-
     let plane_geometry = Box::new(RenderableGeometry::new(
         plane,
         LambertMaterial::new(SingleColorImage::new(
@@ -74,14 +54,8 @@ fn main() {
     let sphere_geometry = Box::new(RenderableGeometry::new(
         sphere,
         PhongMaterial::new(
-            SingleColorImage::new(
-                RGB::new(0.0, 1.0, 0.0),
-                Vector2::new(1.0, 1.0),
-            ),
-            SingleColorImage::new(
-                RGB::new(1.0, 1.0, 1.0),
-                Vector2::new(1.0, 1.0),
-            ),
+            SingleColorImage::new(RGB::new(0.0, 1.0, 0.0), Vector2::new(1.0, 1.0)),
+            SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
             64.0,
         ),
     ));
@@ -108,14 +82,8 @@ fn main() {
     let sphere2_geometry = Box::new(RenderableGeometry::new(
         sphere2,
         PhongMaterial::new(
-            SingleColorImage::new(
-                RGB::new(0.0, 1.0, 0.0),
-                Vector2::new(1.0, 1.0),
-            ),
-            SingleColorImage::new(
-                RGB::new(1.0, 1.0, 1.0),
-                Vector2::new(1.0, 1.0),
-            ),
+            SingleColorImage::new(RGB::new(0.0, 1.0, 0.0), Vector2::new(1.0, 1.0)),
+            SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
             64.0,
         ),
     ));

@@ -16,14 +16,14 @@ pub trait Image {
     fn get(&self, p: Self::PointType) -> Self::ColorType;
 }
 
-impl<C: Color, P: Point> Image for Box<dyn Image<ColorType=C, PointType=P>> {
+impl<C: Color, P: Point> Image for Box<dyn Image<ColorType = C, PointType = P>> {
     type ColorType = C;
     type PointType = P;
 
     fn size(&self) -> <<Self as Image>::PointType as Point>::VectorType {
-        self.deref().size()    
+        self.deref().size()
     }
-    
+
     fn get(&self, p: Self::PointType) -> Self::ColorType {
         self.deref().get(p)
     }

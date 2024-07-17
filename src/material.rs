@@ -26,9 +26,7 @@ pub struct UnshadedMaterial<I: Image> {
 }
 
 impl<I: Image> UnshadedMaterial<I> {
-    pub fn new(
-        texture: I,
-    ) -> UnshadedMaterial<I> {
+    pub fn new(texture: I) -> UnshadedMaterial<I> {
         UnshadedMaterial { texture }
     }
 }
@@ -56,9 +54,7 @@ pub struct LambertMaterial<I: Image> {
 }
 
 impl<I: Image> LambertMaterial<I> {
-    pub fn new(
-        texture: I,
-    ) -> LambertMaterial<I> {
+    pub fn new(texture: I) -> LambertMaterial<I> {
         LambertMaterial { texture }
     }
 }
@@ -100,7 +96,7 @@ pub struct PhongMaterial<I: Image> {
 impl<I: Image> PhongMaterial<I> {
     pub fn new(
         diffuse_texture: I,
-        specular_texture: I, 
+        specular_texture: I,
         exponent: <<I as Image>::ColorType as Color>::ChannelType,
     ) -> PhongMaterial<I> {
         PhongMaterial {
@@ -111,7 +107,8 @@ impl<I: Image> PhongMaterial<I> {
     }
 }
 
-impl<T: Length, I: Image<PointType=Point2< <T as Length>::ValueType >> > Material<T> for PhongMaterial<I>
+impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
+    for PhongMaterial<I>
 where
     <T as Length>::ValueType: FloatingPoint + Sqrt<Output = <T as Length>::ValueType>,
     <T as Length>::AreaType: Sqrt<Output = T>,

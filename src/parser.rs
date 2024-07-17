@@ -7,7 +7,7 @@ use std::str::FromStr;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::camera::{Perspective, RaytracingCamera};
-use crate::color::RGB;
+use crate::color::{Color, RGB};
 use crate::image::Image;
 use crate::image::SingleColorImage;
 use crate::light::{Light, PointLight, SpotLight};
@@ -16,7 +16,7 @@ use crate::math::geometry::{
     AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Intersect, ParametricLine, Triangle,
 };
 use crate::math::normal::Orthonormal3;
-use crate::math::{Normal3, NormalizableVector, Point2, Point3, Vector2, Vector3};
+use crate::math::{Normal3, NormalizableVector, Point2, Point3, Vector, Vector2, Vector3};
 use crate::ray_casting::Scene;
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
@@ -111,6 +111,8 @@ pub enum ParsingError {
         expected: &'static str,
         found: String,
     },
+    TextureParsingError(Box<ParsingError>),
+    UnsupportedTexture(String),
     SingleColorTextureParsingError(Box<ParsingError>),
     UnshadedMaterialParsingError(Box<ParsingError>),
     LambertMaterialParsingError(Box<ParsingError>),
@@ -140,10 +142,10 @@ where
     }
 }
 
-pub trait FromTokens : Sized {
+pub trait FromTokens: Sized {
     type Err;
 
-    fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err>; 
+    fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err>;
 }
 
 macro_rules! create_simple_token_parser {
@@ -152,7 +154,7 @@ macro_rules! create_simple_token_parser {
         <T as FromStr>::Err: Error + Debug,
         {
             type Err = ParsingError;
-    
+
             fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
                 $(
                     let $element = parse_next(tokens);
@@ -190,169 +192,192 @@ fn check_next_token<'a, I: Iterator<Item = &'a str>>(
     }
 }
 
-fn parse_single_color_texture<'a, T: FromStr + MultiplyStable + 'static>(
+impl<T: FromStr + MultiplyStable> FromTokens for SingleColorImage<RGB<T>, Vector2<T>>
+where
+    <T as FromStr>::Err: Error + Debug,
+{
+    type Err = ParsingError;
+
+    fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
+        if let Err(cause) = check_next_token(tokens, "{") {
+            return Err(ParsingError::SingleColorTextureParsingError(Box::new(
+                cause,
+            )));
+        }
+        if let Err(cause) = check_next_token(tokens, "color:") {
+            return Err(ParsingError::SingleColorTextureParsingError(Box::new(
+                cause,
+            )));
+        }
+
+        let color = RGB::from_tokens(tokens);
+
+        if let Err(cause) = color {
+            return Err(ParsingError::SingleColorTextureParsingError(Box::new(
+                cause,
+            )));
+        }
+        if let Err(cause) = check_next_token(tokens, "}") {
+            return Err(ParsingError::SingleColorTextureParsingError(Box::new(
+                cause,
+            )));
+        }
+
+        Ok(SingleColorImage::new(
+            color.unwrap(),
+            Vector2::new(One::one(), One::one()),
+        ))
+    }
+}
+
+fn parse_texture<'a, T: FromStr + MultiplyStable + 'static>(
     tokens: &mut impl Iterator<Item = &'a str>,
 ) -> Result<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>, ParsingError>
 where
     <T as FromStr>::Err: Error + Debug,
 {
-    if let Err(cause) = check_next_token(tokens, "single_color_texture") {
-        return Err(ParsingError::SingleColorTextureParsingError(Box::new(
-            cause,
-        )));
+    match tokens.next() {
+        Some("single_color_texture") => match SingleColorImage::from_tokens(tokens) {
+            Ok(tex) => Ok(Box::new(tex)),
+            Err(cause) => Err(ParsingError::TextureParsingError(Box::new(cause))),
+        },
+        Some(texture) => Err(ParsingError::UnsupportedTexture(texture.to_string())),
+        None => Err(ParsingError::UnexpectedEndOfTokens),
     }
-    if let Err(cause) = check_next_token(tokens, "{") {
-        return Err(ParsingError::SingleColorTextureParsingError(Box::new(
-            cause,
-        )));
-    }
-    if let Err(cause) = check_next_token(tokens, "color:") {
-        return Err(ParsingError::SingleColorTextureParsingError(Box::new(
-            cause,
-        )));
-    }
-
-    let color = RGB::from_tokens(tokens);
-
-    if let Err(cause) = color {
-        return Err(ParsingError::SingleColorTextureParsingError(Box::new(
-            cause,
-        )));
-    }
-    if let Err(cause) = check_next_token(tokens, "}") {
-        return Err(ParsingError::SingleColorTextureParsingError(Box::new(
-            cause,
-        )));
-    }
-
-    Ok(Box::new(SingleColorImage::new(
-        color.unwrap(),
-        Vector2::new(One::one(), One::one()),
-    )))
 }
 
-fn parse_unshaded_material<'a, T: FromStr + MultiplyStable + 'static>(
-    tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<UnshadedMaterial<Box<dyn Image<ColorType=RGB<T>, PointType=Point2<T>> >>, ParsingError>
+impl<T: FromStr + MultiplyStable + 'static> FromTokens
+    for UnshadedMaterial<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>>
 where
     <T as FromStr>::Err: Error + Debug,
 {
-    if let Err(cause) = check_next_token(tokens, "{") {
-        return Err(ParsingError::UnshadedMaterialParsingError(Box::new(cause)));
-    }
-    if let Err(cause) = check_next_token(tokens, "texture:") {
-        return Err(ParsingError::UnshadedMaterialParsingError(Box::new(cause)));
-    }
+    type Err = ParsingError;
 
-    let texture = parse_single_color_texture(tokens);
-    if let Err(cause) = texture {
-        return Err(ParsingError::UnshadedMaterialParsingError(Box::new(cause)));
-    }
+    fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
+        if let Err(cause) = check_next_token(tokens, "{") {
+            return Err(ParsingError::UnshadedMaterialParsingError(Box::new(cause)));
+        }
+        if let Err(cause) = check_next_token(tokens, "texture:") {
+            return Err(ParsingError::UnshadedMaterialParsingError(Box::new(cause)));
+        }
 
-    if let Err(cause) = check_next_token(tokens, "}") {
-        return Err(ParsingError::UnshadedMaterialParsingError(Box::new(cause)));
-    }
+        let texture = parse_texture(tokens);
+        if let Err(cause) = texture {
+            return Err(ParsingError::UnshadedMaterialParsingError(Box::new(cause)));
+        }
 
-    Ok(UnshadedMaterial::new(texture.unwrap()))
+        if let Err(cause) = check_next_token(tokens, "}") {
+            return Err(ParsingError::UnshadedMaterialParsingError(Box::new(cause)));
+        }
+
+        Ok(UnshadedMaterial::new(texture.unwrap()))
+    }
 }
 
-fn parse_lambert_material<'a, T: FromStr + MultiplyStable + 'static>(
-    tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<LambertMaterial< Box<dyn Image<ColorType=RGB<T>, PointType=Point2<T>> >  >, ParsingError>
+impl<T: FromStr + MultiplyStable + 'static> FromTokens
+    for LambertMaterial<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>>
 where
     <T as FromStr>::Err: Error + Debug,
 {
-    if let Err(cause) = check_next_token(tokens, "{") {
-        return Err(ParsingError::LambertMaterialParsingError(Box::new(cause)));
-    }
-    if let Err(cause) = check_next_token(tokens, "texture:") {
-        return Err(ParsingError::LambertMaterialParsingError(Box::new(cause)));
-    }
+    type Err = ParsingError;
 
-    let texture = parse_single_color_texture(tokens);
-    if let Err(cause) = texture {
-        return Err(ParsingError::UnshadedMaterialParsingError(Box::new(cause)));
-    }
+    fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
+        if let Err(cause) = check_next_token(tokens, "{") {
+            return Err(ParsingError::LambertMaterialParsingError(Box::new(cause)));
+        }
+        if let Err(cause) = check_next_token(tokens, "texture:") {
+            return Err(ParsingError::LambertMaterialParsingError(Box::new(cause)));
+        }
 
-    if let Err(cause) = check_next_token(tokens, "}") {
-        return Err(ParsingError::LambertMaterialParsingError(Box::new(cause)));
-    }
+        let texture = parse_texture(tokens);
+        if let Err(cause) = texture {
+            return Err(ParsingError::LambertMaterialParsingError(Box::new(cause)));
+        }
 
-    Ok(LambertMaterial::new(texture.unwrap()))
+        if let Err(cause) = check_next_token(tokens, "}") {
+            return Err(ParsingError::LambertMaterialParsingError(Box::new(cause)));
+        }
+
+        Ok(LambertMaterial::new(texture.unwrap()))
+    }
 }
 
-fn parse_phong_material<'a, T: MultiplyStable + 'static>(
-    tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<PhongMaterial<   Box<dyn Image<ColorType=RGB<T>, PointType=Point2<T>> >  >, ParsingError>
+impl<T: FromStr + MultiplyStable + 'static> FromTokens
+    for PhongMaterial<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>>
 where
-    <T as FromStr>::Err: Error,
+    <T as FromStr>::Err: Error + Debug,
 {
-    if let Err(cause) = check_next_token(tokens, "{") {
-        return Err(ParsingError::PhongMaterialParsingError(Box::new(cause)));
-    }
+    type Err = ParsingError;
 
-    let mut diffuse_texture: Option<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>> =
-        None;
-    let mut specular_texture: Option<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>> =
-        None;
-    let mut exponent = One::one();
+    fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
+        if let Err(cause) = check_next_token(tokens, "{") {
+            return Err(ParsingError::PhongMaterialParsingError(Box::new(cause)));
+        }
 
-    while let Some(token) = tokens.next() {
-        match token {
-            "diffuse_texture:" => match parse_single_color_texture(tokens) {
-                Ok(texture) => {
-                    diffuse_texture = Some(texture);
-                }
-                Err(cause) => {
-                    return Err(ParsingError::PhongMaterialParsingError(Box::new(cause)));
-                }
-            },
-            "specular_texture:" => match parse_single_color_texture(tokens) {
-                Ok(texture) => {
-                    specular_texture = Some(texture);
-                }
-                Err(cause) => {
-                    return Err(ParsingError::PhongMaterialParsingError(Box::new(cause)));
-                }
-            },
-            "exponent:" => match tokens.next() {
-                Some(exponent_string) => match exponent_string.parse() {
-                    Ok(exp) => exponent = exp,
-                    Err(_) => {
-                        return Err(ParsingError::NumberParsingError(
-                            "Unable to parse field of number.",
-                        ));
+        let mut diffuse_texture: Option<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>> =
+            None;
+        let mut specular_texture: Option<
+            Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>,
+        > = None;
+        let mut exponent = One::one();
+
+        while let Some(token) = tokens.next() {
+            match token {
+                "diffuse_texture:" => match parse_texture(tokens) {
+                    Ok(texture) => {
+                        diffuse_texture = Some(texture);
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::PhongMaterialParsingError(Box::new(cause)));
                     }
                 },
-                None => {
-                    return Err(ParsingError::UnexpectedEndOfTokens);
+                "specular_texture:" => match parse_texture(tokens) {
+                    Ok(texture) => {
+                        specular_texture = Some(texture);
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::PhongMaterialParsingError(Box::new(cause)));
+                    }
+                },
+                "exponent:" => match tokens.next() {
+                    Some(exponent_string) => match exponent_string.parse() {
+                        Ok(exp) => exponent = exp,
+                        Err(_) => {
+                            return Err(ParsingError::NumberParsingError(
+                                "Unable to parse field of number.",
+                            ));
+                        }
+                    },
+                    None => {
+                        return Err(ParsingError::UnexpectedEndOfTokens);
+                    }
+                },
+                "}" => {
+                    break;
                 }
-            },
-            "}" => {
-                break;
-            }
-            token => {
-                return Err(ParsingError::UnexpectedToken {
-                    expected: "diffuse_texture:, specular_texture:, exponent:, }",
-                    found: token.to_string(),
-                });
+                token => {
+                    return Err(ParsingError::UnexpectedToken {
+                        expected: "diffuse_texture:, specular_texture:, exponent:, }",
+                        found: token.to_string(),
+                    });
+                }
             }
         }
-    }
 
-    if let None = diffuse_texture {
-        return Err(ParsingError::MissingElement("diffuse_texture"));
-    }
+        if let None = diffuse_texture {
+            return Err(ParsingError::MissingElement("diffuse_texture"));
+        }
 
-    if let None = specular_texture {
-        return Err(ParsingError::MissingElement("specular_texture"));
-    }
+        if let None = specular_texture {
+            return Err(ParsingError::MissingElement("specular_texture"));
+        }
 
-    Ok(PhongMaterial::new(
-        diffuse_texture.unwrap(),
-        specular_texture.unwrap(),
-        exponent,
-    ))
+        Ok(PhongMaterial::new(
+            diffuse_texture.unwrap(),
+            specular_texture.unwrap(),
+            exponent,
+        ))
+    }
 }
 
 fn parse_material<'a, T: Length>(
@@ -368,15 +393,15 @@ where
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
     match tokens.next() {
-        Some("unshaded_material") => match parse_unshaded_material(tokens) {
+        Some("unshaded_material") => match UnshadedMaterial::from_tokens(tokens) {
             Ok(material) => Ok(Box::new(material)),
             Err(cause) => Err(ParsingError::MaterialParsingError(Box::new(cause))),
         },
-        Some("lambert_material") => match parse_lambert_material(tokens) {
+        Some("lambert_material") => match LambertMaterial::from_tokens(tokens) {
             Ok(material) => Ok(Box::new(material)),
             Err(cause) => Err(ParsingError::MaterialParsingError(Box::new(cause))),
         },
-        Some("phong_material") => match parse_phong_material(tokens) {
+        Some("phong_material") => match PhongMaterial::from_tokens(tokens) {
             Ok(material) => Ok(Box::new(material)),
             Err(cause) => Err(ParsingError::MaterialParsingError(Box::new(cause))),
         },
@@ -958,8 +983,10 @@ pub fn parse_spot_light<'a, T: Length + 'static>(
 ) -> Result<SpotLight<T, RGB<<T as Length>::ValueType>>, ParsingError>
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: ToRadians<Output=<T as Length>::ValueType> + 
-        Neg<Output = <T as Length>::ValueType> + MultiplyStable + Mul<T, Output = T>,
+    <T as Length>::ValueType: ToRadians<Output = <T as Length>::ValueType>
+        + Neg<Output = <T as Length>::ValueType>
+        + MultiplyStable
+        + Mul<T, Output = T>,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -998,7 +1025,7 @@ where
                 Err(cause) => {
                     return Err(ParsingError::SpotLightParsingError(Box::new(cause)));
                 }
-            }
+            },
             "angle:" => match tokens.next() {
                 Some(angle_string) => match angle_string.parse() {
                     Ok(a) => angle = Some(a),
@@ -1030,10 +1057,8 @@ where
         angle.unwrap().to_radians(),
     );
 
-
     Ok(spot_light)
 }
-
 
 pub fn parse_point_light<'a, T: Length + 'static>(
     tokens: &mut impl Iterator<Item = &'a str>,
