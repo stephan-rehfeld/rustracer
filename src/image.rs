@@ -1,6 +1,8 @@
 use crate::color::Color;
 use crate::math::{Point, Point2, Vector};
 
+use std::ops::Deref;
+
 pub mod analyzer;
 pub mod converter;
 pub mod farbfeld;
@@ -14,19 +16,18 @@ pub trait Image {
     fn get(&self, p: Self::PointType) -> Self::ColorType;
 }
 
-/*
 impl<C: Color, P: Point> Image for Box<dyn Image<ColorType=C, PointType=P>> {
     type ColorType = C;
     type PointType = P;
 
     fn size(&self) -> <<Self as Image>::PointType as Point>::VectorType {
-        *self.size()    
+        self.deref().size()    
     }
     
     fn get(&self, p: Self::PointType) -> Self::ColorType {
-        *self.get(p)
+        self.deref().get(p)
     }
-}*/
+}
 
 pub trait WritableImage: Image {
     fn get_mut(&mut self, p: Self::PointType) -> &mut Self::ColorType;

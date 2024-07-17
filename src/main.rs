@@ -15,6 +15,20 @@ use rustracer::{Node, Raytracer, RenderableGeometry, Transform};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
+
+use rustracer::image::Image;
+
+struct Container<T: Image<ColorType=RGB<f64>, PointType=Point2<f64>>> {
+    texture: T,
+}
+
+impl<T: Image<ColorType=RGB<f64>, PointType=Point2<f64>>> Container<T> {
+    fn new(texture: T) -> Container<T> {
+        Container { texture }
+    }
+}
+
+
 fn main() {
     let size = Vector2::new(640.0, 480.0);
 
@@ -44,40 +58,46 @@ fn main() {
         n,
     );
 
+    let _container1 = Container::new(SingleColorImage::new(RGB::new(0.0, 0.0, 0.0), Vector2::new(1.0, 1.0)));
+    let tc: Box<dyn Image<ColorType = RGB<f64>, PointType = Point2<f64>>> = Box::new(SingleColorImage::new(RGB::new(0.0, 0.0, 0.0), Vector2::new(1.0, 1.0)));
+    let _container2 = Container::new(tc);
+
+    //tc.get(Point2::new(1.0, 1.0));
+
     let plane_geometry = Box::new(RenderableGeometry::new(
         plane,
-        LambertMaterial::new(Box::new(SingleColorImage::new(
+        LambertMaterial::new(SingleColorImage::new(
             RGB::new(1.0, 0.0, 0.0),
             Vector2::new(1.0, 1.0),
-        ))),
+        )),
     ));
     let sphere_geometry = Box::new(RenderableGeometry::new(
         sphere,
         PhongMaterial::new(
-            Box::new(SingleColorImage::new(
+            SingleColorImage::new(
                 RGB::new(0.0, 1.0, 0.0),
                 Vector2::new(1.0, 1.0),
-            )),
-            Box::new(SingleColorImage::new(
+            ),
+            SingleColorImage::new(
                 RGB::new(1.0, 1.0, 1.0),
                 Vector2::new(1.0, 1.0),
-            )),
+            ),
             64.0,
         ),
     ));
     let aab_geometry = Box::new(RenderableGeometry::new(
         aab,
-        LambertMaterial::new(Box::new(SingleColorImage::new(
+        LambertMaterial::new(SingleColorImage::new(
             RGB::new(0.0, 0.0, 1.0),
             Vector2::new(1.0, 1.0),
-        ))),
+        )),
     ));
     let triangle_geometry = Box::new(RenderableGeometry::new(
         triangle,
-        LambertMaterial::new(Box::new(SingleColorImage::new(
+        LambertMaterial::new(SingleColorImage::new(
             RGB::new(1.0, 1.0, 0.0),
             Vector2::new(1.0, 1.0),
-        ))),
+        )),
     ));
 
     let sphere2 = ImplicitNSphere::new(
@@ -88,14 +108,14 @@ fn main() {
     let sphere2_geometry = Box::new(RenderableGeometry::new(
         sphere2,
         PhongMaterial::new(
-            Box::new(SingleColorImage::new(
+            SingleColorImage::new(
                 RGB::new(0.0, 1.0, 0.0),
                 Vector2::new(1.0, 1.0),
-            )),
-            Box::new(SingleColorImage::new(
+            ),
+            SingleColorImage::new(
                 RGB::new(1.0, 1.0, 1.0),
                 Vector2::new(1.0, 1.0),
-            )),
+            ),
             64.0,
         ),
     ));

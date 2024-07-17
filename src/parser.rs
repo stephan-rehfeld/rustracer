@@ -155,11 +155,10 @@ macro_rules! create_simple_token_parser {
     
             fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
                 $(
-                let $element = parse_next(tokens);
-                if let Err(cause) = $element {
-                    return Err($errorType::$error(Box::new(cause)));
-                }
-
+                    let $element = parse_next(tokens);
+                    if let Err(cause) = $element {
+                        return Err($errorType::$error(Box::new(cause)));
+                    }
                 )*
                 Ok($type::new($($element.unwrap(), )*))
             }
@@ -234,7 +233,7 @@ where
 
 fn parse_unshaded_material<'a, T: FromStr + MultiplyStable + 'static>(
     tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<UnshadedMaterial<RGB<T>>, ParsingError>
+) -> Result<UnshadedMaterial<Box<dyn Image<ColorType=RGB<T>, PointType=Point2<T>> >>, ParsingError>
 where
     <T as FromStr>::Err: Error + Debug,
 {
@@ -259,7 +258,7 @@ where
 
 fn parse_lambert_material<'a, T: FromStr + MultiplyStable + 'static>(
     tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<LambertMaterial<RGB<T>>, ParsingError>
+) -> Result<LambertMaterial< Box<dyn Image<ColorType=RGB<T>, PointType=Point2<T>> >  >, ParsingError>
 where
     <T as FromStr>::Err: Error + Debug,
 {
@@ -284,7 +283,7 @@ where
 
 fn parse_phong_material<'a, T: MultiplyStable + 'static>(
     tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<PhongMaterial<RGB<T>>, ParsingError>
+) -> Result<PhongMaterial<   Box<dyn Image<ColorType=RGB<T>, PointType=Point2<T>> >  >, ParsingError>
 where
     <T as FromStr>::Err: Error,
 {
@@ -386,7 +385,7 @@ where
     }
 }
 
-fn parse_triangle<'a, T: Length + Neg<Output = T> + Half>(
+fn parse_triangle<'a, T: Length + Neg<Output = T>>(
     tokens: &mut impl Iterator<Item = &'a str>,
 ) -> Result<RenderableGeometry<Triangle<Point3<T>>, T>, ParsingError>
 where
@@ -564,7 +563,7 @@ where
     Ok(triangle_geometry)
 }
 
-fn parse_box<'a, T: Length + Neg<Output = T> + Half>(
+fn parse_box<'a, T: Length + Neg<Output = T>>(
     tokens: &mut impl Iterator<Item = &'a str>,
 ) -> Result<RenderableGeometry<AxisAlignedBox<Point3<T>>, T>, ParsingError>
 where
@@ -644,8 +643,8 @@ where
     }
 
     let aab = AxisAlignedBox::new(
-        Point3::<T>::new(-T::one().half(), -T::one().half(), -T::one().half()),
-        Point3::new(T::one().half(), T::one().half(), T::one().half()),
+        Point3::<T>::new(-T::one(), -T::one(), -T::one()),
+        Point3::new(T::one(), T::one(), T::one()),
     );
 
     let aab_geometry = RenderableGeometry::new(
@@ -1087,7 +1086,7 @@ where
     Ok(PointLight::new(color, position))
 }
 
-pub fn parse_scene<T: Length + Neg<Output = T> + Half + 'static>(
+pub fn parse_scene<T: Length + Neg<Output = T> + 'static>(
     filename: &str,
     screen_size: Vector2<<T as Length>::ValueType>,
 ) -> Result<Scene<T, RGB<<T as Length>::ValueType>>, ParsingError>
