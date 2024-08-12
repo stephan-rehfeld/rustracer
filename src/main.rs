@@ -1,4 +1,4 @@
-use rustracer::camera::Perspective;
+use rustracer::camera::PerspectiveCamera;
 use rustracer::color::{RGB, RGBA};
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
@@ -121,17 +121,17 @@ fn main() {
 
     let lights: Vec<Box<dyn Light<Meter<f64>, RGB<f64>>>> = vec![point_light, spot_light];
 
-    let cam = Box::new(Perspective::new(
+    let cam = Box::new(PerspectiveCamera::new(
         Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),
         Vector3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(-1.0)),
         Vector3::new(Meter::new(0.0), Meter::new(1.0), Meter::new(0.0)),
         Degrees::<f64>::new(90.0).to_radians(),
-        size,
     ));
 
-    let mut scene = rustracer::parser::parse_scene::<Meter<f64>>("example.scene", size).unwrap();
+    let mut scene = rustracer::parser::parse_scene::<Meter<f64>>("example.scene").unwrap();
 
     let raytracer = RayCaster::new(
+        size,
         //cam,
         scene.cameras.remove("main").unwrap(),
         //geometries,

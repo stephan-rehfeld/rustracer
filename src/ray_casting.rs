@@ -72,6 +72,7 @@ pub struct RayCaster<T: Length, C>
 where
     C: Color<ChannelType = <T as Length>::ValueType>,
 {
+    size: Vector2<T::ValueType>,
     camera: Box<dyn RaytracingCamera<T>>,
     scene: Vec<Box<<Self as Raytracer>::RenderableTraitType>>,
     lights: Vec<Box<dyn Light<T, C>>>,
@@ -85,6 +86,7 @@ where
     C: Color<ChannelType = <T as Length>::ValueType>,
 {
     pub fn new(
+        size: Vector2<T::ValueType>,
         camera: Box<dyn RaytracingCamera<T>>,
         scene: Vec<Box<<Self as Raytracer>::RenderableTraitType>>,
         lights: Vec<Box<dyn Light<T, C>>>,
@@ -93,6 +95,7 @@ where
         shadow_tolerance: <T as Length>::ValueType,
     ) -> RayCaster<T, C> {
         RayCaster {
+            size,
             camera,
             scene,
             lights,
@@ -111,12 +114,12 @@ where
     type PointType = Point2<<T as Length>::ValueType>;
 
     fn size(&self) -> Vector2<<T as Length>::ValueType> {
-        self.camera.size()
+        self.size
     }
 
     fn get(&self, p: Self::PointType) -> Self::ColorType {
         let p = Point2::new(p.x, self.size().y - p.y - <<T as Length>::ValueType>::one());
-        let ray = self.camera.ray_for(p);
+        let ray = self.camera.ray_for(self.size, p);
 
         let mut hits: Vec<(
             <Self as Raytracer>::ScalarType,
