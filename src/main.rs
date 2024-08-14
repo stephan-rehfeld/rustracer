@@ -9,9 +9,10 @@ use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3,
 use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
 use rustracer::ray_casting::RayCaster;
 use rustracer::traits::ToRadians;
+use rustracer::transform::Transform3;
 use rustracer::units::angle::Degrees;
 use rustracer::units::length::Meter;
-use rustracer::{Node, Raytracer, RenderableGeometry, Transform};
+use rustracer::{Node, Raytracer, RenderableGeometry};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
@@ -88,7 +89,7 @@ fn main() {
         ),
     ));
 
-    let transform = Transform::<f64>::ident()
+    let transform = Transform3::<f64>::ident()
         .translate(-1.0, 0.0, 1.0)
         .scale(0.1, 0.1, 0.1);
 

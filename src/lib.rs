@@ -1,11 +1,12 @@
-use std::ops::{Add, Div, Mul, Neg};
+use std::ops::{Div, Mul};
 
 use color::Color;
 use image::Image;
 use material::Material;
 use math::geometry::{Intersect, ParametricLine};
-use math::{Mat4x4, Normal, NormalizableVector, Point, Point3, Vector, Vector3};
-use traits::{Cos, One, Recip, Sin, Sqrt, Zero};
+use math::{Normal, NormalizableVector, Point, Point3, Vector, Vector3};
+use traits::{Sqrt, Zero};
+use transform::Transform3;
 use units::length::Length;
 
 pub mod camera;
@@ -17,6 +18,7 @@ pub mod math;
 pub mod parser;
 pub mod ray_casting;
 pub mod traits;
+pub mod transform;
 pub mod units;
 
 pub trait Renderable<T: Length> {
@@ -91,7 +93,7 @@ where
 }
 
 pub struct Node<T: Length, C: Color> {
-    transform: Transform<<T as Div>::Output>,
+    transform: Transform3<<T as Div>::Output>,
     elements: Vec<
         Box<
             dyn Renderable<
@@ -109,7 +111,7 @@ pub struct Node<T: Length, C: Color> {
 
 impl<T: Length, C: Color> Node<T, C> {
     pub fn new(
-        transform: Transform<<T as Div>::Output>,
+        transform: Transform3<<T as Div>::Output>,
         elements: Vec<
             Box<
                 dyn Renderable<
@@ -175,250 +177,6 @@ where
             .collect();
 
         hits
-    }
-}
-
-pub struct Transform<T> {
-    matrix: Mat4x4<T>,
-    inverse: Mat4x4<T>,
-}
-
-impl<T: One + Zero> Transform<T> {
-    pub fn ident() -> Transform<T> {
-        Transform {
-            matrix: Mat4x4::ident(),
-            inverse: Mat4x4::ident(),
-        }
-    }
-}
-
-impl<T> Transform<T>
-where
-    T: Add<Output = T> + Neg<Output = T> + Mul<Output = T> + Recip + Zero + One + Copy,
-{
-    pub fn scale(self, x: T, y: T, z: T) -> Transform<T> {
-        let matrix = Mat4x4::new(
-            x,
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            y,
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            z,
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        let inverse = Mat4x4::new(
-            x.recip(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            y.recip(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            z.recip(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        Transform {
-            matrix: self.matrix * matrix,
-            inverse: inverse * self.inverse,
-        }
-    }
-
-    pub fn translate(self, x: T, y: T, z: T) -> Transform<T> {
-        let matrix = Mat4x4::new(
-            One::one(),
-            Zero::zero(),
-            Zero::zero(),
-            x,
-            Zero::zero(),
-            One::one(),
-            Zero::zero(),
-            y,
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-            z,
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        let inverse = Mat4x4::new(
-            One::one(),
-            Zero::zero(),
-            Zero::zero(),
-            -x,
-            Zero::zero(),
-            One::one(),
-            Zero::zero(),
-            -y,
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-            -z,
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        Transform {
-            matrix: self.matrix * matrix,
-            inverse: inverse * self.inverse,
-        }
-    }
-
-    pub fn rotate_x<A: Cos<Output = T> + Sin<Output = T> + Copy>(self, angle: A) -> Transform<T> {
-        let matrix = Mat4x4::new(
-            One::one(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            angle.cos(),
-            -angle.sin(),
-            Zero::zero(),
-            Zero::zero(),
-            angle.sin(),
-            angle.cos(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        let inverse = Mat4x4::new(
-            One::one(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            angle.cos(),
-            angle.sin(),
-            Zero::zero(),
-            Zero::zero(),
-            -angle.sin(),
-            angle.cos(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        Transform {
-            matrix: self.matrix * matrix,
-            inverse: inverse * self.inverse,
-        }
-    }
-
-    pub fn rotate_y<A: Cos<Output = T> + Sin<Output = T> + Copy>(self, angle: A) -> Transform<T> {
-        let matrix = Mat4x4::new(
-            angle.cos(),
-            Zero::zero(),
-            -angle.sin(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-            Zero::zero(),
-            Zero::zero(),
-            angle.sin(),
-            Zero::zero(),
-            angle.cos(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        let inverse = Mat4x4::new(
-            angle.cos(),
-            Zero::zero(),
-            angle.sin(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-            Zero::zero(),
-            Zero::zero(),
-            -angle.sin(),
-            Zero::zero(),
-            angle.cos(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        Transform {
-            matrix: self.matrix * matrix,
-            inverse: inverse * self.inverse,
-        }
-    }
-
-    pub fn rotate_z<A: Cos<Output = T> + Sin<Output = T> + Copy>(self, angle: A) -> Transform<T> {
-        let matrix = Mat4x4::new(
-            angle.cos(),
-            -angle.sin(),
-            Zero::zero(),
-            Zero::zero(),
-            angle.sin(),
-            angle.cos(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        let inverse = Mat4x4::new(
-            angle.cos(),
-            angle.sin(),
-            Zero::zero(),
-            Zero::zero(),
-            -angle.sin(),
-            angle.cos(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            Zero::zero(),
-            One::one(),
-        );
-
-        Transform {
-            matrix: self.matrix * matrix,
-            inverse: inverse * self.inverse,
-        }
     }
 }
 
