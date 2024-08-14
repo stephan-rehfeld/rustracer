@@ -3,18 +3,17 @@ use std::fmt::Debug;
 use std::ops::{Mul, Neg};
 use std::str::FromStr;
 
-
 use crate::color::RGB;
 use crate::light::{PointLight, SpotLight};
 use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{Sqrt,Zero};
+use crate::traits::{Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 
-use crate::parser::{FromTokens, ParsingError};
 use crate::parser::util;
+use crate::parser::{FromTokens, ParsingError};
 
 impl<T: Length> FromTokens for SpotLight<T, RGB<<T as Length>::ValueType>>
 where
@@ -152,5 +151,3 @@ where
         Ok(PointLight::new(color, position))
     }
 }
-
-

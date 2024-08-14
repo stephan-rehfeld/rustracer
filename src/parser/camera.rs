@@ -11,8 +11,8 @@ use crate::traits::{FloatingPoint, Half, One, Sqrt, Tan, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 
-use crate::parser::{FromTokens, ParsingError};
 use crate::parser::util;
+use crate::parser::{FromTokens, ParsingError};
 
 impl<T: Length> FromTokens for (String, PerspectiveCamera<T>)
 where
@@ -111,4 +111,3 @@ where
         ))
     }
 }
-

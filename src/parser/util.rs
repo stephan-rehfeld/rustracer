@@ -18,4 +18,3 @@ pub fn check_next_token<'a, I: Iterator<Item = &'a str>>(
         None => Err(ParsingError::UnexpectedEndOfTokens),
     }
 }
-

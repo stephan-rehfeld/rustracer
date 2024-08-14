@@ -2,6 +2,7 @@ pub mod geometry;
 pub mod mat;
 pub mod normal;
 pub mod point;
+pub mod transform;
 pub mod vector;
 
 pub use mat::Mat3x3;

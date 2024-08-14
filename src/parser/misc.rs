@@ -7,7 +7,9 @@ use crate::math::{Normal3, Point3, Vector3};
 
 use crate::parser::{FromTokens, ParsingError};
 
-pub fn parse_next<'a, T: FromStr>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<T, ParsingError>
+pub fn parse_next<'a, T: FromStr>(
+    tokens: &mut impl Iterator<Item = &'a str>,
+) -> Result<T, ParsingError>
 where
     <T as FromStr>::Err: Error,
 {
@@ -19,8 +21,6 @@ where
         None => Err(ParsingError::UnexpectedEndOfTokens),
     }
 }
-
-
 
 macro_rules! create_simple_token_parser {
     ($type: ident, $errorType: ident, $error: ident, [$($element: ident)+]) => {
@@ -46,4 +46,3 @@ create_simple_token_parser! { RGB, ParsingError, ColorParsingError, [red green b
 create_simple_token_parser! { Point3, ParsingError, PointParsingError, [x y z] }
 create_simple_token_parser! { Vector3, ParsingError, VectorParsingError, [x y z] }
 create_simple_token_parser! { Normal3, ParsingError, NormalParsingError, [x y z] }
-

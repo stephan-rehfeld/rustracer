@@ -5,23 +5,24 @@ use std::str::FromStr;
 
 use crate::color::RGB;
 use crate::material::Material;
-use crate::math::geometry::{
-    AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle,
-};
+use crate::math::transform::Transform3;
 use crate::math::{Normal3, Point3, Vector3};
+use crate::scene_graph::RenderableGeometry;
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
 use crate::traits::{Cos, FloatingPoint, One, Sin, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
-use crate::transform::Transform3;
+use crate::{AxisAlignedBox, Plane, Sphere, Triangle};
 
-use crate::parser::{FromTokens, ParsingError, RenderableGeometry};
-use crate::parser::material;
-use crate::parser::util;
+use crate::parser::{
+    FromTokens, ParsingError, RenderableAxisAlignedBox, RenderablePlane,
+    RenderableSphere, RenderableTriangle,
+};
 
+use crate::parser::{material, util};
 
-impl<T: Length> FromTokens for RenderableGeometry<Triangle<Point3<T>>, T>
+impl<T: Length> FromTokens for RenderableTriangle<T>
 where
     <T as Length>::ValueType: FloatingPoint
         + FromStr
@@ -201,7 +202,7 @@ where
     }
 }
 
-impl<T: Length + Neg<Output = T>> FromTokens for RenderableGeometry<AxisAlignedBox<Point3<T>>, T>
+impl<T: Length + Neg<Output = T>> FromTokens for RenderableAxisAlignedBox<T>
 where
     <T as Length>::ValueType: FloatingPoint
         + FromStr
@@ -301,7 +302,7 @@ where
     }
 }
 
-impl<T: Length> FromTokens for RenderableGeometry<ImplicitPlane3<T>, T>
+impl<T: Length> FromTokens for RenderablePlane<T>
 where
     <T as Length>::ValueType: FloatingPoint
         + FromStr
@@ -381,7 +382,7 @@ where
             return Err(ParsingError::MissingElement("material"));
         }
 
-        let plane = ImplicitPlane3::new(
+        let plane = Plane::new(
             Point3::new(Zero::zero(), Zero::zero(), Zero::zero()),
             Normal3::new(Zero::zero(), One::one(), Zero::zero()),
         );
@@ -401,7 +402,7 @@ where
     }
 }
 
-impl<T: Length> FromTokens for RenderableGeometry<ImplicitNSphere<Point3<T>>, T>
+impl<T: Length> FromTokens for RenderableSphere<T>
 where
     <T as Length>::ValueType: FloatingPoint
         + FromStr
@@ -481,7 +482,7 @@ where
             return Err(ParsingError::MissingElement("material"));
         }
 
-        let sphere = ImplicitNSphere::new(
+        let sphere = Sphere::new(
             Point3::new(Zero::zero(), Zero::zero(), Zero::zero()),
             One::one(),
         );
@@ -499,5 +500,3 @@ where
         Ok(sphere_geometry)
     }
 }
-
-

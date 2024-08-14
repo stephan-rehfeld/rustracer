@@ -4,10 +4,12 @@ use color::Color;
 use image::Image;
 use material::Material;
 use math::geometry::{Intersect, ParametricLine};
+use math::transform::Transform3;
 use math::{Normal, NormalizableVector, Point, Point3, Vector, Vector3};
-use traits::{Sqrt, Zero};
-use transform::Transform3;
+use traits::{MultiplyStable, Sqrt};
 use units::length::Length;
+
+use crate::scene_graph::RenderableGeometry;
 
 pub mod camera;
 pub mod color;
@@ -17,9 +19,14 @@ pub mod material;
 pub mod math;
 pub mod parser;
 pub mod ray_casting;
+pub mod scene_graph;
 pub mod traits;
-pub mod transform;
 pub mod units;
+
+type Plane<T> = math::geometry::ImplicitPlane3<T>;
+type Sphere<T> = math::geometry::ImplicitNSphere<Point3<T>>;
+type AxisAlignedBox<T> = math::geometry::AxisAlignedBox<Point3<T>>;
+type Triangle<T> = math::geometry::Triangle<Point3<T>>;
 
 pub trait Renderable<T: Length> {
     type ScalarType;
@@ -39,18 +46,7 @@ pub trait Renderable<T: Length> {
     )>;
 }
 
-pub struct RenderableGeometry<G, M> {
-    geometry: G,
-    material: M,
-}
-
-impl<G, M> RenderableGeometry<G, M> {
-    pub fn new(geometry: G, material: M) -> RenderableGeometry<G, M> {
-        RenderableGeometry { geometry, material }
-    }
-}
-
-impl<G, T: Length, M> Renderable<T> for RenderableGeometry<G, M>
+impl<G, T: Length, M> Renderable<T> for RenderableGeometry<G, M, Transform3<T::ValueType>>
 where
     ParametricLine<Point3<T>, Vector3<T>>: Intersect<
         G,
@@ -61,6 +57,7 @@ where
     >,
     G: Copy + Clone,
     T: Copy + Clone,
+    T::ValueType: MultiplyStable + Mul<T, Output = T> + Sqrt<Output = T::ValueType>,
     M: Material<T>,
     <M as Material<T>>::ColorType: Color<ChannelType = <T as Div>::Output>,
 {
@@ -79,7 +76,17 @@ where
         Self::NormalType,
         &dyn Material<T, ColorType = Self::ColorType>,
     )> {
-        ray.intersect(self.geometry)
+        let transformed_ray = ParametricLine::new(
+            self.transform.inverse * ray.origin,
+            self.transform.inverse * ray.direction,
+        );
+
+        let mut hits: Vec<(
+            Self::ScalarType,
+            Self::NormalType,
+            &dyn Material<T, ColorType = Self::ColorType>,
+        )> = transformed_ray
+            .intersect(self.geometry)
             .iter()
             .map(|t| {
                 (
@@ -88,51 +95,19 @@ where
                     &self.material as &dyn Material<T, ColorType = Self::ColorType>,
                 )
             })
-            .collect()
+            .collect();
+        let transposed_inverse = self.transform.inverse.transposed();
+
+        hits = hits
+            .iter()
+            .map(|(t, n, m)| (*t, transposed_inverse * *n, *m))
+            .collect();
+
+        hits
     }
 }
 
-pub struct Node<T: Length, C: Color> {
-    transform: Transform3<<T as Div>::Output>,
-    elements: Vec<
-        Box<
-            dyn Renderable<
-                T,
-                ScalarType = <T as Div>::Output,
-                LengthType = T,
-                PointType = Point3<T>,
-                VectorType = Vector3<T>,
-                NormalType = <Vector3<T> as NormalizableVector>::NormalType,
-                ColorType = C,
-            >,
-        >,
-    >,
-}
-
-impl<T: Length, C: Color> Node<T, C> {
-    pub fn new(
-        transform: Transform3<<T as Div>::Output>,
-        elements: Vec<
-            Box<
-                dyn Renderable<
-                    T,
-                    ScalarType = <T as Div>::Output,
-                    LengthType = T,
-                    PointType = Point3<T>,
-                    VectorType = Vector3<T>,
-                    NormalType = <Vector3<T> as NormalizableVector>::NormalType,
-                    ColorType = C,
-                >,
-            >,
-        >,
-    ) -> Node<T, C> {
-        Node {
-            transform,
-            elements,
-        }
-    }
-}
-
+/*
 impl<T: Length, C: Color<ChannelType = <T as Length>::ValueType>> Renderable<T> for Node<T, C>
 where
     <T as Length>::ValueType: Mul<T, Output = T> + Sqrt<Output = <T as Length>::ValueType>,
@@ -179,7 +154,7 @@ where
         hits
     }
 }
-
+*/
 pub trait Raytracer: Image {
     type ScalarType;
     type LengthType: Length;

@@ -6,13 +6,14 @@ use rustracer::image::SingleColorImage;
 use rustracer::light::{Light, PointLight, SpotLight};
 use rustracer::material::{LambertMaterial, PhongMaterial};
 use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle};
+use rustracer::math::transform::Transform3;
 use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
 use rustracer::ray_casting::RayCaster;
+use rustracer::scene_graph::RenderableGeometry;
 use rustracer::traits::ToRadians;
-use rustracer::transform::Transform3;
 use rustracer::units::angle::Degrees;
 use rustracer::units::length::Meter;
-use rustracer::{Node, Raytracer, RenderableGeometry};
+use rustracer::Raytracer;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
@@ -51,6 +52,7 @@ fn main() {
             RGB::new(1.0, 0.0, 0.0),
             Vector2::new(1.0, 1.0),
         )),
+        Transform3::<f64>::ident(),
     ));
     let sphere_geometry = Box::new(RenderableGeometry::new(
         sphere,
@@ -59,6 +61,7 @@ fn main() {
             SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
             64.0,
         ),
+        Transform3::<f64>::ident(),
     ));
     let aab_geometry = Box::new(RenderableGeometry::new(
         aab,
@@ -66,6 +69,7 @@ fn main() {
             RGB::new(0.0, 0.0, 1.0),
             Vector2::new(1.0, 1.0),
         )),
+        Transform3::<f64>::ident(),
     ));
     let triangle_geometry = Box::new(RenderableGeometry::new(
         triangle,
@@ -73,6 +77,7 @@ fn main() {
             RGB::new(1.0, 1.0, 0.0),
             Vector2::new(1.0, 1.0),
         )),
+        Transform3::<f64>::ident(),
     ));
 
     let sphere2 = ImplicitNSphere::new(
@@ -87,24 +92,25 @@ fn main() {
             SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
             64.0,
         ),
+        Transform3::<f64>::ident(),
     ));
 
-    let transform = Transform3::<f64>::ident()
-        .translate(-1.0, 0.0, 1.0)
-        .scale(0.1, 0.1, 0.1);
+    /*let transform = Transform3::<f64>::ident()
+            .translate(-1.0, 0.0, 1.0)
+            .scale(0.1, 0.1, 0.1);
 
-    let node_geometries: Vec<
-        Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>,
-    > = vec![sphere2_geometry];
+        let node_geometries: Vec<
+            Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>,
+        > = vec![sphere2_geometry];
 
-    let node = Box::new(Node::new(transform, node_geometries));
-
+        let node = Box::new(Node::new(transform, node_geometries));
+    */
     let geometries: Vec<Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>> = vec![
         plane_geometry,
         aab_geometry,
         sphere_geometry,
         triangle_geometry,
-        node,
+        //      node,
     ];
 
     let point_light = Box::new(PointLight::new(

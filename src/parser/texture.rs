@@ -2,14 +2,14 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use crate::image::{Image, SingleColorImage};
 use crate::color::RGB;
+use crate::image::{Image, SingleColorImage};
 use crate::math::{Point2, Vector2};
-use crate::traits::One;
 use crate::traits::number::MultiplyStable;
+use crate::traits::One;
 
-use crate::parser::{FromTokens, ParsingError};
 use crate::parser::util;
+use crate::parser::{FromTokens, ParsingError};
 
 pub fn parse_texture<'a, T: FromStr + MultiplyStable + 'static>(
     tokens: &mut impl Iterator<Item = &'a str>,
@@ -64,4 +64,3 @@ where
         ))
     }
 }
-

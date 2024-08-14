@@ -10,9 +10,9 @@ use crate::traits::number::MultiplyStable;
 use crate::traits::{FloatingPoint, One, Sqrt};
 use crate::units::length::Length;
 
-use crate::parser::{FromTokens, ParsingError};
 use crate::parser::texture;
 use crate::parser::util;
+use crate::parser::{FromTokens, ParsingError};
 
 pub fn parse_material<'a, T: Length>(
     tokens: &mut impl Iterator<Item = &'a str>,
@@ -177,5 +177,3 @@ where
         ))
     }
 }
-
-

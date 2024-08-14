@@ -7,20 +7,18 @@ use std::str::FromStr;
 
 use crate::camera::{PerspectiveCamera, RaytracingCamera};
 use crate::color::RGB;
-use crate::material::Material;
 use crate::light::{Light, PointLight, SpotLight};
-use crate::math::geometry::{
-    AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Intersect, ParametricLine, Triangle,
-};
+use crate::material::Material;
 use crate::math::normal::Orthonormal3;
-use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
+use crate::math::transform::Transform3;
+use crate::math::{Normal3, Point3, Vector3};
 use crate::ray_casting::Scene;
+use crate::scene_graph::RenderableGeometry;
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
 use crate::traits::{Cos, FloatingPoint, Half, Sin, Sqrt, Tan, Zero};
 use crate::units::length::Length;
-use crate::Renderable;
-use crate::transform::Transform3;
+use crate::{AxisAlignedBox, Plane, Renderable, Sphere, Triangle};
 
 mod camera;
 mod geometry;
@@ -30,78 +28,16 @@ mod misc;
 mod texture;
 mod util;
 
-struct RenderableGeometry<G, T: Length> {
-    geometry: G,
-    material: Box<dyn Material<T, ColorType = RGB<T::ValueType>>>,
-    transform: Transform3<T::ValueType>,
-}
+type MaterialType<T> = Box<dyn Material<T, ColorType = RGB<<T as Length>::ValueType>>>;
 
-impl<G, T: Length> RenderableGeometry<G, T> {
-    pub fn new(
-        geometry: G,
-        material: Box<dyn Material<T, ColorType = RGB<T::ValueType>>>,
-        transform: Transform3<T::ValueType>,
-    ) -> RenderableGeometry<G, T> {
-        RenderableGeometry {
-            geometry,
-            material,
-            transform,
-        }
-    }
-}
-
-impl<G, T: Length> Renderable<T> for RenderableGeometry<G, T>
-where
-    ParametricLine<Point3<T>, Vector3<T>>: Intersect<
-        G,
-        Output = Vec<(
-            <T as Div>::Output,
-            <Vector3<T> as NormalizableVector>::NormalType,
-        )>,
-    >,
-    T::ValueType: MultiplyStable + Mul<T, Output = T> + Sqrt<Output = T::ValueType>,
-    G: Copy + Clone,
-    T: Copy + Clone,
-{
-    type ScalarType = <T as Div>::Output;
-    type LengthType = T;
-    type VectorType = Vector3<T>;
-    type PointType = Point3<T>;
-    type NormalType = <Self::VectorType as NormalizableVector>::NormalType;
-    type ColorType = RGB<<T as Length>::ValueType>;
-
-    fn intersect(
-        &self,
-        ray: ParametricLine<Self::PointType, Self::VectorType>,
-    ) -> Vec<(
-        Self::ScalarType,
-        Self::NormalType,
-        &dyn Material<T, ColorType = Self::ColorType>,
-    )> {
-        let transformed_ray = ParametricLine::new(
-            self.transform.inverse * ray.origin,
-            self.transform.inverse * ray.direction,
-        );
-
-        let mut hits: Vec<(
-            Self::ScalarType,
-            Self::NormalType,
-            &dyn Material<T, ColorType = Self::ColorType>,
-        )> = transformed_ray
-            .intersect(self.geometry)
-            .iter()
-            .map(|t| (t.0, t.1, self.material.as_ref()))
-            .collect();
-        let transposed_inverse = self.transform.inverse.transposed();
-
-        hits = hits
-            .iter()
-            .map(|(t, n, m)| (*t, transposed_inverse * *n, *m))
-            .collect();
-
-        hits
-    }
-}
+type RenderableAxisAlignedBox<T> =
+    RenderableGeometry<AxisAlignedBox<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
+type RenderablePlane<T> =
+    RenderableGeometry<Plane<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
+type RenderableSphere<T> =
+    RenderableGeometry<Sphere<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
+type RenderableTriangle<T> =
+    RenderableGeometry<Triangle<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
 
 #[derive(Debug)]
 pub enum ParsingError {
@@ -203,18 +139,15 @@ where
 
     while let Some(token) = tokens.next() {
         match token {
-            "sphere" => {
-                match RenderableGeometry::<ImplicitNSphere<Point3<T>>, T>::from_tokens(&mut tokens)
-                {
-                    Ok(sphere) => {
-                        geometries.push(Box::new(sphere));
-                    }
-                    Err(cause) => {
-                        return Err(ParsingError::SceneParsingError(Box::new(cause)));
-                    }
+            "sphere" => match RenderableSphere::<T>::from_tokens(&mut tokens) {
+                Ok(sphere) => {
+                    geometries.push(Box::new(sphere));
                 }
-            }
-            "plane" => match RenderableGeometry::<ImplicitPlane3<T>, T>::from_tokens(&mut tokens) {
+                Err(cause) => {
+                    return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                }
+            },
+            "plane" => match RenderablePlane::<T>::from_tokens(&mut tokens) {
                 Ok(plane) => {
                     geometries.push(Box::new(plane));
                 }
@@ -222,26 +155,22 @@ where
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
             },
-            "box" => {
-                match RenderableGeometry::<AxisAlignedBox<Point3<T>>, T>::from_tokens(&mut tokens) {
-                    Ok(aab) => {
-                        geometries.push(Box::new(aab));
-                    }
-                    Err(cause) => {
-                        return Err(ParsingError::SceneParsingError(Box::new(cause)));
-                    }
+            "box" => match RenderableAxisAlignedBox::<T>::from_tokens(&mut tokens) {
+                Ok(aab) => {
+                    geometries.push(Box::new(aab));
                 }
-            }
-            "triangle" => {
-                match RenderableGeometry::<Triangle<Point3<T>>, T>::from_tokens(&mut tokens) {
-                    Ok(triangle) => {
-                        geometries.push(Box::new(triangle));
-                    }
-                    Err(cause) => {
-                        return Err(ParsingError::SceneParsingError(Box::new(cause)));
-                    }
+                Err(cause) => {
+                    return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
-            }
+            },
+            "triangle" => match RenderableTriangle::<T>::from_tokens(&mut tokens) {
+                Ok(triangle) => {
+                    geometries.push(Box::new(triangle));
+                }
+                Err(cause) => {
+                    return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                }
+            },
             "perspective_camera" => {
                 match <(String, PerspectiveCamera<T>)>::from_tokens(&mut tokens) {
                     Ok((id, camera)) => {

@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::color::Color;
 use crate::image::Image;
 use crate::light::Light;
@@ -19,6 +21,22 @@ pub trait Material<T: Length> {
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         ambient_light: Self::ColorType,
     ) -> Self::ColorType;
+}
+
+impl<T: Length, C: Color> Material<T> for Box<dyn Material<T, ColorType = C>> {
+    type ColorType = C;
+
+    fn color_for(
+        &self,
+        p: Point3<T>,
+        n: Normal3<<T as Length>::ValueType>,
+        tex: Point2<<T as Length>::ValueType>,
+        d: Vector3<T>,
+        lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
+        ambient_light: Self::ColorType,
+    ) -> Self::ColorType {
+        self.deref().color_for(p, n, tex, d, lights, ambient_light)
+    }
 }
 
 pub struct UnshadedMaterial<I: Image> {
