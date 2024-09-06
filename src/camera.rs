@@ -59,13 +59,7 @@ where
 
 impl<T> RaytracingCamera<T> for OrthographicCamera<T>
 where
-    T: Add<Output = T>
-        + Div
-        + Mul<<T as Div>::Output, Output = T>
-        + Neg<Output = T>
-        + One
-        + Mul<Normal3<<T as Div>::Output>, Output = Vector3<T>>
-        + Copy,
+    T: Add<Output = T> + Div + Mul<<T as Div>::Output, Output = T> + Neg<Output = T> + One + Copy,
     <T as Div>::Output: Div<Output = <T as Div>::Output>
         + Half
         + Mul<T, Output = T>
@@ -86,8 +80,8 @@ where
         let y = (p.y - size.y.half()) / size.y;
 
         let o = self.e
-            + T::one() * aspect_ratio * self.scale * x * self.u
-            + T::one() * self.scale * y * self.v;
+            + self.u.as_vector() * T::one() * aspect_ratio * self.scale * x
+            + self.v.as_vector() * T::one() * self.scale * y;
 
         ParametricLine::new(o, d)
     }

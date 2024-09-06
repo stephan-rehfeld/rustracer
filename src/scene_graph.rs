@@ -1,6 +1,3 @@
-
-
-
 pub struct RenderableGeometry<G, M, T> {
     pub geometry: G,
     pub material: M,

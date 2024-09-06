@@ -5,7 +5,7 @@ use std::fs;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 use std::str::FromStr;
 
-use crate::camera::{PerspectiveCamera, RaytracingCamera};
+use crate::camera::{OrthographicCamera, PerspectiveCamera, RaytracingCamera};
 use crate::color::RGB;
 use crate::light::{Light, PointLight, SpotLight};
 use crate::material::Material;
@@ -64,6 +64,7 @@ pub enum ParsingError {
     BoxParsingError(Box<ParsingError>),
     TriangleParsingError(Box<ParsingError>),
     PerspectiveCameraParsingError(Box<ParsingError>),
+    OrthographicCameraParsingError(Box<ParsingError>),
     PointLightParsingError(Box<ParsingError>),
     SpotLightParsingError(Box<ParsingError>),
     MissingElement(&'static str),
@@ -181,6 +182,17 @@ where
                     }
                 }
             }
+            "orthographic_camera" => {
+                match <(String, OrthographicCamera<T>)>::from_tokens(&mut tokens) {
+                    Ok((id, camera)) => {
+                        cameras.insert(id, Box::new(camera));
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                    }
+                }
+            }
+
             "point_light" => match PointLight::from_tokens(&mut tokens) {
                 Ok(point_light) => {
                     lights.push(Box::new(point_light));

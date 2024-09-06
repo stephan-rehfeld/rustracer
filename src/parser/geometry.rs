@@ -16,8 +16,8 @@ use crate::units::length::Length;
 use crate::{AxisAlignedBox, Plane, Sphere, Triangle};
 
 use crate::parser::{
-    FromTokens, ParsingError, RenderableAxisAlignedBox, RenderablePlane,
-    RenderableSphere, RenderableTriangle,
+    FromTokens, ParsingError, RenderableAxisAlignedBox, RenderablePlane, RenderableSphere,
+    RenderableTriangle,
 };
 
 use crate::parser::{material, util};
