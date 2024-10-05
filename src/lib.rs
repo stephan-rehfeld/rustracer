@@ -241,7 +241,7 @@ mod tests {
                     color: RGB::new(0.0 as $type, 0.5 as $type, 1.0 as $type),
                 };
 
-                let rg = RenderableGeometry::new(g, m);
+                let rg = RenderableGeometry::new(g, m, Transform3::<$type>::ident());
 
                 assert_eq!(rg.geometry, g);
                 assert_eq!(rg.material, m);
@@ -276,7 +276,7 @@ mod tests {
                     ),
                 );
 
-                let rg = RenderableGeometry::new(g, m);
+                let rg = RenderableGeometry::new(g, m, Transform3::<$type>::ident());
 
                 let intersections = rg.intersect(ray);
                 assert_eq!(1, intersections.len());
