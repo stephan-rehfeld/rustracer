@@ -21,9 +21,9 @@ where
     T: Div,
 {
     e: Point3<T>,
-    u: Normal3<<T as Div>::Output>,
-    v: Normal3<<T as Div>::Output>,
-    w: Normal3<<T as Div>::Output>,
+    u: Vector3<<T as Div>::Output>,
+    v: Vector3<<T as Div>::Output>,
+    w: Vector3<<T as Div>::Output>,
     scale: <T as Div>::Output,
 }
 
@@ -50,8 +50,8 @@ where
         scale: <T as Div>::Output,
     ) -> OrthographicCamera<T> {
         let w = -g.normalized();
-        let u = Vector3::cross(t, w.as_vector()).normalized();
-        let v = Vector3::cross(w.as_vector(), u.as_vector()).normalized();
+        let u = Vector3::cross(t, w).normalized();
+        let v = Vector3::cross(w, u).normalized();
 
         OrthographicCamera { e, u, v, w, scale }
     }
@@ -74,14 +74,14 @@ where
     ) -> ParametricLine<Point3<T>, Vector3<T>> {
         let aspect_ratio = size.x / size.y;
 
-        let d = -(self.w.as_vector() * T::one());
+        let d = -(self.w * T::one());
 
         let x = (p.x - size.x.half()) / size.x;
         let y = (p.y - size.y.half()) / size.y;
 
         let o = self.e
-            + self.u.as_vector() * T::one() * aspect_ratio * self.scale * x
-            + self.v.as_vector() * T::one() * self.scale * y;
+            + self.u * T::one() * aspect_ratio * self.scale * x
+            + self.v * T::one() * self.scale * y;
 
         ParametricLine::new(o, d)
     }
@@ -92,9 +92,9 @@ where
     T: Div,
 {
     e: Point3<T>,
-    u: Normal3<<T as Div>::Output>,
-    v: Normal3<<T as Div>::Output>,
-    w: Normal3<<T as Div>::Output>,
+    u: Vector3<<T as Div>::Output>,
+    v: Vector3<<T as Div>::Output>,
+    w: Vector3<<T as Div>::Output>,
     vertical_field_of_view: Radians<<T as Div>::Output>,
 }
 
@@ -122,8 +122,8 @@ where
         vertical_field_of_view: Radians<<T as Div>::Output>,
     ) -> PerspectiveCamera<T> {
         let w = -g.normalized();
-        let u = Vector3::cross(t, w.as_vector()).normalized();
-        let v = Vector3::cross(w.as_vector(), u.as_vector()).normalized();
+        let u = Vector3::cross(t, w).normalized();
+        let v = Vector3::cross(w, u).normalized();
 
         let vertical_field_of_view = vertical_field_of_view.half();
 
@@ -256,9 +256,9 @@ mod tests {
                 let persp = PerspectiveCamera::new(e, g, t, fov);
 
                 assert_eq!(persp.e, e);
-                assert_eq!(persp.u, Normal3::new(-1 as $type, 0 as $type, 0 as $type));
-                assert_eq!(persp.v, Normal3::new(0 as $type, -1 as $type, 0 as $type));
-                assert_eq!(persp.w, Normal3::new(0 as $type, 0 as $type, 1 as $type));
+                assert_eq!(persp.u, Vector3::new(-1 as $type, 0 as $type, 0 as $type));
+                assert_eq!(persp.v, Vector3::new(0 as $type, -1 as $type, 0 as $type));
+                assert_eq!(persp.w, Vector3::new(0 as $type, 0 as $type, 1 as $type));
 
                 assert_eq!(persp.vertical_field_of_view, fov.half());
             }

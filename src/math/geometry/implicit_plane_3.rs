@@ -1,12 +1,9 @@
-use std::ops::{Div, Add, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::vector::DotProduct;
-use crate::math::NormalizableVector;
-use crate::math::Point2;
-use crate::math::Point3;
-use crate::math::Vector3;
+use crate::math::{Normal3, NormalizableVector, Point2, Point3, Vector3};
 use crate::traits::Zero;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -16,7 +13,7 @@ where
     <T as Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
 {
     anchor: Point3<T>,
-    normal: <Vector3<T> as NormalizableVector>::NormalType,
+    normal: Normal3<<T as Div>::Output>,
 }
 
 impl<T> ImplicitPlane3<T>
@@ -24,10 +21,7 @@ where
     T: Mul + Div + Copy + Clone,
     <T as Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
 {
-    pub fn new(
-        anchor: Point3<T>,
-        normal: <Vector3<T> as NormalizableVector>::NormalType,
-    ) -> ImplicitPlane3<T> {
+    pub fn new(anchor: Point3<T>, normal: Normal3<<T as Div>::Output>) -> ImplicitPlane3<T> {
         ImplicitPlane3 { anchor, normal }
     }
 
@@ -45,8 +39,7 @@ where
 impl<T> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
     T: Mul + Div + Add<Output = T> + Zero + Copy + Clone,
-    <T as Mul>::Output:
-        Add<Output = <T as Mul>::Output> + Div + PartialEq + Zero,
+    <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Div + PartialEq + Zero,
     <T as Div>::Output: std::fmt::Debug + Zero + PartialEq + Clone + Copy,
     Point3<T>: Sub<Output = Vector3<T>>,
     <T as Mul<<T as Div>::Output>>::Output: PartialEq,
@@ -54,7 +47,7 @@ where
 {
     type Output = Vec<(
         <<T as Mul<<T as Div>::Output>>::Output as Div>::Output,
-        SurfacePoint<T>
+        SurfacePoint<T>,
     )>;
 
     fn intersect(self, plane: ImplicitPlane3<T>) -> Self::Output {
@@ -161,7 +154,17 @@ mod tests {
                     Vector3::new(0 as $type, -1 as $type, 0 as $type),
                 );
 
-                assert_eq!(ray2.intersect(plane), vec![(1 as $type, SurfacePoint::new(Point3::new(0 as $type, 0 as $type, 0 as $type), n, Point2::new(0 as $type, 0 as $type ) ))]);
+                assert_eq!(
+                    ray2.intersect(plane),
+                    vec![(
+                        1 as $type,
+                        SurfacePoint::new(
+                            Point3::new(0 as $type, 0 as $type, 0 as $type),
+                            n,
+                            Point2::new(0 as $type, 0 as $type)
+                        )
+                    )]
+                );
             }
         };
     }

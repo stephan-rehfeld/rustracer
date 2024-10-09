@@ -34,7 +34,7 @@ where
 
         let mut color = RGB::new(Zero::zero(), Zero::zero(), Zero::zero());
         let mut position: Point3<T> = Point3::new(Zero::zero(), Zero::zero(), Zero::zero());
-        let mut direction: Option<Normal3<<T as Length>::ValueType>> = None;
+        let mut direction: Option<Vector3<<T as Length>::ValueType>> = None;
         let mut angle: Option<Degrees<<T as Length>::ValueType>> = None;
 
         while let Some(token) = tokens.next() {

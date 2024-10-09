@@ -3,37 +3,35 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
-use crate::math::{Mat3x3, NormalizableVector, Point, Point2, Point3, Vector3};
+use crate::math::{Mat3x3, Normal3, NormalizableVector, Point, Point2, Point3, Vector3};
 use crate::traits::{One, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Triangle<T: Point>
+pub struct Triangle3<T: Div>
 where
-    <T as Point>::VectorType: NormalizableVector,
-    <<T as Point>::VectorType as NormalizableVector>::NormalType: PartialEq + Copy + Debug,
+    <T as Div>::Output: Copy + Debug + PartialEq,
 {
-    a: T,
-    b: T,
-    c: T,
-    na: <<T as Point>::VectorType as NormalizableVector>::NormalType,
-    nb: <<T as Point>::VectorType as NormalizableVector>::NormalType,
-    nc: <<T as Point>::VectorType as NormalizableVector>::NormalType,
+    a: Point3<T>,
+    b: Point3<T>,
+    c: Point3<T>,
+    na: Normal3<<T as Div>::Output>,
+    nb: Normal3<<T as Div>::Output>,
+    nc: Normal3<<T as Div>::Output>,
 }
 
-impl<T: Point> Triangle<T>
+impl<T: Div> Triangle3<T>
 where
-    <T as Point>::VectorType: NormalizableVector,
-    <<T as Point>::VectorType as NormalizableVector>::NormalType: PartialEq + Copy + Debug,
+    <T as Div>::Output: Copy + Debug + PartialEq,
 {
     pub fn new(
-        a: T,
-        b: T,
-        c: T,
-        na: <<T as Point>::VectorType as NormalizableVector>::NormalType,
-        nb: <<T as Point>::VectorType as NormalizableVector>::NormalType,
-        nc: <<T as Point>::VectorType as NormalizableVector>::NormalType,
-    ) -> Triangle<T> {
-        Triangle {
+        a: Point3<T>,
+        b: Point3<T>,
+        c: Point3<T>,
+        na: Normal3<<T as Div>::Output>,
+        nb: Normal3<<T as Div>::Output>,
+        nc: Normal3<<T as Div>::Output>,
+    ) -> Triangle3<T> {
+        Triangle3 {
             a,
             b,
             c,
@@ -44,7 +42,7 @@ where
     }
 }
 
-impl<T> Intersect<Triangle<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>>
+impl<T: Div> Intersect<Triangle3<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
     <T as Div>::Output: Add<Output = <T as Div>::Output>
         + Sub<Output = <T as Div>::Output>
@@ -58,19 +56,16 @@ where
         + PartialOrd
         + Copy
         + PartialEq,
-    T: Add<Output=T> + Mul<<T as Div>::Output, Output = T> + Sub<Output = T> + Mul + Div + Copy,
+    T: Add<Output = T> + Mul<<T as Div>::Output, Output = T> + Sub<Output = T> + Mul + Div + Copy,
     <T as Mul>::Output: Mul<T>,
     <<T as Mul>::Output as Mul<T>>::Output: Add<Output = <<T as Mul>::Output as Mul<T>>::Output>
         + Sub<Output = <<T as Mul>::Output as Mul<T>>::Output>
         + Div<Output = <T as Div>::Output>,
     <<T as Mul>::Output as Mul<T>>::Output: Zero + PartialEq + Copy,
 {
-    type Output = Vec<(
-        <T as Div>::Output,
-        SurfacePoint<T>
-    )>;
+    type Output = Vec<(<T as Div>::Output, SurfacePoint<T>)>;
 
-    fn intersect(self, triangle: Triangle<Point3<T>>) -> Self::Output {
+    fn intersect(self, triangle: Triangle3<T>) -> Self::Output {
         let m = Mat3x3::from_vector3s(
             triangle.a - triangle.b,
             triangle.a - triangle.c,
@@ -110,7 +105,9 @@ where
         let alpha = -beta - gamma + One::one();
 
         let p = self.at(t);
-        let n = (triangle.na * alpha + triangle.nb * beta + triangle.nc * gamma).normalized();
+        let n = (triangle.na * alpha + triangle.nb * beta + triangle.nc * gamma)
+            .normalized()
+            .as_normal();
         let uv: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
 
         vec![(t, SurfacePoint::new(p, n, uv))]
@@ -135,7 +132,7 @@ pub mod tests {
                 let nb = Normal3::new(0 as $type, 1 as $type, 0 as $type);
                 let nc = Normal3::new(0 as $type, 0 as $type, 1 as $type);
 
-                let triangle = Triangle::new(a, b, c, na, nb, nc);
+                let triangle = Triangle3::new(a, b, c, na, nb, nc);
 
                 assert_eq!(triangle.a, a);
                 assert_eq!(triangle.b, b);
@@ -166,7 +163,7 @@ pub mod tests {
             #[test]
             fn $name() {
                 let n = Normal3::new(0 as $type, 0 as $type, -1 as $type);
-                let triangle = Triangle::new(
+                let triangle = Triangle3::new(
                     Point3::new(-1 as $type, 1 as $type, -2 as $type),
                     Point3::new(1 as $type, 1 as $type, -2 as $type),
                     Point3::new(1 as $type, -1 as $type, -2 as $type),
@@ -200,10 +197,50 @@ pub mod tests {
                     Vector3::new(0 as $type, 0 as $type, -1 as $type),
                 );
 
-                assert_eq!(line1.intersect(triangle), vec![(2 as $type, SurfacePoint::new(Point3::new(0 as $type, 0 as $type, -2 as $type), n, Point2::new(0 as $type, 0 as $type)))]);
-                assert_eq!(line2.intersect(triangle), vec![(2 as $type, SurfacePoint::new(Point3::new(-1 as $type, 1 as $type, -2 as $type), n, Point2::new(0 as $type, 0 as $type)))]);
-                assert_eq!(line3.intersect(triangle), vec![(2 as $type, SurfacePoint::new(Point3::new(1 as $type, 1 as $type, -2 as $type), n, Point2::new(0 as $type, 0 as $type)))]);
-                assert_eq!(line4.intersect(triangle), vec![(2 as $type, SurfacePoint::new(Point3::new(1 as $type, -1 as $type, -2 as $type), n, Point2::new(0 as $type, 0 as $type)))]);
+                assert_eq!(
+                    line1.intersect(triangle),
+                    vec![(
+                        2 as $type,
+                        SurfacePoint::new(
+                            Point3::new(0 as $type, 0 as $type, -2 as $type),
+                            n,
+                            Point2::new(0 as $type, 0 as $type)
+                        )
+                    )]
+                );
+                assert_eq!(
+                    line2.intersect(triangle),
+                    vec![(
+                        2 as $type,
+                        SurfacePoint::new(
+                            Point3::new(-1 as $type, 1 as $type, -2 as $type),
+                            n,
+                            Point2::new(0 as $type, 0 as $type)
+                        )
+                    )]
+                );
+                assert_eq!(
+                    line3.intersect(triangle),
+                    vec![(
+                        2 as $type,
+                        SurfacePoint::new(
+                            Point3::new(1 as $type, 1 as $type, -2 as $type),
+                            n,
+                            Point2::new(0 as $type, 0 as $type)
+                        )
+                    )]
+                );
+                assert_eq!(
+                    line4.intersect(triangle),
+                    vec![(
+                        2 as $type,
+                        SurfacePoint::new(
+                            Point3::new(1 as $type, -1 as $type, -2 as $type),
+                            n,
+                            Point2::new(0 as $type, 0 as $type)
+                        )
+                    )]
+                );
                 assert_eq!(line5.intersect(triangle), Vec::new());
             }
         };

@@ -7,10 +7,11 @@ use crate::traits::{Sqrt, Zero};
 pub trait Vector {
     type ValueType;
     type PointType;
+    type NormalType;
 }
 
 pub trait NormalizableVector: Vector {
-    type NormalType;
+    type NormalizedVectorType;
 
     fn magnitude(self) -> Self::ValueType
     where
@@ -19,7 +20,7 @@ pub trait NormalizableVector: Vector {
             + Sqrt<Output = <Self as Vector>::ValueType>
             + Zero;
 
-    fn normalized(self) -> Self::NormalType
+    fn normalized(self) -> Self::NormalizedVectorType
     where
         <Self as Vector>::ValueType: Mul + Copy + Clone,
         <<Self as Vector>::ValueType as Mul>::Output: Add<Output = <<Self as Vector>::ValueType as Mul>::Output>
@@ -60,6 +61,10 @@ macro_rules! create_vector_type {
             pub fn new( $( $element: T, )*) -> $name<T> {
                 $name { $( $element, )* }
             }
+
+            pub fn as_normal(self) -> $normalType<T> {
+                $normalType::new( $( self.$element, )* )
+            }
         }
 
         impl<T, U> DotProduct<$name<U>> for $name<T> where
@@ -76,6 +81,7 @@ macro_rules! create_vector_type {
         impl<T> Vector for $name<T> {
             type ValueType = T;
             type PointType = $pointType<T>;
+            type NormalType = $normalType<T>;
         }
 
         impl<T> $name<T> where
@@ -92,7 +98,7 @@ macro_rules! create_vector_type {
         impl<T> NormalizableVector for $name<T> where
             T: Div + Mul + Copy + Clone,
         {
-            type NormalType = $normalType<<T as Div>::Output>;
+            type NormalizedVectorType = $name<<T as Div>::Output>;
 
             fn magnitude(self) -> Self::ValueType where
                 <Self as Vector>::ValueType: Mul + Copy + Clone,
@@ -101,13 +107,12 @@ macro_rules! create_vector_type {
                 self.dot(self).sqrt()
             }
 
-            fn normalized(self) -> Self::NormalType where
+            fn normalized(self) -> Self::NormalizedVectorType where
                 <Self as Vector>::ValueType: Mul + Copy + Clone,
                 <<Self as Vector>::ValueType as Mul>::Output: Add<Output=<<Self as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<Self as Vector>::ValueType> + Zero
 
             {
-                let v = self / self.magnitude();
-                $normalType::new( $( v.$element, )* )
+                self / self.magnitude()
             }
         }
 
@@ -636,8 +641,8 @@ mod tests {
                 let x_vec = Vector2::new(2 as $type, 0 as $type);
                 let y_vec = Vector2::new(0 as $type, 3 as $type);
 
-                assert_eq!(x_vec.normalized(), Normal2::new(1 as $type, 0 as $type));
-                assert_eq!(y_vec.normalized(), Normal2::new(0 as $type, 1 as $type));
+                assert_eq!(x_vec.normalized(), Vector2::new(1 as $type, 0 as $type));
+                assert_eq!(y_vec.normalized(), Vector2::new(0 as $type, 1 as $type));
             }
         };
     }
@@ -1047,15 +1052,15 @@ mod tests {
 
                 assert_eq!(
                     x_vec.normalized(),
-                    Normal3::new(1 as $type, 0 as $type, 0 as $type)
+                    Vector3::new(1 as $type, 0 as $type, 0 as $type)
                 );
                 assert_eq!(
                     y_vec.normalized(),
-                    Normal3::new(0 as $type, 1 as $type, 0 as $type)
+                    Vector3::new(0 as $type, 1 as $type, 0 as $type)
                 );
                 assert_eq!(
                     z_vec.normalized(),
-                    Normal3::new(0 as $type, 0 as $type, 1 as $type)
+                    Vector3::new(0 as $type, 0 as $type, 1 as $type)
                 );
             }
         };

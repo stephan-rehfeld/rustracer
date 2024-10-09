@@ -5,7 +5,7 @@ use image::Image;
 use material::Material;
 use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::transform::Transform3;
-use math::{Normal, NormalizableVector, Point, Point3, Vector, Vector3};
+use math::{Normal, Normal3, NormalizableVector, Point, Point3, Vector, Vector3};
 use traits::{MultiplyStable, Sqrt};
 use units::length::Length;
 
@@ -26,7 +26,7 @@ pub mod units;
 type Plane<T> = math::geometry::ImplicitPlane3<T>;
 type Sphere<T> = math::geometry::ImplicitNSphere<Point3<T>>;
 type AxisAlignedBox<T> = math::geometry::AxisAlignedBox<Point3<T>>;
-type Triangle<T> = math::geometry::Triangle<Point3<T>>;
+type Triangle<T> = math::geometry::Triangle3<T>;
 
 pub trait Renderable<T: Length> {
     type ScalarType;
@@ -48,13 +48,8 @@ pub trait Renderable<T: Length> {
 
 impl<G, T: Length, M> Renderable<T> for RenderableGeometry<G, M, Transform3<T::ValueType>>
 where
-    ParametricLine<Point3<T>, Vector3<T>>: Intersect<
-        G,
-        Output = Vec<(
-            <T as Div>::Output,
-            SurfacePoint<T>,
-        )>,
-    >,
+    ParametricLine<Point3<T>, Vector3<T>>:
+        Intersect<G, Output = Vec<(<T as Div>::Output, SurfacePoint<T>)>>,
     G: Copy + Clone,
     T: Copy + Clone,
     T::ValueType: MultiplyStable + Mul<T, Output = T> + Sqrt<Output = T::ValueType>,
@@ -65,7 +60,7 @@ where
     type LengthType = T;
     type VectorType = Vector3<T>;
     type PointType = Point3<T>;
-    type NormalType = <Self::VectorType as NormalizableVector>::NormalType;
+    type NormalType = Normal3<<T as Div>::Output>;
     type ColorType = <M as Material<T>>::ColorType;
 
     fn intersect(
@@ -100,7 +95,17 @@ where
 
         hits = hits
             .iter()
-            .map(|(t, sp, m)| (*t, SurfacePoint::new(self.transform.matrix * sp.p, transposed_inverse * sp.n, sp.uv), *m))
+            .map(|(t, sp, m)| {
+                (
+                    *t,
+                    SurfacePoint::new(
+                        self.transform.matrix * sp.p,
+                        transposed_inverse * sp.n,
+                        sp.uv,
+                    ),
+                    *m,
+                )
+            })
             .collect();
 
         hits
@@ -111,8 +116,7 @@ pub trait Raytracer: Image {
     type ScalarType;
     type LengthType: Length;
     type PointType: Point<ValueType = Self::LengthType>;
-    type VectorType: Vector<ValueType = Self::LengthType>
-        + NormalizableVector<NormalType = Self::NormalType>;
+    type VectorType: Vector<ValueType = Self::LengthType>;
     type NormalType: Normal<ValueType = Self::ScalarType>;
     type ColorType: Color<ChannelType = Self::ScalarType>;
 
@@ -129,8 +133,8 @@ mod tests {
 
     use color::RGB;
     use math::{Normal3, Point2};
-    use traits::Zero;
     use traits::number::MultiplyStable;
+    use traits::Zero;
 
     use crate::light::Light;
     use crate::units::length::Meter;
@@ -141,20 +145,24 @@ mod tests {
         T: Length,
     {
         t: <T as Length>::ValueType,
-        normal: <Vector3<T> as NormalizableVector>::NormalType,
+        normal: Normal3<<T as Length>::ValueType>,
     }
 
     impl<T> Intersect<MockGeometry<T>> for ParametricLine<Point3<T>, Vector3<T>>
     where
         T: Length,
     {
-        type Output = Vec<(
-            <T as Length>::ValueType,
-            SurfacePoint<T>
-        )>;
+        type Output = Vec<(<T as Length>::ValueType, SurfacePoint<T>)>;
 
         fn intersect(self, other: MockGeometry<T>) -> Self::Output {
-            vec![(other.t, SurfacePoint::new(Point3::new(Zero::zero(), Zero::zero(), Zero::zero()), other.normal, Point2::new(Zero::zero(), Zero::zero())))]
+            vec![(
+                other.t,
+                SurfacePoint::new(
+                    Point3::new(Zero::zero(), Zero::zero(), Zero::zero()),
+                    other.normal,
+                    Point2::new(Zero::zero(), Zero::zero()),
+                ),
+            )]
         }
     }
 

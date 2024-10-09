@@ -3,7 +3,7 @@ use std::ops::Deref;
 use crate::color::Color;
 use crate::image::Image;
 use crate::light::Light;
-use crate::math::vector::NormalizableVector;
+use crate::math::vector::{DotProduct, NormalizableVector};
 use crate::math::{Normal3, Point2, Point3, Vector3};
 use crate::traits::floating_point::{Max, Powf, Sqrt};
 use crate::traits::{FloatingPoint, Zero};
@@ -26,7 +26,7 @@ pub trait Material<T: Length> {
 impl<T: Length, C: Color> Material<T> for Box<dyn Material<T, ColorType = C>> {
     type ColorType = C;
 
-// Change parameter to Surface Point
+    // Change parameter to Surface Point
     fn color_for(
         &self,
         p: Point3<T>,
@@ -100,7 +100,7 @@ where
                 .map(|light| {
                     self.texture.get(tex)
                         * light.get_color()
-                        * Normal3::dot(light.direction_from(p), n)
+                        * light.direction_from(p).dot(n.as_vector())
                 })
                 .sum()
     }
@@ -150,15 +150,12 @@ where
                 let ambient_term = self.diffuse_texture.get(tex) * ambient_light;
                 let diffuse_term = self.diffuse_texture.get(tex)
                     * light.get_color()
-                    * Normal3::dot(light.direction_from(p), n);
-                let reflected_light = light
-                    .direction_from(p)
-                    .as_vector()
-                    .reflect_on(n)
-                    .normalized();
+                    * light.direction_from(p).dot(n.as_vector());
+                let reflected_light = light.direction_from(p).reflect_on(n).normalized();
                 let specular_term = self.specular_texture.get(tex)
                     * light.get_color()
-                    * Normal3::dot(reflected_light, d.normalized())
+                    * reflected_light
+                        .dot(d.normalized())
                         .max(Zero::zero())
                         .powf(self.exponent);
                 ambient_term + diffuse_term + specular_term

@@ -39,7 +39,7 @@ where
 {
     type Output = Vec<(
         <<T as Mul<<T as Div>::Output>>::Output as Div>::Output,
-        SurfacePoint<T>
+        SurfacePoint<T>,
     )>;
 
     fn intersect(self, aab: AxisAlignedBox<Point3<T>>) -> Self::Output {
@@ -53,7 +53,7 @@ where
 
         let mut results: Vec<(
             <<T as Mul<<T as Div>::Output>>::Output as Div>::Output,
-            SurfacePoint<T>
+            SurfacePoint<T>,
         )> = Vec::new();
 
         let mut t = self.intersect(left);
@@ -181,15 +181,43 @@ mod tests {
                 assert_eq!(
                     ray1.intersect(aab),
                     vec![
-                        (3 as $type, SurfacePoint::new(Point3::new(0 as $type, 0 as $type, 2 as $type), Normal3::<$type>::z_axis(), Point2::new(0 as $type, 0 as $type))),
-                        (7 as $type, SurfacePoint::new(Point3::new(0 as $type, 0 as $type, -2 as $type), -Normal3::<$type>::z_axis(), Point2::new(0 as $type, 0 as $type))),
+                        (
+                            3 as $type,
+                            SurfacePoint::new(
+                                Point3::new(0 as $type, 0 as $type, 2 as $type),
+                                Normal3::<$type>::z_axis(),
+                                Point2::new(0 as $type, 0 as $type)
+                            )
+                        ),
+                        (
+                            7 as $type,
+                            SurfacePoint::new(
+                                Point3::new(0 as $type, 0 as $type, -2 as $type),
+                                -Normal3::<$type>::z_axis(),
+                                Point2::new(0 as $type, 0 as $type)
+                            )
+                        ),
                     ]
                 );
                 assert_eq!(
                     ray2.intersect(aab),
                     vec![
-                        (5 as $type, SurfacePoint::new(Point3::new(1 as $type, 1 as $type, 2 as $type), Normal3::<$type>::z_axis(), Point2::new(0 as $type, 0 as $type))),
-                        (9 as $type, SurfacePoint::new(Point3::new(1 as $type, 1 as $type, -2 as $type), -Normal3::<$type>::z_axis(), Point2::new(0 as $type, 0 as $type))),
+                        (
+                            5 as $type,
+                            SurfacePoint::new(
+                                Point3::new(1 as $type, 1 as $type, 2 as $type),
+                                Normal3::<$type>::z_axis(),
+                                Point2::new(0 as $type, 0 as $type)
+                            )
+                        ),
+                        (
+                            9 as $type,
+                            SurfacePoint::new(
+                                Point3::new(1 as $type, 1 as $type, -2 as $type),
+                                -Normal3::<$type>::z_axis(),
+                                Point2::new(0 as $type, 0 as $type)
+                            )
+                        ),
                     ]
                 );
                 assert_eq!(ray3.intersect(aab), Vec::new());

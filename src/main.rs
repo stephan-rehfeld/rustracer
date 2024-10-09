@@ -5,7 +5,7 @@ use rustracer::image::farbfeld::Encoder;
 use rustracer::image::SingleColorImage;
 use rustracer::light::{Light, PointLight, SpotLight};
 use rustracer::material::{LambertMaterial, PhongMaterial};
-use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle};
+use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle3};
 use rustracer::math::transform::Transform3;
 use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
 use rustracer::ray_casting::RayCaster;
@@ -37,7 +37,7 @@ fn main() {
 
     let n = Normal3::new(0.0, 0.0, 1.0);
 
-    let triangle = Triangle::new(
+    let triangle = Triangle3::new(
         Point3::new(Meter::new(-3.0), Meter::new(3.0), Meter::new(-3.0)),
         Point3::new(Meter::new(-1.0), Meter::new(3.0), Meter::new(-3.0)),
         Point3::new(Meter::new(-1.0), Meter::new(1.0), Meter::new(-3.0)),
@@ -122,7 +122,7 @@ fn main() {
     let spot_light = Box::new(SpotLight::new(
         RGB::new(0.5, 0.5, 0.5),
         Point3::new(Meter::new(0.0), Meter::new(4.0), Meter::new(0.0)),
-        Normal3::new(0.0, -1.0, 0.0),
+        Vector3::new(0.0, -1.0, 0.0),
         Degrees::new(30.0).to_radians(),
     ));
 

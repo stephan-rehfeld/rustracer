@@ -8,8 +8,7 @@ pub use axis_aligned_box::AxisAlignedBox;
 pub use implicit_n_sphere::ImplicitNSphere;
 pub use implicit_plane_3::ImplicitPlane3;
 pub use parametric_line::ParametricLine;
-pub use triangle::Triangle;
-
+pub use triangle::Triangle3;
 
 pub trait Intersect<T> {
     type Output;
@@ -17,13 +16,13 @@ pub trait Intersect<T> {
     fn intersect(self, other: T) -> Self::Output;
 }
 
-
-use std::ops::Div;
-use std::fmt::Debug;
 use crate::math::{Normal3, Point2, Point3};
+use std::fmt::Debug;
+use std::ops::Div;
 
-#[derive(Debug, PartialEq, Clone,Copy)]
-pub struct SurfacePoint<T: Div + Copy> where
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct SurfacePoint<T: Div + Copy>
+where
     <T as Div>::Output: Debug + Copy + PartialEq,
 {
     pub p: Point3<T>,
@@ -35,10 +34,15 @@ pub struct SurfacePoint<T: Div + Copy> where
     // Partial derivate for normal in v direction
 }
 
-impl<T: Div + Copy> SurfacePoint<T> where
+impl<T: Div + Copy> SurfacePoint<T>
+where
     <T as Div>::Output: Debug + Copy + PartialEq,
 {
-    pub fn new(p: Point3<T>, n: Normal3<<T as Div>::Output>, uv: Point2<<T as Div>::Output>) -> SurfacePoint<T> {
+    pub fn new(
+        p: Point3<T>,
+        n: Normal3<<T as Div>::Output>,
+        uv: Point2<<T as Div>::Output>,
+    ) -> SurfacePoint<T> {
         SurfacePoint { p, n, uv }
     }
 }

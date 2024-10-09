@@ -213,7 +213,7 @@ where
             self.m31 * rhs.x + self.m32 * rhs.y + self.m33 * rhs.z,
         )
         .as_vector()
-        .normalized()
+        .as_normal()
     }
 }
 
@@ -627,7 +627,7 @@ mod tests {
 
                 let n = Normal3::new(1 as $type, 2 as $type, 3 as $type);
 
-                let expected = Vector3::new(14 as $type, 38 as $type, 62 as $type).normalized();
+                let expected = Normal3::new(14 as $type, 38 as $type, 62 as $type);
 
                 assert_eq!(m * n, expected);
             }
