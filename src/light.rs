@@ -12,6 +12,7 @@ where
 {
     fn direction_from(&self, p: Point3<T>) -> Normal3<<T as Div>::Output>;
     fn get_color(&self) -> C;
+    // Change parameter to SurfacePoint
     fn illuminates(
         &self,
         p: Point3<T>,

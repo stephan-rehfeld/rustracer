@@ -3,7 +3,7 @@ use std::ops::{Div, Mul};
 use color::Color;
 use image::Image;
 use material::Material;
-use math::geometry::{Intersect, ParametricLine};
+use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::transform::Transform3;
 use math::{Normal, NormalizableVector, Point, Point3, Vector, Vector3};
 use traits::{MultiplyStable, Sqrt};
@@ -41,7 +41,7 @@ pub trait Renderable<T: Length> {
         ray: ParametricLine<Self::PointType, Self::VectorType>,
     ) -> Vec<(
         Self::ScalarType,
-        Self::NormalType,
+        SurfacePoint<T>,
         &dyn Material<Self::LengthType, ColorType = Self::ColorType>,
     )>;
 }
@@ -52,7 +52,7 @@ where
         G,
         Output = Vec<(
             <T as Div>::Output,
-            <Vector3<T> as NormalizableVector>::NormalType,
+            SurfacePoint<T>,
         )>,
     >,
     G: Copy + Clone,
@@ -73,7 +73,7 @@ where
         ray: ParametricLine<Self::PointType, Self::VectorType>,
     ) -> Vec<(
         Self::ScalarType,
-        Self::NormalType,
+        SurfacePoint<T>,
         &dyn Material<T, ColorType = Self::ColorType>,
     )> {
         let transformed_ray = ParametricLine::new(
@@ -83,7 +83,7 @@ where
 
         let mut hits: Vec<(
             Self::ScalarType,
-            Self::NormalType,
+            SurfacePoint<T>,
             &dyn Material<T, ColorType = Self::ColorType>,
         )> = transformed_ray
             .intersect(self.geometry)
@@ -100,61 +100,13 @@ where
 
         hits = hits
             .iter()
-            .map(|(t, n, m)| (*t, transposed_inverse * *n, *m))
+            .map(|(t, sp, m)| (*t, SurfacePoint::new(self.transform.matrix * sp.p, transposed_inverse * sp.n, sp.uv), *m))
             .collect();
 
         hits
     }
 }
 
-/*
-impl<T: Length, C: Color<ChannelType = <T as Length>::ValueType>> Renderable<T> for Node<T, C>
-where
-    <T as Length>::ValueType: Mul<T, Output = T> + Sqrt<Output = <T as Length>::ValueType>,
-{
-    type ScalarType = <T as Div>::Output;
-    type LengthType = T;
-    type VectorType = Vector3<T>;
-    type PointType = Point3<T>;
-    type NormalType = <Self::VectorType as NormalizableVector>::NormalType;
-    type ColorType = C;
-
-    fn intersect(
-        &self,
-        ray: ParametricLine<Self::PointType, Self::VectorType>,
-    ) -> Vec<(
-        Self::ScalarType,
-        Self::NormalType,
-        &dyn Material<T, ColorType = Self::ColorType>,
-    )> {
-        let transformed_ray = ParametricLine::new(
-            self.transform.inverse * ray.origin,
-            self.transform.inverse * ray.direction,
-        );
-
-        let mut hits: Vec<(
-            Self::ScalarType,
-            Self::NormalType,
-            &dyn Material<T, ColorType = Self::ColorType>,
-        )> = self
-            .elements
-            .iter()
-            .flat_map(|g| g.intersect(transformed_ray))
-            .filter(|(t, _, _)| *t > Zero::zero())
-            .collect();
-        hits.sort_by(|(t1, _, _), (t2, _, _)| t1.partial_cmp(t2).unwrap());
-
-        let transposed_inverse = self.transform.inverse.transposed();
-
-        hits = hits
-            .iter()
-            .map(|(t, n, m)| (*t, transposed_inverse * *n, *m))
-            .collect();
-
-        hits
-    }
-}
-*/
 pub trait Raytracer: Image {
     type ScalarType;
     type LengthType: Length;
@@ -177,6 +129,7 @@ mod tests {
 
     use color::RGB;
     use math::{Normal3, Point2};
+    use traits::Zero;
     use traits::number::MultiplyStable;
 
     use crate::light::Light;
@@ -197,11 +150,11 @@ mod tests {
     {
         type Output = Vec<(
             <T as Length>::ValueType,
-            <Vector3<T> as NormalizableVector>::NormalType,
+            SurfacePoint<T>
         )>;
 
         fn intersect(self, other: MockGeometry<T>) -> Self::Output {
-            vec![(other.t, other.normal)]
+            vec![(other.t, SurfacePoint::new(Point3::new(Zero::zero(), Zero::zero(), Zero::zero()), other.normal, Point2::new(Zero::zero(), Zero::zero())))]
         }
     }
 
@@ -281,7 +234,7 @@ mod tests {
                 let intersections = rg.intersect(ray);
                 assert_eq!(1, intersections.len());
                 assert_eq!(v, intersections[0].0);
-                assert_eq!(n, intersections[0].1);
+                assert_eq!(n, intersections[0].1.n);
 
                 // Cast to *const () is required to prevent fat pointer from being used.
                 let rg_mat_pointer = &rg.material

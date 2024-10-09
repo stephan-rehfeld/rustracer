@@ -26,6 +26,7 @@ pub trait Material<T: Length> {
 impl<T: Length, C: Color> Material<T> for Box<dyn Material<T, ColorType = C>> {
     type ColorType = C;
 
+// Change parameter to Surface Point
     fn color_for(
         &self,
         p: Point3<T>,

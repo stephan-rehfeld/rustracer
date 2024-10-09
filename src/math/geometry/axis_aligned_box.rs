@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-use super::{ImplicitPlane3, Intersect, ParametricLine};
+use super::{ImplicitPlane3, Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::normal::Orthonormal3;
-use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
+use crate::math::{Normal3, Point3, Vector3};
 use crate::traits::Zero;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -29,7 +29,7 @@ where
         + Clone
         + PartialOrd,
     T: Mul<<T as Div>::Output, Output = T>,
-    <T as Div>::Output: Neg<Output = <T as Div>::Output> + Debug + PartialEq + Clone + Copy,
+    <T as Div>::Output: Neg<Output = <T as Div>::Output> + Debug + Zero + PartialEq + Clone + Copy,
     <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Div + PartialEq + Zero,
     <T as Mul<<T as Div>::Output>>::Output: PartialEq,
     <T as Mul<<T as Div>::Output>>::Output:
@@ -39,7 +39,7 @@ where
 {
     type Output = Vec<(
         <<T as Mul<<T as Div>::Output>>::Output as Div>::Output,
-        <Vector3<T> as NormalizableVector>::NormalType,
+        SurfacePoint<T>
     )>;
 
     fn intersect(self, aab: AxisAlignedBox<Point3<T>>) -> Self::Output {
@@ -53,66 +53,66 @@ where
 
         let mut results: Vec<(
             <<T as Mul<<T as Div>::Output>>::Output as Div>::Output,
-            <Vector3<T> as NormalizableVector>::NormalType,
+            SurfacePoint<T>
         )> = Vec::new();
 
-        let t = self.intersect(left);
+        let mut t = self.intersect(left);
 
         if t.len() > 0 {
             let p = self.at(t[0].0);
 
             if p.y > aab.a.y && p.y < aab.b.y && p.z > aab.a.z && p.z < aab.b.z {
-                results.push(t[0]);
+                results.push(t.remove(0));
             }
         }
 
-        let t = self.intersect(right);
+        let mut t = self.intersect(right);
 
         if t.len() > 0 {
             let p = self.at(t[0].0);
 
             if p.y > aab.a.y && p.y < aab.b.y && p.z > aab.a.z && p.z < aab.b.z {
-                results.push(t[0]);
+                results.push(t.remove(0));
             }
         }
 
-        let t = self.intersect(lower);
+        let mut t = self.intersect(lower);
 
         if t.len() > 0 {
             let p = self.at(t[0].0);
 
             if p.x > aab.a.x && p.x < aab.b.x && p.z > aab.a.z && p.z < aab.b.z {
-                results.push(t[0]);
+                results.push(t.remove(0));
             }
         }
 
-        let t = self.intersect(upper);
+        let mut t = self.intersect(upper);
 
         if t.len() > 0 {
             let p = self.at(t[0].0);
 
             if p.x > aab.a.x && p.x < aab.b.x && p.z > aab.a.z && p.z < aab.b.z {
-                results.push(t[0]);
+                results.push(t.remove(0));
             }
         }
 
-        let t = self.intersect(near);
+        let mut t = self.intersect(near);
 
         if t.len() > 0 {
             let p = self.at(t[0].0);
 
             if p.x > aab.a.x && p.x < aab.b.x && p.y > aab.a.y && p.y < aab.b.y {
-                results.push(t[0]);
+                results.push(t.remove(0));
             }
         }
 
-        let t = self.intersect(far);
+        let mut t = self.intersect(far);
 
         if t.len() > 0 {
             let p = self.at(t[0].0);
 
             if p.x > aab.a.x && p.x < aab.b.x && p.y > aab.a.y && p.y < aab.b.y {
-                results.push(t[0]);
+                results.push(t.remove(0));
             }
         }
 
@@ -123,6 +123,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::math::Point2;
 
     macro_rules! new_axis_aligned_box3 {
         ($type: ty, $name: ident) => {
@@ -179,15 +181,15 @@ mod tests {
                 assert_eq!(
                     ray1.intersect(aab),
                     vec![
-                        (3 as $type, Normal3::z_axis()),
-                        (7 as $type, -Normal3::<$type>::z_axis())
+                        (3 as $type, SurfacePoint::new(Point3::new(0 as $type, 0 as $type, 2 as $type), Normal3::<$type>::z_axis(), Point2::new(0 as $type, 0 as $type))),
+                        (7 as $type, SurfacePoint::new(Point3::new(0 as $type, 0 as $type, -2 as $type), -Normal3::<$type>::z_axis(), Point2::new(0 as $type, 0 as $type))),
                     ]
                 );
                 assert_eq!(
                     ray2.intersect(aab),
                     vec![
-                        (5 as $type, Normal3::z_axis()),
-                        (9 as $type, -Normal3::<$type>::z_axis())
+                        (5 as $type, SurfacePoint::new(Point3::new(1 as $type, 1 as $type, 2 as $type), Normal3::<$type>::z_axis(), Point2::new(0 as $type, 0 as $type))),
+                        (9 as $type, SurfacePoint::new(Point3::new(1 as $type, 1 as $type, -2 as $type), -Normal3::<$type>::z_axis(), Point2::new(0 as $type, 0 as $type))),
                     ]
                 );
                 assert_eq!(ray3.intersect(aab), Vec::new());

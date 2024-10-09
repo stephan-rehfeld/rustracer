@@ -1,10 +1,10 @@
-use std::ops;
+use std::ops::{Div, Add, Mul, Sub};
 
-use super::Intersect;
-use super::ParametricLine;
+use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::vector::DotProduct;
 use crate::math::NormalizableVector;
+use crate::math::Point2;
 use crate::math::Point3;
 use crate::math::Vector3;
 use crate::traits::Zero;
@@ -12,8 +12,8 @@ use crate::traits::Zero;
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ImplicitPlane3<T>
 where
-    T: ops::Mul + ops::Div + Copy + Clone,
-    <T as ops::Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
+    T: Mul + Div + Copy + Clone,
+    <T as Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
 {
     anchor: Point3<T>,
     normal: <Vector3<T> as NormalizableVector>::NormalType,
@@ -21,8 +21,8 @@ where
 
 impl<T> ImplicitPlane3<T>
 where
-    T: ops::Mul + ops::Div + Copy + Clone,
-    <T as ops::Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
+    T: Mul + Div + Copy + Clone,
+    <T as Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
 {
     pub fn new(
         anchor: Point3<T>,
@@ -31,12 +31,12 @@ where
         ImplicitPlane3 { anchor, normal }
     }
 
-    pub fn test(self, p: Point3<T>) -> <T as ops::Mul<<T as ops::Div>::Output>>::Output
+    pub fn test(self, p: Point3<T>) -> <T as Mul<<T as Div>::Output>>::Output
     where
-        T: std::ops::Mul<<T as std::ops::Div>::Output>,
-        T: ops::Sub<Output = T>,
-        <T as ops::Mul<<T as ops::Div>::Output>>::Output:
-            ops::Add<Output = <T as ops::Mul<<T as ops::Div>::Output>>::Output> + Zero,
+        T: Mul<<T as Div>::Output>,
+        T: Sub<Output = T>,
+        <T as Mul<<T as Div>::Output>>::Output:
+            Add<Output = <T as Mul<<T as Div>::Output>>::Output> + Zero,
     {
         (p - self.anchor).dot(self.normal.as_vector())
     }
@@ -44,17 +44,17 @@ where
 
 impl<T> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
-    T: ops::Mul + ops::Div + ops::Add<Output = T> + Zero + Copy + Clone,
-    <T as ops::Mul>::Output:
-        ops::Add<Output = <T as ops::Mul>::Output> + ops::Div + PartialEq + Zero,
-    <T as ops::Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
-    Point3<T>: ops::Sub<Output = Vector3<T>>,
-    <T as ops::Mul<<T as ops::Div>::Output>>::Output: PartialEq,
-    T: ops::Mul<<T as ops::Div>::Output, Output = T>,
+    T: Mul + Div + Add<Output = T> + Zero + Copy + Clone,
+    <T as Mul>::Output:
+        Add<Output = <T as Mul>::Output> + Div + PartialEq + Zero,
+    <T as Div>::Output: std::fmt::Debug + Zero + PartialEq + Clone + Copy,
+    Point3<T>: Sub<Output = Vector3<T>>,
+    <T as Mul<<T as Div>::Output>>::Output: PartialEq,
+    T: Mul<<T as Div>::Output, Output = T>,
 {
     type Output = Vec<(
-        <<T as ops::Mul<<T as ops::Div>::Output>>::Output as ops::Div>::Output,
-        <Vector3<T> as NormalizableVector>::NormalType,
+        <<T as Mul<<T as Div>::Output>>::Output as Div>::Output,
+        SurfacePoint<T>
     )>;
 
     fn intersect(self, plane: ImplicitPlane3<T>) -> Self::Output {
@@ -63,7 +63,12 @@ where
         } else {
             let t = (plane.anchor - self.origin).dot(plane.normal.as_vector())
                 / self.direction.dot(plane.normal.as_vector());
-            vec![(t, plane.normal)]
+
+            let p = self.at(t);
+            let n = plane.normal;
+            let uv: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
+
+            vec![(t, SurfacePoint::new(p, n, uv))]
         }
     }
 }
@@ -156,7 +161,7 @@ mod tests {
                     Vector3::new(0 as $type, -1 as $type, 0 as $type),
                 );
 
-                assert_eq!(ray2.intersect(plane), vec![(1 as $type, n)]);
+                assert_eq!(ray2.intersect(plane), vec![(1 as $type, SurfacePoint::new(Point3::new(0 as $type, 0 as $type, 0 as $type), n, Point2::new(0 as $type, 0 as $type ) ))]);
             }
         };
     }

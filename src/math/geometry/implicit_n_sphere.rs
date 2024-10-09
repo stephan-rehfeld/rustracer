@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-use super::{Intersect, ParametricLine};
+use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::vector::{DotProduct, NormalizableVector};
-use crate::math::{Point, Vector};
+use crate::math::{Point, Vector3, Point2, Point3};
 use crate::traits::{Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -40,44 +40,20 @@ where
     }
 }
 
-impl<P, V> Intersect<ImplicitNSphere<P>> for ParametricLine<P, V>
-where
-    V: NormalizableVector
-        + DotProduct
-        + Add<Output = V>
-        + Mul<<<V as Vector>::ValueType as Div>::Output, Output = V>
-        + Copy
-        + Clone,
-    <V as Vector>::ValueType: Div + Mul + Copy + Clone,
-    <<V as Vector>::ValueType as Mul>::Output: Add<Output = <<V as Vector>::ValueType as Mul>::Output>
-        + Sqrt<Output = <V as Vector>::ValueType>
-        + Zero,
-    <V as DotProduct>::Output: Add<Output = <V as DotProduct>::Output>
-        + Sub<Output = <V as DotProduct>::Output>
-        + Mul
-        + Neg<Output = <V as DotProduct>::Output>
-        + Div<Output = <<V as Vector>::ValueType as Div>::Output>
-        + Copy
-        + Clone,
-    <<V as DotProduct>::Output as Mul>::Output: Add<Output = <<V as DotProduct>::Output as Mul>::Output>
-        + Sub<Output = <<V as DotProduct>::Output as Mul>::Output>
-        + Sqrt<Output = <V as DotProduct>::Output>
-        + Zero
-        + PartialEq
-        + PartialOrd
-        + Copy
-        + Clone,
-    <<V as Vector>::ValueType as Div>::Output: Copy + Clone,
-    P: Point + Add<V, Output = P> + Sub<Output = V> + Copy + Clone,
-    <P as Point>::ValueType:
-        Mul<Output = <V as DotProduct>::Output> + Debug + PartialEq + Copy + Clone,
+impl<T> Intersect<ImplicitNSphere<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>> where
+    T: Add<Output=T> + Sub<Output=T> + Mul + Mul<<T as Div>::Output, Output = T> + Div + Copy + Debug + PartialEq,
+    <T as Div>::Output: Debug + PartialEq + Copy, 
+    <T as Div>::Output: Zero, // This can be removed later 
+    <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Sub<Output=<T as Mul>::Output> + Mul + Div<Output=<T as Div>::Output> + Sqrt<Output=T> + Neg<Output=<T as Mul>::Output> + Zero + Copy,
+    <<T as Mul>::Output as Mul>::Output: Add<Output=<<T as Mul>::Output as Mul>::Output> + Sub<Output=<<T as Mul>::Output as Mul>::Output> + Sqrt<Output=<T as Mul>::Output> + Zero + PartialEq + PartialOrd
+
 {
     type Output = Vec<(
-        <<V as Vector>::ValueType as Div>::Output,
-        <V as NormalizableVector>::NormalType,
+        <T as Div>::Output,
+        SurfacePoint<T>,
     )>;
 
-    fn intersect(self, sphere: ImplicitNSphere<P>) -> Self::Output {
+    fn intersect(self, sphere: ImplicitNSphere<Point3<T>>) -> Self::Output {
         let a = self.direction.dot(self.direction);
         let b = self
             .direction
@@ -93,8 +69,9 @@ where
             let t = -b / (a + a);
             let p = self.at(t);
             let n = (p - sphere.center).normalized();
+            let uv: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
 
-            vec![(t, n)]
+            vec![(t, SurfacePoint::new(p, n, uv))]
         } else {
             let helper = helper.sqrt();
 
@@ -107,9 +84,13 @@ where
             let n1 = (p1 - sphere.center).normalized();
             let n2 = (p2 - sphere.center).normalized();
 
-            vec![(t1, n1), (t2, n2)]
+            let uv1: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
+            let uv2: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
+
+            vec![(t1, SurfacePoint::new(p1, n1, uv1)), (t2, SurfacePoint::new(p2, n2, uv2))]
         }
     }
+
 }
 
 #[cfg(test)]
@@ -222,15 +203,15 @@ mod tests {
                 assert_eq!(ray1.intersect(sphere), Vec::new());
                 assert_eq!(
                     ray2.intersect(sphere),
-                    vec![(3 as $type, Normal3::new(0 as $type, 1 as $type, 0 as $type))]
+                    vec![(3 as $type, SurfacePoint::new(Point3::new(1 as $type, 3 as $type, 1 as $type), Normal3::new(0 as $type, 1 as $type, 0 as $type), Point2::new(0 as $type, 0 as $type)))]
                 );
                 assert_eq!(
                     ray3.intersect(sphere),
                     vec![
-                        (1 as $type, Normal3::new(0 as $type, 0 as $type, 1 as $type)),
+                        (1 as $type, SurfacePoint::new( Point3::new(1 as $type, 1 as $type, 3 as $type), Normal3::new(0 as $type, 0 as $type, 1 as $type), Point2::new(0 as $type, 0 as $type) )),
                         (
                             5 as $type,
-                            Normal3::new(0 as $type, 0 as $type, -1 as $type)
+                            SurfacePoint::new( Point3::new(1 as $type, 1 as $type, -1 as $type), Normal3::new(0 as $type, 0 as $type, -1 as $type), Point2::new(0 as $type, 0 as $type))
                         )
                     ]
                 );

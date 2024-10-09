@@ -6,7 +6,7 @@ use crate::color::Color;
 use crate::image::Image;
 use crate::light::Light;
 use crate::material::Material;
-use crate::math::geometry::ParametricLine;
+use crate::math::geometry::{ParametricLine, SurfacePoint};
 use crate::math::{Normal3, Point2, Point3, Vector2, Vector3};
 use crate::traits::{One, Zero};
 use crate::units::length::Length;
@@ -123,7 +123,7 @@ where
 
         let mut hits: Vec<(
             <Self as Raytracer>::ScalarType,
-            <Self as Raytracer>::NormalType,
+            SurfacePoint<T>,
             &dyn Material<T, ColorType = Self::ColorType>,
         )> = self
             .scene
@@ -136,13 +136,12 @@ where
         if hits.is_empty() {
             self.bg_color
         } else {
-            let (t, n, material) = hits[0];
-            let p = ray.at(t);
+            let (_, sp, material) = hits.remove(0);
             let lights: Vec<&Box<dyn Light<T, C>>> = self
                 .lights
                 .iter()
                 .filter(|light| {
-                    light.illuminates(p, n, &|shadow_ray| {
+                    light.illuminates(sp.p, sp.n, &|shadow_ray| {
                         let mut hits: Vec<<Self as Raytracer>::ScalarType> = self
                             .scene
                             .iter()
@@ -156,8 +155,7 @@ where
                 })
                 .collect();
 
-            let tex = Point2::new(Zero::zero(), Zero::zero());
-            material.color_for(p, n, tex, ray.direction, lights, self.ambient_light)
+            material.color_for(sp.p, sp.n, sp.uv, ray.direction, lights, self.ambient_light)
         }
     }
 }
