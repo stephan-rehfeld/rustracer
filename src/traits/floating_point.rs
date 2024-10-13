@@ -205,6 +205,18 @@ impl TotalCmp for f64 {
 
 create_and_implement_proxy_trait! { with name Trunc and function trunc for types [f32 f64] }
 
+pub trait Pi {
+    const PI: Self;
+}
+
+impl Pi for f32 {
+    const PI: f32 = std::f32::consts::PI;
+}
+
+impl Pi for f64 {
+    const PI: f64 = std::f64::consts::PI;
+}
+
 pub trait FloatingPoint<N=Self>: SignedNumber<N>
         + Acos
         + Acosh
@@ -262,6 +274,8 @@ pub trait FloatingPoint<N=Self>: SignedNumber<N>
         + ToRadians
         + TotalCmp
         + Trunc
+
+        + Pi
           {
     const DIGITS: u32;
     const EPSILON: Self;

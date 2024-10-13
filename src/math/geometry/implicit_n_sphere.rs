@@ -5,7 +5,8 @@ use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::vector::{DotProduct, NormalizableVector};
 use crate::math::{Point, Point2, Point3, Vector3};
-use crate::traits::{Sqrt, Zero};
+use crate::traits::floating_point::Pi;
+use crate::traits::{Acos, Atan2, Half, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ImplicitNSphere<P>
@@ -50,7 +51,15 @@ where
         + Copy
         + Debug
         + PartialEq,
-    <T as Div>::Output: Debug + PartialEq + Copy,
+    <T as Div>::Output: Acos<Output = <T as Div>::Output>
+        + Atan2<Output = <T as Div>::Output>
+        + Debug
+        + Div<Output = <T as Div>::Output>
+        + Half
+        + Neg<Output = <T as Div>::Output>
+        + Pi
+        + PartialEq
+        + Copy,
     <T as Div>::Output: Zero, // This can be removed later
     <T as Mul>::Output: Add<Output = <T as Mul>::Output>
         + Sub<Output = <T as Mul>::Output>
@@ -84,9 +93,16 @@ where
         } else if helper == Zero::zero() {
             let t = -b / (a + a);
             let p = self.at(t);
-            let n = (p - sphere.center).normalized().as_normal();
-            let uv: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
+            let v = (p - sphere.center).normalized();
+            let n = v.as_normal();
 
+            let theta = v.y.acos();
+            let phi = v.x.atan2(v.z);
+
+            let u = (phi / Pi::PI).half();
+            let v = -(theta / Pi::PI);
+
+            let uv: Point2<<T as Div>::Output> = Point2::new(u, v);
             vec![(t, SurfacePoint::new(p, n, uv))]
         } else {
             let helper = helper.sqrt();
@@ -97,11 +113,25 @@ where
             let p1 = self.at(t1);
             let p2 = self.at(t2);
 
-            let n1 = (p1 - sphere.center).normalized().as_normal();
-            let n2 = (p2 - sphere.center).normalized().as_normal();
+            let v1 = (p1 - sphere.center).normalized();
+            let v2 = (p2 - sphere.center).normalized();
 
-            let uv1: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
-            let uv2: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
+            let n1 = v1.as_normal();
+            let n2 = v2.as_normal();
+
+            let theta1 = v1.y.acos();
+            let theta2 = v2.y.acos();
+
+            let phi1 = v1.x.atan2(v1.z);
+            let phi2 = v2.x.atan2(v2.z);
+
+            let u1 = (phi1 / Pi::PI).half();
+            let u2 = (phi2 / Pi::PI).half();
+            let v1 = -(theta1 / Pi::PI);
+            let v2 = -(theta2 / Pi::PI);
+
+            let uv1: Point2<<T as Div>::Output> = Point2::new(u1, v1);
+            let uv2: Point2<<T as Div>::Output> = Point2::new(u2, v2);
 
             vec![
                 (t1, SurfacePoint::new(p1, n1, uv1)),
@@ -238,7 +268,7 @@ mod tests {
                             SurfacePoint::new(
                                 Point3::new(1 as $type, 1 as $type, 3 as $type),
                                 Normal3::new(0 as $type, 0 as $type, 1 as $type),
-                                Point2::new(0 as $type, 0 as $type)
+                                Point2::new(0 as $type, -0.5 as $type)
                             )
                         ),
                         (
@@ -246,7 +276,7 @@ mod tests {
                             SurfacePoint::new(
                                 Point3::new(1 as $type, 1 as $type, -1 as $type),
                                 Normal3::new(0 as $type, 0 as $type, -1 as $type),
-                                Point2::new(0 as $type, 0 as $type)
+                                Point2::new(0.5 as $type, -0.5 as $type)
                             )
                         )
                     ]

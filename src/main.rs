@@ -23,6 +23,7 @@ fn main() {
     let plane = ImplicitPlane3::new(
         Point3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(0.0)),
         Normal3::new(0.0, 1.0, 0.0),
+        Vector3::new(1.0, 0.0, 0.0),
     );
 
     let sphere = ImplicitNSphere::new(
@@ -44,6 +45,9 @@ fn main() {
         n,
         n,
         n,
+        Point2::new(0.0, 0.0),
+        Point2::new(1.0, 0.0),
+        Point2::new(0.0, 1.0),
     );
 
     let plane_geometry = Box::new(RenderableGeometry::new(

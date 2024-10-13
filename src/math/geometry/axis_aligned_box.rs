@@ -5,7 +5,7 @@ use super::{ImplicitPlane3, Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::normal::Orthonormal3;
 use crate::math::{Normal3, Point3, Vector3};
-use crate::traits::Zero;
+use crate::traits::{One, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct AxisAlignedBox<P> {
@@ -23,13 +23,23 @@ impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vecto
 where
     T: Mul
         + Mul<<T as Div>::Output, Output = T>
+        + One
         + Div
         + Add<Output = T>
         + Copy
         + Clone
         + PartialOrd,
     T: Mul<<T as Div>::Output, Output = T>,
-    <T as Div>::Output: Neg<Output = <T as Div>::Output> + Debug + Zero + PartialEq + Clone + Copy,
+    <T as Div>::Output: Add<Output = <T as Div>::Output>
+        + Div<Output = <T as Div>::Output>
+        + Mul<Output = <T as Div>::Output>
+        + Neg<Output = <T as Div>::Output>
+        + Sub<Output = <T as Div>::Output>
+        + Debug
+        + Zero
+        + PartialEq
+        + Clone
+        + Copy,
     <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Div + PartialEq + Zero,
     <T as Mul<<T as Div>::Output>>::Output: PartialEq,
     <T as Mul<<T as Div>::Output>>::Output:
@@ -43,13 +53,13 @@ where
     )>;
 
     fn intersect(self, aab: AxisAlignedBox<Point3<T>>) -> Self::Output {
-        let left = ImplicitPlane3::new(aab.a, -Normal3::x_axis());
-        let lower = ImplicitPlane3::new(aab.a, -Normal3::y_axis());
-        let far = ImplicitPlane3::new(aab.a, -Normal3::z_axis());
+        let left = ImplicitPlane3::new(aab.a, -Normal3::x_axis(), Normal3::z_axis().as_vector());
+        let lower = ImplicitPlane3::new(aab.a, -Normal3::y_axis(), Normal3::x_axis().as_vector());
+        let far = ImplicitPlane3::new(aab.a, -Normal3::z_axis(), -Normal3::x_axis().as_vector());
 
-        let right = ImplicitPlane3::new(aab.b, Normal3::x_axis());
-        let upper = ImplicitPlane3::new(aab.b, Normal3::y_axis());
-        let near = ImplicitPlane3::new(aab.b, Normal3::z_axis());
+        let right = ImplicitPlane3::new(aab.b, Normal3::x_axis(), -Normal3::z_axis().as_vector());
+        let upper = ImplicitPlane3::new(aab.b, Normal3::y_axis(), -Normal3::x_axis().as_vector());
+        let near = ImplicitPlane3::new(aab.b, Normal3::z_axis(), Normal3::x_axis().as_vector());
 
         let mut results: Vec<(
             <<T as Mul<<T as Div>::Output>>::Output as Div>::Output,
@@ -207,7 +217,7 @@ mod tests {
                             SurfacePoint::new(
                                 Point3::new(1 as $type, 1 as $type, 2 as $type),
                                 Normal3::<$type>::z_axis(),
-                                Point2::new(0 as $type, 0 as $type)
+                                Point2::new(1 as $type, -1 as $type)
                             )
                         ),
                         (
@@ -215,7 +225,7 @@ mod tests {
                             SurfacePoint::new(
                                 Point3::new(1 as $type, 1 as $type, -2 as $type),
                                 -Normal3::<$type>::z_axis(),
-                                Point2::new(0 as $type, 0 as $type)
+                                Point2::new(-1 as $type, -1 as $type)
                             )
                         ),
                     ]

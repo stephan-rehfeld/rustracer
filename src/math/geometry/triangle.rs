@@ -17,6 +17,9 @@ where
     na: Normal3<<T as Div>::Output>,
     nb: Normal3<<T as Div>::Output>,
     nc: Normal3<<T as Div>::Output>,
+    uva: Point2<<T as Div>::Output>,
+    uvb: Point2<<T as Div>::Output>,
+    uvc: Point2<<T as Div>::Output>,
 }
 
 impl<T: Div> Triangle3<T>
@@ -30,6 +33,9 @@ where
         na: Normal3<<T as Div>::Output>,
         nb: Normal3<<T as Div>::Output>,
         nc: Normal3<<T as Div>::Output>,
+        uva: Point2<<T as Div>::Output>,
+        uvb: Point2<<T as Div>::Output>,
+        uvc: Point2<<T as Div>::Output>,
     ) -> Triangle3<T> {
         Triangle3 {
             a,
@@ -38,6 +44,9 @@ where
             na,
             nb,
             nc,
+            uva,
+            uvb,
+            uvc,
         }
     }
 }
@@ -108,9 +117,11 @@ where
         let n = (triangle.na * alpha + triangle.nb * beta + triangle.nc * gamma)
             .normalized()
             .as_normal();
-        let uv: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
+        let uv = triangle.uva.as_vector() * alpha
+            + triangle.uvb.as_vector() * beta
+            + triangle.uvc.as_vector() * gamma;
 
-        vec![(t, SurfacePoint::new(p, n, uv))]
+        vec![(t, SurfacePoint::new(p, n, uv.as_point()))]
     }
 }
 
@@ -132,7 +143,11 @@ pub mod tests {
                 let nb = Normal3::new(0 as $type, 1 as $type, 0 as $type);
                 let nc = Normal3::new(0 as $type, 0 as $type, 1 as $type);
 
-                let triangle = Triangle3::new(a, b, c, na, nb, nc);
+                let uva = Point2::new(0 as $type, 0 as $type);
+                let uvb = Point2::new(1 as $type, 0 as $type);
+                let uvc = Point2::new(0 as $type, 1 as $type);
+
+                let triangle = Triangle3::new(a, b, c, na, nb, nc, uva, uvb, uvc);
 
                 assert_eq!(triangle.a, a);
                 assert_eq!(triangle.b, b);
@@ -141,6 +156,10 @@ pub mod tests {
                 assert_eq!(triangle.na, na);
                 assert_eq!(triangle.nb, nb);
                 assert_eq!(triangle.nc, nc);
+
+                assert_eq!(triangle.uva, uva);
+                assert_eq!(triangle.uvb, uvb);
+                assert_eq!(triangle.uvc, uvc);
             }
         };
     }
@@ -170,6 +189,9 @@ pub mod tests {
                     n,
                     n,
                     n,
+                    Point2::new(0 as $type, 0 as $type),
+                    Point2::new(1 as $type, 0 as $type),
+                    Point2::new(0 as $type, 1 as $type),
                 );
 
                 let line1 = ParametricLine::new(
@@ -204,7 +226,7 @@ pub mod tests {
                         SurfacePoint::new(
                             Point3::new(0 as $type, 0 as $type, -2 as $type),
                             n,
-                            Point2::new(0 as $type, 0 as $type)
+                            Point2::new(0 as $type, 0.5 as $type)
                         )
                     )]
                 );
@@ -226,7 +248,7 @@ pub mod tests {
                         SurfacePoint::new(
                             Point3::new(1 as $type, 1 as $type, -2 as $type),
                             n,
-                            Point2::new(0 as $type, 0 as $type)
+                            Point2::new(1.0 as $type, 0 as $type)
                         )
                     )]
                 );
@@ -237,7 +259,7 @@ pub mod tests {
                         SurfacePoint::new(
                             Point3::new(1 as $type, -1 as $type, -2 as $type),
                             n,
-                            Point2::new(0 as $type, 0 as $type)
+                            Point2::new(0 as $type, 1.0 as $type)
                         )
                     )]
                 );

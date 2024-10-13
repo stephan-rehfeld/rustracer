@@ -6,11 +6,11 @@ use std::str::FromStr;
 use crate::color::RGB;
 use crate::material::Material;
 use crate::math::transform::Transform3;
-use crate::math::{Normal3, Point3, Vector3};
+use crate::math::{Normal3, Point2, Point3, Vector3};
 use crate::scene_graph::RenderableGeometry;
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{Cos, FloatingPoint, One, Sin, Sqrt, Zero};
+use crate::traits::{Acos, Atan2, Cos, FloatingPoint, One, Sin, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Plane, Sphere, Triangle};
@@ -61,6 +61,10 @@ where
         let mut nb: Option<Normal3<<T as Length>::ValueType>> = None;
         let mut nc: Option<Normal3<<T as Length>::ValueType>> = None;
 
+        let mut uva: Option<Point2<<T as Length>::ValueType>> = None;
+        let mut uvb: Option<Point2<<T as Length>::ValueType>> = None;
+        let mut uvc: Option<Point2<<T as Length>::ValueType>> = None;
+
         while let Some(token) = tokens.next() {
             match token {
                 "a:" => match Point3::from_tokens(tokens) {
@@ -106,6 +110,30 @@ where
                 "nc:" => match Normal3::from_tokens(tokens) {
                     Ok(point) => {
                         nc = Some(point);
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::TriangleParsingError(Box::new(cause)));
+                    }
+                },
+                "uva:" => match Point2::from_tokens(tokens) {
+                    Ok(point) => {
+                        uva = Some(point);
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::TriangleParsingError(Box::new(cause)));
+                    }
+                },
+                "uvb:" => match Point2::from_tokens(tokens) {
+                    Ok(point) => {
+                        uvb = Some(point);
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::TriangleParsingError(Box::new(cause)));
+                    }
+                },
+                "uvc:" => match Point2::from_tokens(tokens) {
+                    Ok(point) => {
+                        uvc = Some(point);
                     }
                     Err(cause) => {
                         return Err(ParsingError::TriangleParsingError(Box::new(cause)));
@@ -177,6 +205,15 @@ where
         if let None = nc {
             return Err(ParsingError::MissingElement("nc"));
         }
+        if let None = uva {
+            return Err(ParsingError::MissingElement("uva"));
+        }
+        if let None = uvb {
+            return Err(ParsingError::MissingElement("uvb"));
+        }
+        if let None = uvc {
+            return Err(ParsingError::MissingElement("uvc"));
+        }
 
         let triangle = Triangle::new(
             a.unwrap(),
@@ -185,6 +222,9 @@ where
             na.unwrap(),
             nb.unwrap(),
             nc.unwrap(),
+            uva.unwrap(),
+            uvb.unwrap(),
+            uvc.unwrap(),
         );
 
         let triangle_geometry = RenderableGeometry::new(
@@ -385,6 +425,7 @@ where
         let plane = Plane::new(
             Point3::new(Zero::zero(), Zero::zero(), Zero::zero()),
             Normal3::new(Zero::zero(), One::one(), Zero::zero()),
+            Vector3::new(One::one(), Zero::zero(), Zero::zero()),
         );
 
         let plane_geometry = RenderableGeometry::new(
@@ -408,6 +449,8 @@ where
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
+        + Acos<Output = T::ValueType>
+        + Atan2<Output = T::ValueType>
         + Sin<Output = T::ValueType>
         + Cos<Output = T::ValueType>
         + ToRadians<Output = T::ValueType>

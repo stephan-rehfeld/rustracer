@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use std::str::FromStr;
 
 use crate::color::RGB;
-use crate::math::{Normal3, Point3, Vector3};
+use crate::math::{Normal3, Point2, Point3, Vector3};
 
 use crate::parser::{FromTokens, ParsingError};
 
@@ -43,6 +43,7 @@ macro_rules! create_simple_token_parser {
 }
 
 create_simple_token_parser! { RGB, ParsingError, ColorParsingError, [red green blue] }
-create_simple_token_parser! { Point3, ParsingError, PointParsingError, [x y z] }
+create_simple_token_parser! { Point2, ParsingError, Point2ParsingError, [x y] }
+create_simple_token_parser! { Point3, ParsingError, Point3ParsingError, [x y z] }
 create_simple_token_parser! { Vector3, ParsingError, VectorParsingError, [x y z] }
 create_simple_token_parser! { Normal3, ParsingError, NormalParsingError, [x y z] }

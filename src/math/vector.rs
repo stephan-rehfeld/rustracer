@@ -65,6 +65,10 @@ macro_rules! create_vector_type {
             pub fn as_normal(self) -> $normalType<T> {
                 $normalType::new( $( self.$element, )* )
             }
+
+            pub fn as_point(self) -> $pointType<T> {
+                $pointType::new( $( self.$element, )* )
+            }
         }
 
         impl<T, U> DotProduct<$name<U>> for $name<T> where

@@ -1,10 +1,10 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::vector::DotProduct;
-use crate::math::{Normal3, NormalizableVector, Point2, Point3, Vector3};
-use crate::traits::Zero;
+use crate::math::{Mat3x3, Normal3, NormalizableVector, Point2, Point3, Vector3};
+use crate::traits::{One, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ImplicitPlane3<T>
@@ -14,6 +14,7 @@ where
 {
     anchor: Point3<T>,
     normal: Normal3<<T as Div>::Output>,
+    right: Vector3<<T as Div>::Output>,
 }
 
 impl<T> ImplicitPlane3<T>
@@ -21,8 +22,16 @@ where
     T: Mul + Div + Copy + Clone,
     <T as Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
 {
-    pub fn new(anchor: Point3<T>, normal: Normal3<<T as Div>::Output>) -> ImplicitPlane3<T> {
-        ImplicitPlane3 { anchor, normal }
+    pub fn new(
+        anchor: Point3<T>,
+        normal: Normal3<<T as Div>::Output>,
+        right: Vector3<<T as Div>::Output>,
+    ) -> ImplicitPlane3<T> {
+        ImplicitPlane3 {
+            anchor,
+            normal,
+            right,
+        }
     }
 
     pub fn test(self, p: Point3<T>) -> <T as Mul<<T as Div>::Output>>::Output
@@ -38,9 +47,18 @@ where
 
 impl<T> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
-    T: Mul + Div + Add<Output = T> + Zero + Copy + Clone,
+    T: One + Mul + Div + Add<Output = T> + Zero + Copy + Clone,
     <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Div + PartialEq + Zero,
-    <T as Div>::Output: std::fmt::Debug + Zero + PartialEq + Clone + Copy,
+    <T as Div>::Output: Add<Output = <T as Div>::Output>
+        + Div<Output = <T as Div>::Output>
+        + Mul<Output = <T as Div>::Output>
+        + Neg<Output = <T as Div>::Output>
+        + Sub<Output = <T as Div>::Output>
+        + std::fmt::Debug
+        + Zero
+        + PartialEq
+        + Clone
+        + Copy,
     Point3<T>: Sub<Output = Vector3<T>>,
     <T as Mul<<T as Div>::Output>>::Output: PartialEq,
     T: Mul<<T as Div>::Output, Output = T>,
@@ -59,7 +77,24 @@ where
 
             let p = self.at(t);
             let n = plane.normal;
-            let uv: Point2<<T as Div>::Output> = Point2::new(Zero::zero(), Zero::zero());
+
+            let u_vector = plane.right;
+            let v_vector = plane.normal.as_vector();
+            let w_vector = Vector3::cross(v_vector, u_vector);
+
+            let m = Mat3x3::from_vector3s(u_vector, v_vector, w_vector);
+
+            let m_determinante = m.determinant();
+
+            let m1 = m.change_column_1(p.as_vector() / T::one());
+
+            let u = m1.determinant() / m_determinante;
+
+            let m3 = m.change_column_3(p.as_vector() / T::one());
+
+            let v = -m3.determinant() / m_determinante;
+
+            let uv: Point2<<T as Div>::Output> = Point2::new(u, v);
 
             vec![(t, SurfacePoint::new(p, n, uv))]
         }
@@ -78,11 +113,13 @@ mod tests {
             fn $name() {
                 let anchor = Point3::new(1 as $type, 2 as $type, 3 as $type);
                 let normal = Normal3::new(4 as $type, 5 as $type, 6 as $type);
+                let right = Vector3::new(1 as $type, 0 as $type, 0 as $type);
 
-                let plane = ImplicitPlane3::new(anchor, normal);
+                let plane = ImplicitPlane3::new(anchor, normal, right);
 
                 assert_eq!(plane.anchor, anchor);
                 assert_eq!(plane.normal, normal);
+                assert_eq!(plane.right, right);
             }
         };
     }
@@ -107,6 +144,7 @@ mod tests {
                 let plane = ImplicitPlane3::new(
                     Point3::new(1 as $type, 1 as $type, 1 as $type),
                     Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                    Vector3::new(1 as $type, 0 as $type, 0 as $type),
                 );
 
                 assert_eq!(
@@ -139,13 +177,15 @@ mod tests {
             #[test]
             fn $name() {
                 let n = Normal3::new(0 as $type, 1 as $type, 0 as $type);
+                let right = Vector3::new(1 as $type, 0 as $type, 0 as $type);
 
                 let ray1 = ParametricLine::new(
                     Point3::new(0 as $type, 1 as $type, 0 as $type),
                     Vector3::new(0 as $type, 0 as $type, -1 as $type),
                 );
 
-                let plane = ImplicitPlane3::new(Point3::new(0 as $type, 0 as $type, 0 as $type), n);
+                let plane =
+                    ImplicitPlane3::new(Point3::new(0 as $type, 0 as $type, 0 as $type), n, right);
 
                 assert_eq!(ray1.intersect(plane), Vec::new());
 

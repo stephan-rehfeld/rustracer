@@ -20,6 +20,11 @@ macro_rules! create_point_type {
             pub fn new( $( $element: T, )*) -> $name<T> {
                 $name { $( $element, )* }
             }
+
+            pub fn as_vector( self ) -> $vectorType<T> {
+                $vectorType::new( $( self.$element, )* )
+            }
+
         }
 
         impl<T> Point for $name<T> {

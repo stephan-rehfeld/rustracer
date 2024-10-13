@@ -16,7 +16,7 @@ use crate::ray_casting::Scene;
 use crate::scene_graph::RenderableGeometry;
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{Cos, FloatingPoint, Half, Sin, Sqrt, Tan, Zero};
+use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, Sin, Sqrt, Tan, Zero};
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Plane, Renderable, Sphere, Triangle};
 
@@ -44,7 +44,8 @@ pub enum ParsingError {
     UnexpectedEndOfTokens,
     NumberParsingError(&'static str),
     ColorParsingError(Box<ParsingError>),
-    PointParsingError(Box<ParsingError>),
+    Point2ParsingError(Box<ParsingError>),
+    Point3ParsingError(Box<ParsingError>),
     VectorParsingError(Box<ParsingError>),
     NormalParsingError(Box<ParsingError>),
     UnexpectedToken {
@@ -84,6 +85,8 @@ pub fn parse_scene<T: Length + Neg<Output = T> + 'static>(
 where
     <T as Length>::ValueType: Sin<Output = T::ValueType>
         + Cos<Output = T::ValueType>
+        + Acos<Output = T::ValueType>
+        + Atan2<Output = T::ValueType>
         + FloatingPoint
         + Mul<T, Output = T>
         + MultiplyStable
