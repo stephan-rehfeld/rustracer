@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use crate::color::RGB;
 use crate::light::{PointLight, SpotLight};
-use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
+use crate::math::{NormalizableVector, Point3, Vector3};
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
 use crate::traits::{Sqrt, Zero};

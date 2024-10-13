@@ -3,7 +3,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
-use crate::math::{Mat3x3, Normal3, NormalizableVector, Point, Point2, Point3, Vector3};
+use crate::math::{Mat3x3, Normal3, NormalizableVector, Point2, Point3, Vector3};
 use crate::traits::{One, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]

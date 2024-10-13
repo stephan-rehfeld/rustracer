@@ -5,7 +5,7 @@ use image::Image;
 use material::Material;
 use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::transform::Transform3;
-use math::{Normal, Normal3, NormalizableVector, Point, Point3, Vector, Vector3};
+use math::{Normal, Normal3, Point, Point3, Vector, Vector3};
 use traits::{MultiplyStable, Sqrt};
 use units::length::Length;
 

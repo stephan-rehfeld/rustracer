@@ -1,6 +1,6 @@
 use std::ops::{Add, Div, Mul, Sub};
 
-use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
+use crate::math::{Normal3, Point3, Vector3};
 use crate::traits::{One, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
