@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use super::{ImplicitPlane3, Intersect, ParametricLine, SurfacePoint};
 
@@ -34,6 +34,8 @@ where
         + Div<Output = <T as Div>::Output>
         + Mul<Output = <T as Div>::Output>
         + Neg<Output = <T as Div>::Output>
+        + One
+        + Rem<Output = <T as Div>::Output>
         + Sub<Output = <T as Div>::Output>
         + Debug
         + Zero
@@ -217,7 +219,7 @@ mod tests {
                             SurfacePoint::new(
                                 Point3::new(1 as $type, 1 as $type, 2 as $type),
                                 Normal3::<$type>::z_axis(),
-                                Point2::new(1 as $type, -1 as $type)
+                                Point2::new(0 as $type, 0 as $type)
                             )
                         ),
                         (
@@ -225,7 +227,7 @@ mod tests {
                             SurfacePoint::new(
                                 Point3::new(1 as $type, 1 as $type, -2 as $type),
                                 -Normal3::<$type>::z_axis(),
-                                Point2::new(-1 as $type, -1 as $type)
+                                Point2::new(0 as $type, 0 as $type)
                             )
                         ),
                     ]

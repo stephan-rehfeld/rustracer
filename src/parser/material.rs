@@ -7,7 +7,7 @@ use crate::image::Image;
 use crate::material::{LambertMaterial, Material, PhongMaterial, UnshadedMaterial};
 use crate::math::Point2;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{FloatingPoint, One, Sqrt};
+use crate::traits::{FloatingPoint, Half, One, Sqrt};
 use crate::units::length::Length;
 
 use crate::parser::texture;
@@ -19,6 +19,7 @@ pub fn parse_material<'a, T: Length>(
 ) -> Result<Box<dyn Material<T, ColorType = RGB<<T as Length>::ValueType>>>, ParsingError>
 where
     <T as Length>::ValueType: FloatingPoint
+        + Half
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
@@ -44,7 +45,7 @@ where
     }
 }
 
-impl<T: FromStr + MultiplyStable + 'static> FromTokens
+impl<T: FromStr + Half + MultiplyStable + 'static> FromTokens
     for UnshadedMaterial<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>>
 where
     <T as FromStr>::Err: Error + Debug,
@@ -72,7 +73,7 @@ where
     }
 }
 
-impl<T: FromStr + MultiplyStable + 'static> FromTokens
+impl<T: FromStr + Half + MultiplyStable + 'static> FromTokens
     for LambertMaterial<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>>
 where
     <T as FromStr>::Err: Error + Debug,
@@ -100,7 +101,7 @@ where
     }
 }
 
-impl<T: FromStr + MultiplyStable + 'static> FromTokens
+impl<T: FromStr + Half + MultiplyStable + 'static> FromTokens
     for PhongMaterial<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>>
 where
     <T as FromStr>::Err: Error + Debug,

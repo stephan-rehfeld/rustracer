@@ -6,6 +6,7 @@ use std::ops::Deref;
 pub mod analyzer;
 pub mod converter;
 pub mod farbfeld;
+pub mod generator;
 pub mod repeater;
 
 pub trait Image {

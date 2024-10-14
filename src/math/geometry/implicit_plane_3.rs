@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
@@ -53,6 +53,8 @@ where
         + Div<Output = <T as Div>::Output>
         + Mul<Output = <T as Div>::Output>
         + Neg<Output = <T as Div>::Output>
+        + One
+        + Rem<Output = <T as Div>::Output>
         + Sub<Output = <T as Div>::Output>
         + std::fmt::Debug
         + Zero
@@ -94,7 +96,10 @@ where
 
             let v = -m3.determinant() / m_determinante;
 
-            let uv: Point2<<T as Div>::Output> = Point2::new(u, v);
+            let uv: Point2<<T as Div>::Output> = Point2::new(
+                (u % One::one() + One::one()) % One::one(),
+                (v % One::one() + One::one()) % One::one(),
+            );
 
             vec![(t, SurfacePoint::new(p, n, uv))]
         }

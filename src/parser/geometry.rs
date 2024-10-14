@@ -10,7 +10,7 @@ use crate::math::{Normal3, Point2, Point3, Vector3};
 use crate::scene_graph::RenderableGeometry;
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{Acos, Atan2, Cos, FloatingPoint, One, Sin, Sqrt, Zero};
+use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, One, Sin, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Plane, Sphere, Triangle};
@@ -25,6 +25,7 @@ use crate::parser::{material, util};
 impl<T: Length> FromTokens for RenderableTriangle<T>
 where
     <T as Length>::ValueType: FloatingPoint
+        + Half
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
@@ -245,6 +246,7 @@ where
 impl<T: Length + Neg<Output = T>> FromTokens for RenderableAxisAlignedBox<T>
 where
     <T as Length>::ValueType: FloatingPoint
+        + Half
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
@@ -345,6 +347,7 @@ where
 impl<T: Length> FromTokens for RenderablePlane<T>
 where
     <T as Length>::ValueType: FloatingPoint
+        + Half
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
@@ -446,6 +449,7 @@ where
 impl<T: Length> FromTokens for RenderableSphere<T>
 where
     <T as Length>::ValueType: FloatingPoint
+        + Half
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>

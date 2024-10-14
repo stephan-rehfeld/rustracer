@@ -1,12 +1,12 @@
 use std::fmt::Debug;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::vector::{DotProduct, NormalizableVector};
 use crate::math::{Point, Point2, Point3, Vector3};
 use crate::traits::floating_point::Pi;
-use crate::traits::{Acos, Atan2, Half, Sqrt, Zero};
+use crate::traits::{Acos, Atan2, Half, One, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ImplicitNSphere<P>
@@ -52,15 +52,17 @@ where
         + Debug
         + PartialEq,
     <T as Div>::Output: Acos<Output = <T as Div>::Output>
+        + Add<Output = <T as Div>::Output>
         + Atan2<Output = <T as Div>::Output>
         + Debug
         + Div<Output = <T as Div>::Output>
         + Half
         + Neg<Output = <T as Div>::Output>
+        + Rem<Output = <T as Div>::Output>
         + Pi
+        + One
         + PartialEq
         + Copy,
-    <T as Div>::Output: Zero, // This can be removed later
     <T as Mul>::Output: Add<Output = <T as Mul>::Output>
         + Sub<Output = <T as Mul>::Output>
         + Mul
@@ -130,8 +132,14 @@ where
             let v1 = -(theta1 / Pi::PI);
             let v2 = -(theta2 / Pi::PI);
 
-            let uv1: Point2<<T as Div>::Output> = Point2::new(u1, v1);
-            let uv2: Point2<<T as Div>::Output> = Point2::new(u2, v2);
+            let uv1: Point2<<T as Div>::Output> = Point2::new(
+                (u1 + One::one()) % One::one(),
+                (v1 + One::one()) % One::one(),
+            );
+            let uv2: Point2<<T as Div>::Output> = Point2::new(
+                (u2 + One::one()) % One::one(),
+                (v2 + One::one()) % One::one(),
+            );
 
             vec![
                 (t1, SurfacePoint::new(p1, n1, uv1)),
@@ -268,7 +276,7 @@ mod tests {
                             SurfacePoint::new(
                                 Point3::new(1 as $type, 1 as $type, 3 as $type),
                                 Normal3::new(0 as $type, 0 as $type, 1 as $type),
-                                Point2::new(0 as $type, -0.5 as $type)
+                                Point2::new(0 as $type, 0.5 as $type)
                             )
                         ),
                         (
@@ -276,7 +284,7 @@ mod tests {
                             SurfacePoint::new(
                                 Point3::new(1 as $type, 1 as $type, -1 as $type),
                                 Normal3::new(0 as $type, 0 as $type, -1 as $type),
-                                Point2::new(0.5 as $type, -0.5 as $type)
+                                Point2::new(0.5 as $type, 0.5 as $type)
                             )
                         )
                     ]
