@@ -18,7 +18,7 @@ use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
 use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, Sin, Sqrt, Tan, Zero};
 use crate::units::length::Length;
-use crate::{AxisAlignedBox, Plane, Renderable, Sphere, Triangle};
+use crate::{AxisAlignedBox, Cylinder, Plane, Renderable, Sphere, Triangle};
 
 mod camera;
 mod geometry;
@@ -32,6 +32,8 @@ type MaterialType<T> = Box<dyn Material<T, ColorType = RGB<<T as Length>::ValueT
 
 type RenderableAxisAlignedBox<T> =
     RenderableGeometry<AxisAlignedBox<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
+type RenderableCylinder<T> =
+    RenderableGeometry<Cylinder<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
 type RenderablePlane<T> =
     RenderableGeometry<Plane<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
 type RenderableSphere<T> =
@@ -62,6 +64,7 @@ pub enum ParsingError {
     MaterialParsingError(Box<ParsingError>),
     UnsupportedMaterial(String),
     SphereParsingError(Box<ParsingError>),
+    CylinderParsingError(Box<ParsingError>),
     PlaneParsingError(Box<ParsingError>),
     BoxParsingError(Box<ParsingError>),
     TriangleParsingError(Box<ParsingError>),
@@ -80,7 +83,7 @@ trait FromTokens: Sized {
     fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err>;
 }
 
-pub fn parse_scene<T: Length + Neg<Output = T> + 'static>(
+pub fn parse_scene<T: Length + Neg<Output = T> + Half + 'static>(
     filename: &str,
 ) -> Result<Scene<T, RGB<<T as Length>::ValueType>>, ParsingError>
 where
@@ -147,6 +150,14 @@ where
             "sphere" => match RenderableSphere::<T>::from_tokens(&mut tokens) {
                 Ok(sphere) => {
                     geometries.push(Box::new(sphere));
+                }
+                Err(cause) => {
+                    return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                }
+            },
+            "cylinder" => match RenderableCylinder::<T>::from_tokens(&mut tokens) {
+                Ok(cylinder) => {
+                    geometries.push(Box::new(cylinder));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));

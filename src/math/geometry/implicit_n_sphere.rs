@@ -85,6 +85,7 @@ where
         let b = self
             .direction
             .dot((self.origin - sphere.center) + (self.origin - sphere.center));
+
         let c = (self.origin - sphere.center).dot(self.origin - sphere.center)
             - sphere.radius * sphere.radius;
 
