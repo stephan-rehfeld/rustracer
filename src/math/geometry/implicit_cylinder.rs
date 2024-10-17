@@ -3,8 +3,8 @@ use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
+use crate::math::vector::NormalizableVector;
 use crate::math::{Point2, Point3, Vector3};
-use crate::math::vector::{NormalizableVector};
 use crate::traits::{Atan2, Half, One, Pi, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -16,30 +16,65 @@ pub struct ImplicitCylinder<T> {
 
 impl<T> ImplicitCylinder<T> {
     pub fn new(center: Point3<T>, height: T, radius: T) -> ImplicitCylinder<T> {
-        ImplicitCylinder { center, height, radius }
+        ImplicitCylinder {
+            center,
+            height,
+            radius,
+        }
     }
 
-    pub fn test(self, point: Point3<T>) -> <T as Mul>::Output where
-        T: Mul + Sub<Output=T> + Copy,
-        <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Sub<Output=<T as Mul>::Output> 
+    pub fn test(self, point: Point3<T>) -> <T as Mul>::Output
+    where
+        T: Mul + Sub<Output = T> + Copy,
+        <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Sub<Output = <T as Mul>::Output>,
     {
         let v = point - self.center;
-        
-        v.x * v.x + v.z * v.z - self.radius * self.radius 
+
+        v.x * v.x + v.z * v.z - self.radius * self.radius
     }
 }
 
-impl<T> Intersect<ImplicitCylinder<T>> for ParametricLine<Point3<T>, Vector3<T>> where
-    T: Add<Output=T> + Div + Half + Mul + Mul<<T as Div>::Output, Output=T> + Neg<Output=T> + Sub<Output=T> + Zero + Copy + PartialOrd,
-    <T as Div>::Output: Add<Output=<T as Div>::Output> + Atan2<Output=<T as Div>::Output> + Copy + Div<Output=<T as Div>::Output> + Debug + Half + One + PartialEq + Pi + Rem<Output=<T as Div>::Output>,
-    <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Div<Output=<T as Div>::Output> + Mul + Neg<Output=<T as Mul>::Output> + Sub<Output=<T as Mul>::Output> + Sqrt<Output=T> + Zero + Copy,
-    <<T as Mul>::Output as Mul>::Output: Add<Output=<<T as Mul>::Output as Mul>::Output> + Sub<Output=<<T as Mul>::Output as Mul>::Output> + Sqrt<Output=<T as Mul>::Output> + Zero + PartialEq + PartialOrd,
-
+impl<T> Intersect<ImplicitCylinder<T>> for ParametricLine<Point3<T>, Vector3<T>>
+where
+    T: Add<Output = T>
+        + Div
+        + Half
+        + Mul
+        + Mul<<T as Div>::Output, Output = T>
+        + Neg<Output = T>
+        + Sub<Output = T>
+        + Zero
+        + Copy
+        + PartialOrd,
+    <T as Div>::Output: Add<Output = <T as Div>::Output>
+        + Atan2<Output = <T as Div>::Output>
+        + Copy
+        + Div<Output = <T as Div>::Output>
+        + Debug
+        + Half
+        + One
+        + PartialEq
+        + Pi
+        + Rem<Output = <T as Div>::Output>,
+    <T as Mul>::Output: Add<Output = <T as Mul>::Output>
+        + Div<Output = <T as Div>::Output>
+        + Mul
+        + Neg<Output = <T as Mul>::Output>
+        + Sub<Output = <T as Mul>::Output>
+        + Sqrt<Output = T>
+        + Zero
+        + Copy,
+    <<T as Mul>::Output as Mul>::Output: Add<Output = <<T as Mul>::Output as Mul>::Output>
+        + Sub<Output = <<T as Mul>::Output as Mul>::Output>
+        + Sqrt<Output = <T as Mul>::Output>
+        + Zero
+        + PartialEq
+        + PartialOrd,
 {
     type Output = Vec<(<T as Div>::Output, SurfacePoint<T>)>;
-    
+
     fn intersect(self, cylinder: ImplicitCylinder<T>) -> Self::Output {
-        let a = self.direction.x * self.direction.x + self.direction.z * self.direction.z; 
+        let a = self.direction.x * self.direction.x + self.direction.z * self.direction.z;
         let v = self.origin - cylinder.center;
         let v2 = v + v;
 
@@ -61,7 +96,9 @@ impl<T> Intersect<ImplicitCylinder<T>> for ParametricLine<Point3<T>, Vector3<T>>
                 return Vec::new();
             }
 
-            let n = Vector3::new(vec.x, Zero::zero(), vec.z).normalized().as_normal();
+            let n = Vector3::new(vec.x, Zero::zero(), vec.z)
+                .normalized()
+                .as_normal();
 
             let phi = n.x.atan2(n.z);
 
@@ -85,7 +122,9 @@ impl<T> Intersect<ImplicitCylinder<T>> for ParametricLine<Point3<T>, Vector3<T>>
             let mut hits: Self::Output = Vec::new();
 
             if vec1.y >= -cylinder.height.half() && vec1.y <= cylinder.height.half() {
-                let n1 = Vector3::new(vec1.x, Zero::zero(), vec1.z).normalized().as_normal();
+                let n1 = Vector3::new(vec1.x, Zero::zero(), vec1.z)
+                    .normalized()
+                    .as_normal();
                 let phi1 = n1.x.atan2(n1.z);
 
                 let u1 = (phi1 / Pi::PI).half();
@@ -100,17 +139,18 @@ impl<T> Intersect<ImplicitCylinder<T>> for ParametricLine<Point3<T>, Vector3<T>>
             }
 
             if vec2.y >= -cylinder.height.half() && vec2.y <= cylinder.height.half() {
-                let n2 = Vector3::new(vec2.x, Zero::zero(), vec2.z).normalized().as_normal();
+                let n2 = Vector3::new(vec2.x, Zero::zero(), vec2.z)
+                    .normalized()
+                    .as_normal();
                 let phi2 = n2.x.atan2(n2.z);
 
                 let u2 = (phi2 / Pi::PI).half();
                 let v2 = (vec2.y + cylinder.height.half()) / cylinder.height;
-        
+
                 let uv2: Point2<<T as Div>::Output> = Point2::new(
                     (u2 + One::one()) % One::one(),
                     (v2 + One::one()) % One::one(),
                 );
-
 
                 hits.push((t2, SurfacePoint::new(p2, n2, uv2)));
             }
@@ -131,8 +171,8 @@ mod tests {
             #[test]
             fn $name() {
                 let center = Point3::new(1 as $type, 2 as $type, 3 as $type);
-                let height = 5 as $type;    
-                let radius = 6 as $type;    
+                let height = 5 as $type;
+                let radius = 6 as $type;
 
                 let cylinder = ImplicitCylinder::new(center, height, radius);
 
