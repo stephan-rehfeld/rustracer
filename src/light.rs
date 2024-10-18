@@ -11,7 +11,7 @@ use crate::units::length::Length;
 pub trait Light<T, C>
 where
     T: Div + Copy + Debug,
-    <T as Div>::Output: Copy + Debug + PartialEq
+    <T as Div>::Output: Copy + Debug + PartialEq,
 {
     fn direction_from(&self, p: Point3<T>) -> Vector3<<T as Div>::Output>;
     fn get_color(&self) -> C;
@@ -61,7 +61,11 @@ where
         shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
     ) -> bool {
         self.direction.dot(sp.n.as_vector()) > Zero::zero()
-            && shadow_check(ParametricLine::new(sp.p, self.direction_from(sp.p) * T::one())).is_none()
+            && shadow_check(ParametricLine::new(
+                sp.p,
+                self.direction_from(sp.p) * T::one(),
+            ))
+            .is_none()
     }
 }
 
@@ -98,7 +102,10 @@ where
         shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
     ) -> bool {
         if self.direction_from(sp.p).dot(sp.n.as_vector()) > Zero::zero() {
-            let ot = shadow_check(ParametricLine::new(sp.p, self.direction_from(sp.p) * T::one()));
+            let ot = shadow_check(ParametricLine::new(
+                sp.p,
+                self.direction_from(sp.p) * T::one(),
+            ));
             match ot {
                 Some(t) => t > ((self.position - sp.p).magnitude() / T::one()),
                 None => true,
@@ -166,7 +173,10 @@ where
         if direction.dot(sp.n.as_vector()) > Zero::zero()
             && (-direction).dot(self.direction) > self.angle.cos()
         {
-            let ot = shadow_check(ParametricLine::new(sp.p, self.direction_from(sp.p) * T::one()));
+            let ot = shadow_check(ParametricLine::new(
+                sp.p,
+                self.direction_from(sp.p) * T::one(),
+            ));
             match ot {
                 Some(t) => t > ((self.position - sp.p).magnitude() / T::one()),
                 None => true,
