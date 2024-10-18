@@ -3,8 +3,9 @@ use std::ops::Deref;
 use crate::color::Color;
 use crate::image::Image;
 use crate::light::Light;
+use crate::math::geometry::SurfacePoint;
 use crate::math::vector::{DotProduct, NormalizableVector};
-use crate::math::{Normal3, Point2, Point3, Vector3};
+use crate::math::{Point2, Vector3};
 use crate::traits::floating_point::{Max, Powf, Sqrt};
 use crate::traits::{FloatingPoint, Zero};
 use crate::units::length::Length;
@@ -14,9 +15,7 @@ pub trait Material<T: Length> {
 
     fn color_for(
         &self,
-        p: Point3<T>,
-        n: Normal3<<T as Length>::ValueType>,
-        tex: Point2<<T as Length>::ValueType>,
+        sp: SurfacePoint<T>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         ambient_light: Self::ColorType,
@@ -29,14 +28,12 @@ impl<T: Length, C: Color> Material<T> for Box<dyn Material<T, ColorType = C>> {
     // Change parameter to Surface Point
     fn color_for(
         &self,
-        p: Point3<T>,
-        n: Normal3<<T as Length>::ValueType>,
-        tex: Point2<<T as Length>::ValueType>,
+        sp: SurfacePoint<T>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         ambient_light: Self::ColorType,
     ) -> Self::ColorType {
-        self.deref().color_for(p, n, tex, d, lights, ambient_light)
+        self.deref().color_for(sp, d, lights, ambient_light)
     }
 }
 
@@ -57,14 +54,12 @@ impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material
 
     fn color_for(
         &self,
-        _p: Point3<T>,
-        _n: Normal3<<T as Length>::ValueType>,
-        tex: Point2<<T as Length>::ValueType>,
+        sp: SurfacePoint<T>,
         _d: Vector3<T>,
         _lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         _ambient_light: Self::ColorType,
     ) -> Self::ColorType {
-        self.texture.get(tex)
+        self.texture.get(sp.uv)
     }
 }
 
@@ -87,20 +82,18 @@ where
 
     fn color_for(
         &self,
-        p: Point3<T>,
-        n: Normal3<<T as Length>::ValueType>,
-        tex: Point2<<T as Length>::ValueType>,
+        sp: SurfacePoint<T>,
         _d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         ambient_light: Self::ColorType,
     ) -> Self::ColorType {
-        self.texture.get(tex) * ambient_light
+        self.texture.get(sp.uv) * ambient_light
             + lights
                 .iter()
                 .map(|light| {
-                    self.texture.get(tex)
+                    self.texture.get(sp.uv)
                         * light.get_color()
-                        * light.direction_from(p).dot(n.as_vector())
+                        * light.direction_from(sp.p).dot(sp.n.as_vector())
                 })
                 .sum()
     }
@@ -137,9 +130,7 @@ where
 
     fn color_for(
         &self,
-        p: Point3<T>,
-        n: Normal3<<T as Length>::ValueType>,
-        tex: Point2<<T as Length>::ValueType>,
+        sp: SurfacePoint<T>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
         ambient_light: Self::ColorType,
@@ -147,12 +138,12 @@ where
         lights
             .iter()
             .map(|light| {
-                let ambient_term = self.diffuse_texture.get(tex) * ambient_light;
-                let diffuse_term = self.diffuse_texture.get(tex)
+                let ambient_term = self.diffuse_texture.get(sp.uv) * ambient_light;
+                let diffuse_term = self.diffuse_texture.get(sp.uv)
                     * light.get_color()
-                    * light.direction_from(p).dot(n.as_vector());
-                let reflected_light = light.direction_from(p).reflect_on(n).normalized();
-                let specular_term = self.specular_texture.get(tex)
+                    * light.direction_from(sp.p).dot(sp.n.as_vector());
+                let reflected_light = light.direction_from(sp.p).reflect_on(sp.n).normalized();
+                let specular_term = self.specular_texture.get(sp.uv)
                     * light.get_color()
                     * reflected_light
                         .dot(d.normalized())

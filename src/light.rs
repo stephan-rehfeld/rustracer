@@ -1,6 +1,7 @@
+use std::fmt::Debug;
 use std::ops::{Div, Mul, Neg};
 
-use crate::math::geometry::ParametricLine;
+use crate::math::geometry::{ParametricLine, SurfacePoint};
 use crate::math::vector::DotProduct;
 use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
 use crate::traits::{Cos, MultiplyStable, Sqrt, Zero};
@@ -9,15 +10,15 @@ use crate::units::length::Length;
 
 pub trait Light<T, C>
 where
-    T: Div,
+    T: Div + Copy + Debug,
+    <T as Div>::Output: Copy + Debug + PartialEq
 {
     fn direction_from(&self, p: Point3<T>) -> Vector3<<T as Div>::Output>;
     fn get_color(&self) -> C;
     // Change parameter to SurfacePoint
     fn illuminates(
         &self,
-        p: Point3<T>,
-        n: Normal3<<T as Div>::Output>,
+        sp: SurfacePoint<T>,
         shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
     ) -> bool;
 }
@@ -56,12 +57,11 @@ where
 
     fn illuminates(
         &self,
-        p: Point3<T>,
-        n: Normal3<<T as Div>::Output>,
+        sp: SurfacePoint<T>,
         shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
     ) -> bool {
-        self.direction.dot(n.as_vector()) > Zero::zero()
-            && shadow_check(ParametricLine::new(p, self.direction_from(p) * T::one())).is_none()
+        self.direction.dot(sp.n.as_vector()) > Zero::zero()
+            && shadow_check(ParametricLine::new(sp.p, self.direction_from(sp.p) * T::one())).is_none()
     }
 }
 
@@ -94,14 +94,13 @@ where
 
     fn illuminates(
         &self,
-        p: Point3<T>,
-        n: Normal3<<T as Div>::Output>,
+        sp: SurfacePoint<T>,
         shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
     ) -> bool {
-        if self.direction_from(p).dot(n.as_vector()) > Zero::zero() {
-            let ot = shadow_check(ParametricLine::new(p, self.direction_from(p) * T::one()));
+        if self.direction_from(sp.p).dot(sp.n.as_vector()) > Zero::zero() {
+            let ot = shadow_check(ParametricLine::new(sp.p, self.direction_from(sp.p) * T::one()));
             match ot {
-                Some(t) => t > ((self.position - p).magnitude() / T::one()),
+                Some(t) => t > ((self.position - sp.p).magnitude() / T::one()),
                 None => true,
             }
         } else {
@@ -159,18 +158,17 @@ where
 
     fn illuminates(
         &self,
-        p: Point3<T>,
-        n: Normal3<<T as Div>::Output>,
+        sp: SurfacePoint<T>,
         shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
     ) -> bool {
-        let direction = self.direction_from(p);
+        let direction = self.direction_from(sp.p);
 
-        if direction.dot(n.as_vector()) > Zero::zero()
+        if direction.dot(sp.n.as_vector()) > Zero::zero()
             && (-direction).dot(self.direction) > self.angle.cos()
         {
-            let ot = shadow_check(ParametricLine::new(p, self.direction_from(p) * T::one()));
+            let ot = shadow_check(ParametricLine::new(sp.p, self.direction_from(sp.p) * T::one()));
             match ot {
-                Some(t) => t > ((self.position - p).magnitude() / T::one()),
+                Some(t) => t > ((self.position - sp.p).magnitude() / T::one()),
                 None => true,
             }
         } else {

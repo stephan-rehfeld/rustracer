@@ -141,7 +141,7 @@ where
                 .lights
                 .iter()
                 .filter(|light| {
-                    light.illuminates(sp.p, sp.n, &|shadow_ray| {
+                    light.illuminates(sp, &|shadow_ray| {
                         let mut hits: Vec<<Self as Raytracer>::ScalarType> = self
                             .scene
                             .iter()
@@ -155,7 +155,7 @@ where
                 })
                 .collect();
 
-            material.color_for(sp.p, sp.n, sp.uv, ray.direction, lights, self.ambient_light)
+            material.color_for(sp, ray.direction, lights, self.ambient_light)
         }
     }
 }
