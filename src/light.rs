@@ -3,7 +3,7 @@ use std::ops::{Div, Mul, Neg};
 
 use crate::math::geometry::{ParametricLine, SurfacePoint};
 use crate::math::vector::DotProduct;
-use crate::math::{Normal3, NormalizableVector, Point3, Vector3};
+use crate::math::{NormalizableVector, Point3, Vector3};
 use crate::traits::{Cos, MultiplyStable, Sqrt, Zero};
 use crate::units::angle::Radians;
 use crate::units::length::Length;

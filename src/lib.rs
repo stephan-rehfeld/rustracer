@@ -180,9 +180,7 @@ mod tests {
 
         fn color_for(
             &self,
-            _p: Point3<T>,
-            _n: Normal3<<T as Length>::ValueType>,
-            _tex: Point2<<T as Length>::ValueType>,
+            _sp: SurfacePoint<T>,
             _d: Vector3<T>,
             _lights: Vec<&Box<dyn Light<T, RGB<<T as Length>::ValueType>>>>,
             _ambient_light: RGB<<T as Length>::ValueType>,
