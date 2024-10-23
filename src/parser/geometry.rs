@@ -16,8 +16,8 @@ use crate::units::length::Length;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
 
 use crate::parser::{
-    FromTokens, ParsingError, RenderableAxisAlignedBox, RenderableCylinder, RenderableDisc, RenderablePlane,
-    RenderableSphere, RenderableTriangle,
+    FromTokens, ParsingError, RenderableAxisAlignedBox, RenderableCylinder, RenderableDisc,
+    RenderablePlane, RenderableSphere, RenderableTriangle,
 };
 
 use crate::parser::{material, util};
@@ -344,7 +344,7 @@ where
     }
 }
 
-impl<T: Length> FromTokens for RenderableDisc<T> 
+impl<T: Length> FromTokens for RenderableDisc<T>
 where
     <T as Length>::ValueType: FloatingPoint
         + Half
@@ -429,7 +429,7 @@ where
             Point3::new(Zero::zero(), Zero::zero(), Zero::zero()),
             Normal3::new(Zero::zero(), One::one(), Zero::zero()),
             Vector3::new(One::one(), Zero::zero(), Zero::zero()),
-            One::one()
+            One::one(),
         );
 
         let disc_geometry = RenderableGeometry::new(

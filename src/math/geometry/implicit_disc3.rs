@@ -51,7 +51,8 @@ where
 impl<T> Intersect<ImplicitDisc3<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
     T: One + Mul + Div + Add<Output = T> + Zero + Copy + Clone + PartialOrd,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Div + PartialEq + Sqrt<Output=T> + Zero,
+    <T as Mul>::Output:
+        Add<Output = <T as Mul>::Output> + Div + PartialEq + Sqrt<Output = T> + Zero,
     <T as Div>::Output: Add<Output = <T as Div>::Output>
         + Atan2<Output = <T as Div>::Output>
         + Div<Output = <T as Div>::Output>
@@ -82,7 +83,7 @@ where
                 / self.direction.dot(disc.normal.as_vector());
 
             let p = self.at(t);
-            
+
             if (p - disc.anchor).magnitude() > disc.radius {
                 return Vec::new();
             }
@@ -108,10 +109,8 @@ where
             let u = (x * x + z * z) / (disc.radius / One::one());
             let v = x.atan2(z);
 
-            let uv: Point2<<T as Div>::Output> = Point2::new(
-                u,
-                (v % One::one() + One::one()) % One::one(),
-            );
+            let uv: Point2<<T as Div>::Output> =
+                Point2::new(u, (v % One::one() + One::one()) % One::one());
 
             vec![(t, SurfacePoint::new(p, n, uv))]
         }
@@ -164,7 +163,7 @@ mod tests {
                     Point3::new(1 as $type, 1 as $type, 1 as $type),
                     Normal3::new(0 as $type, 1 as $type, 0 as $type),
                     Vector3::new(1 as $type, 0 as $type, 0 as $type),
-                    3 as $type
+                    3 as $type,
                 );
 
                 assert_eq!(
@@ -204,8 +203,12 @@ mod tests {
                     Vector3::new(0 as $type, 0 as $type, -1 as $type),
                 );
 
-                let disc =
-                    ImplicitDisc3::new(Point3::new(0 as $type, 0 as $type, 0 as $type), n, right, 2 as $type);
+                let disc = ImplicitDisc3::new(
+                    Point3::new(0 as $type, 0 as $type, 0 as $type),
+                    n,
+                    right,
+                    2 as $type,
+                );
 
                 assert_eq!(ray1.intersect(disc), Vec::new());
 
