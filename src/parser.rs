@@ -18,7 +18,7 @@ use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
 use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, Sin, Sqrt, Tan, Zero};
 use crate::units::length::Length;
-use crate::{AxisAlignedBox, Cylinder, Plane, Renderable, Sphere, Triangle};
+use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
 
 mod camera;
 mod geometry;
@@ -34,6 +34,8 @@ type RenderableAxisAlignedBox<T> =
     RenderableGeometry<AxisAlignedBox<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
 type RenderableCylinder<T> =
     RenderableGeometry<Cylinder<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
+type RenderableDisc<T> =
+    RenderableGeometry<Disc<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
 type RenderablePlane<T> =
     RenderableGeometry<Plane<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
 type RenderableSphere<T> =
@@ -63,6 +65,7 @@ pub enum ParsingError {
     PhongMaterialParsingError(Box<ParsingError>),
     MaterialParsingError(Box<ParsingError>),
     UnsupportedMaterial(String),
+    DiscParsingError(Box<ParsingError>),
     SphereParsingError(Box<ParsingError>),
     CylinderParsingError(Box<ParsingError>),
     PlaneParsingError(Box<ParsingError>),
@@ -163,6 +166,15 @@ where
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
             },
+            "disc" => match RenderableDisc::<T>::from_tokens(&mut tokens) {
+                Ok(disc) => {
+                    geometries.push(Box::new(disc));
+                }
+                Err(cause) => {
+                    return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                }
+            },
+
             "plane" => match RenderablePlane::<T>::from_tokens(&mut tokens) {
                 Ok(plane) => {
                     geometries.push(Box::new(plane));

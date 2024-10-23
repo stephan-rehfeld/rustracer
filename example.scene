@@ -2,7 +2,7 @@ background_color: 0.0 0.0 0.0
 
 ambient_light: 0.0 0.0 0.0
 
-plane {
+disc {
     position: 0.0 0.0 0.0
     scale: 1.0 1.0 1.0
     rotation: 0.0 0.0 0.0
@@ -11,22 +11,6 @@ plane {
             a: 0.2 0.2 0.2
             b: 0.8 0.8 0.8
         }
-    }
-}
-
-cylinder {
-    position: 0.0 1.0 0.0
-    scale: 1.0 1.0 1.0
-    rotation: 0.0 0.0 0.0
-    material: phong_material {
-        diffuse_texture: chess_board_texture {
-            a: 0.0 0.8 0.0
-            b: 0.3 0.3 0.3
-        }
-        specular_texture: single_color_texture {
-            color: 1.0 1.0 1.0
-        }
-        exponent: 64.0
     }
 }
 

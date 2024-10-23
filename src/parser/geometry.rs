@@ -13,10 +13,10 @@ use crate::traits::number::MultiplyStable;
 use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, One, Sin, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
-use crate::{AxisAlignedBox, Cylinder, Plane, Sphere, Triangle};
+use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
 
 use crate::parser::{
-    FromTokens, ParsingError, RenderableAxisAlignedBox, RenderableCylinder, RenderablePlane,
+    FromTokens, ParsingError, RenderableAxisAlignedBox, RenderableCylinder, RenderableDisc, RenderablePlane,
     RenderableSphere, RenderableTriangle,
 };
 
@@ -341,6 +341,109 @@ where
         );
 
         Ok(aab_geometry)
+    }
+}
+
+impl<T: Length> FromTokens for RenderableDisc<T> 
+where
+    <T as Length>::ValueType: FloatingPoint
+        + Half
+        + FromStr
+        + MultiplyStable
+        + Sqrt<Output = <T as Length>::ValueType>
+        + Sin<Output = T::ValueType>
+        + Cos<Output = T::ValueType>
+        + ToRadians<Output = T::ValueType>
+        + 'static,
+    <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
+    <T as Length>::AreaType: Sqrt<Output = T>,
+{
+    type Err = ParsingError;
+
+    fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
+        if let Err(cause) = util::check_next_token(tokens, "{") {
+            return Err(ParsingError::PlaneParsingError(Box::new(cause)));
+        }
+
+        let mut material: Option<Box<dyn Material<T, ColorType = RGB<<T as Length>::ValueType>>>> =
+            None;
+        let transform = Transform3::ident();
+
+        let mut position: Vector3<T::ValueType> =
+            Vector3::new(Zero::zero(), Zero::zero(), Zero::zero());
+        let mut scale: Vector3<T::ValueType> = Vector3::new(One::one(), One::one(), One::one());
+        let mut rotation: Vector3<Degrees<T::ValueType>> =
+            Vector3::new(Zero::zero(), Zero::zero(), Zero::zero());
+
+        while let Some(token) = tokens.next() {
+            match token {
+                "material:" => match material::parse_material(tokens) {
+                    Ok(mat) => {
+                        material = Some(mat);
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::DiscParsingError(Box::new(cause)));
+                    }
+                },
+                "position:" => match Vector3::from_tokens(tokens) {
+                    Ok(vec) => {
+                        position = vec;
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::DiscParsingError(Box::new(cause)));
+                    }
+                },
+                "scale:" => match Vector3::from_tokens(tokens) {
+                    Ok(vec) => {
+                        scale = vec;
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::DiscParsingError(Box::new(cause)));
+                    }
+                },
+                "rotation:" => match Vector3::from_tokens(tokens) {
+                    Ok(vec) => {
+                        rotation = vec;
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::DiscParsingError(Box::new(cause)));
+                    }
+                },
+                "}" => {
+                    break;
+                }
+                token => {
+                    return Err(ParsingError::UnexpectedToken {
+                        expected: "radius:, material:, position:, scale:, rotation:, }",
+                        found: token.to_string(),
+                    });
+                }
+            }
+        }
+
+        if let None = material {
+            return Err(ParsingError::MissingElement("material"));
+        }
+
+        let disc = Disc::new(
+            Point3::new(Zero::zero(), Zero::zero(), Zero::zero()),
+            Normal3::new(Zero::zero(), One::one(), Zero::zero()),
+            Vector3::new(One::one(), Zero::zero(), Zero::zero()),
+            One::one()
+        );
+
+        let disc_geometry = RenderableGeometry::new(
+            disc,
+            material.unwrap(),
+            transform
+                .translate(position.x, position.y, position.z)
+                .rotate_z(rotation.z)
+                .rotate_x(rotation.x)
+                .rotate_y(rotation.y)
+                .scale(scale.x, scale.y, scale.z),
+        );
+
+        Ok(disc_geometry)
     }
 }
 
