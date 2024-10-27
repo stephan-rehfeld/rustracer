@@ -7,7 +7,7 @@ disc {
     scale: 1.0 1.0 1.0
     rotation: 0.0 0.0 0.0
     material: lambert_material {
-        texture: chess_board_texture {
+        texture: checkerboard_texture {
             a: 0.2 0.2 0.2
             b: 0.8 0.8 0.8
         }
@@ -23,7 +23,7 @@ perspective_camera {
 }
 
 point_light {
-    position: 0.0 1.0 3.0
+    position: 0.0 2.0 0.0
     color: 0.8 0.8 0.8
 }
 

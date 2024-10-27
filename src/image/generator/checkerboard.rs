@@ -3,18 +3,18 @@ use crate::image::Image;
 use crate::math::{Point2, Vector2};
 use crate::traits::{Half, One};
 
-pub struct ChessBoard<C: Color> {
+pub struct Checkerboard<C: Color> {
     a: C,
     b: C,
 }
 
-impl<C: Color> ChessBoard<C> {
-    pub fn generate(a: C, b: C) -> ChessBoard<C> {
-        ChessBoard { a, b }
+impl<C: Color> Checkerboard<C> {
+    pub fn generate(a: C, b: C) -> Checkerboard<C> {
+        Checkerboard { a, b }
     }
 }
 
-impl<C: Color> Image for ChessBoard<C>
+impl<C: Color> Image for Checkerboard<C>
 where
     C::ChannelType: Half,
 {

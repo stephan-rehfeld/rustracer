@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use std::str::FromStr;
 
 use crate::color::RGB;
-use crate::image::generator::chess_board::ChessBoard;
+use crate::image::generator::checkerboard::Checkerboard;
 use crate::image::{Image, SingleColorImage};
 use crate::math::{Point2, Vector2};
 use crate::traits::number::MultiplyStable;
@@ -23,7 +23,7 @@ where
             Ok(tex) => Ok(Box::new(tex)),
             Err(cause) => Err(ParsingError::TextureParsingError(Box::new(cause))),
         },
-        Some("chess_board_texture") => match ChessBoard::from_tokens(tokens) {
+        Some("checkerboard_texture") => match Checkerboard::from_tokens(tokens) {
             Ok(tex) => Ok(Box::new(tex)),
             Err(cause) => Err(ParsingError::TextureParsingError(Box::new(cause))),
         },
@@ -70,7 +70,7 @@ where
     }
 }
 
-impl<T: FromStr + MultiplyStable + Half> FromTokens for ChessBoard<RGB<T>>
+impl<T: FromStr + MultiplyStable + Half> FromTokens for Checkerboard<RGB<T>>
 where
     <T as FromStr>::Err: Error + Debug,
 {
@@ -78,7 +78,7 @@ where
 
     fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
         if let Err(cause) = util::check_next_token(tokens, "{") {
-            return Err(ParsingError::ChessBoardTextureParsingError(Box::new(cause)));
+            return Err(ParsingError::CheckerboardTextureParsingError(Box::new(cause)));
         }
 
         let mut a: Option<RGB<T>> = None;
@@ -91,7 +91,7 @@ where
                         a = Some(color);
                     }
                     Err(cause) => {
-                        return Err(ParsingError::ChessBoardTextureParsingError(Box::new(cause)));
+                        return Err(ParsingError::CheckerboardTextureParsingError(Box::new(cause)));
                     }
                 },
                 "b:" => match RGB::from_tokens(tokens) {
@@ -99,7 +99,7 @@ where
                         b = Some(color);
                     }
                     Err(cause) => {
-                        return Err(ParsingError::ChessBoardTextureParsingError(Box::new(cause)));
+                        return Err(ParsingError::CheckerboardTextureParsingError(Box::new(cause)));
                     }
                 },
                 "}" => {
@@ -121,6 +121,6 @@ where
             return Err(ParsingError::MissingElement("b"));
         }
 
-        Ok(ChessBoard::generate(a.unwrap(), b.unwrap()))
+        Ok(Checkerboard::generate(a.unwrap(), b.unwrap()))
     }
 }
