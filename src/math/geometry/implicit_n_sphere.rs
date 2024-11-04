@@ -3,8 +3,9 @@ use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
+use crate::math::geometry::Rectangle2;
 use crate::math::vector::{DotProduct, NormalizableVector};
-use crate::math::{Point, Point2, Point3, Vector3};
+use crate::math::{Point, Point2, Point3, Vector2, Vector3};
 use crate::traits::floating_point::Pi;
 use crate::traits::{Acos, Atan2, Half, One, Sqrt, Zero};
 
@@ -14,8 +15,8 @@ where
     P: Point,
     <P as Point>::ValueType: Copy + Clone + PartialEq + Debug,
 {
-    center: P,
-    radius: <P as Point>::ValueType,
+    pub center: P,
+    pub radius: <P as Point>::ValueType,
 }
 
 impl<P> ImplicitNSphere<P>
@@ -38,6 +39,21 @@ where
     {
         let d = point - self.center;
         d.dot(d) - self.radius * self.radius
+    }
+}
+
+impl<T> ImplicitNSphere<Point2<T>>
+where
+    T: Add<Output = T> + Sub<Output = T> + PartialEq + Copy + Debug,
+{
+    pub fn bound(self) -> Rectangle2<T> {
+        let point = Point2::new(self.center.x - self.radius, self.center.y - self.radius);
+        let dimension = Vector2::new(
+            self.center.x + self.radius - point.x,
+            self.center.y + self.radius - point.y,
+        );
+
+        Rectangle2::new(point, dimension)
     }
 }
 

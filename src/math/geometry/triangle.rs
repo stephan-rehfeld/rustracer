@@ -139,7 +139,7 @@ pub struct Face3 {
 }
 
 impl Face3 {
-    fn new(
+    pub fn new(
         a: usize,
         b: usize,
         c: usize,

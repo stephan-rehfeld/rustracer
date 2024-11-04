@@ -78,7 +78,9 @@ where
 
     fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
         if let Err(cause) = util::check_next_token(tokens, "{") {
-            return Err(ParsingError::CheckerboardTextureParsingError(Box::new(cause)));
+            return Err(ParsingError::CheckerboardTextureParsingError(Box::new(
+                cause,
+            )));
         }
 
         let mut a: Option<RGB<T>> = None;
@@ -91,7 +93,9 @@ where
                         a = Some(color);
                     }
                     Err(cause) => {
-                        return Err(ParsingError::CheckerboardTextureParsingError(Box::new(cause)));
+                        return Err(ParsingError::CheckerboardTextureParsingError(Box::new(
+                            cause,
+                        )));
                     }
                 },
                 "b:" => match RGB::from_tokens(tokens) {
@@ -99,7 +103,9 @@ where
                         b = Some(color);
                     }
                     Err(cause) => {
-                        return Err(ParsingError::CheckerboardTextureParsingError(Box::new(cause)));
+                        return Err(ParsingError::CheckerboardTextureParsingError(Box::new(
+                            cause,
+                        )));
                     }
                 },
                 "}" => {
