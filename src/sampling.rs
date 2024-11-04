@@ -237,7 +237,7 @@ impl SamplingPatternSet<f32> {
                 );
 
                 for column in 0..columns {
-                    let available_columns = available_columns_map.get_mut(&row).expect(
+                    let available_columns = available_columns_map.get_mut(&column).expect(
                         "A column that should exist in the map is missing. This should not happen.",
                     );
 
