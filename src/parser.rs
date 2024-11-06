@@ -60,6 +60,7 @@ pub enum ParsingError {
     UnsupportedTexture(String),
     SingleColorTextureParsingError(Box<ParsingError>),
     CheckerboardTextureParsingError(Box<ParsingError>),
+    GridTextureParsingError(Box<ParsingError>),
     UnshadedMaterialParsingError(Box<ParsingError>),
     LambertMaterialParsingError(Box<ParsingError>),
     PhongMaterialParsingError(Box<ParsingError>),
