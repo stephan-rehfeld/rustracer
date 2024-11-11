@@ -1,8 +1,10 @@
 use rustracer::color::{RGB, RGBA};
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
+use rustracer::image::sampler::Sampler;
 use rustracer::math::{Point2, Vector2};
 use rustracer::ray_casting::{RayCaster, Scene};
+use rustracer::sampling::SamplingPatternSet;
 use rustracer::units::length::Meter;
 
 use std::env;
@@ -114,7 +116,10 @@ fn main() {
                 0.0001,
             );
 
+            let patterns = SamplingPatternSet::<FloatingPointType>::regular_pattern(5, 5);
+
             let image_data = raytracer
+                .sample(patterns)
                 .clamp_color(RGB::new(0.0, 0.0, 0.0), RGB::new(1.0, 1.0, 1.0))
                 .convert_color::<RGBA<f64>>()
                 .convert_color::<RGBA<u16>>()

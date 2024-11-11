@@ -1,0 +1,29 @@
+background_color: 0.0 0.0 0.0
+
+ambient_light: 0.0 0.0 0.0
+
+disc {
+    position: 0.0 0.0 0.0
+    scale: 1.0 1.0 1.0
+    rotation: 0.0 0.0 0.0
+    material: lambert_material {
+        texture: checkerboard_texture {
+            a: 0.2 0.2 0.2
+            b: 0.8 0.8 0.8
+        }
+    }
+}
+
+perspective_camera {
+    id: main
+    eye_position: 0.0 1.0 3.0
+    gaze_direction: 0.0 0.0 -1.0
+    up_vector: 0.0 1.0 0.0
+    field_of_view: 90
+}
+
+point_light {
+    position: 0.0 2.0 0.0
+    color: 0.8 0.8 0.8
+}
+

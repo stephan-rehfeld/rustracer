@@ -1,6 +1,6 @@
 use std::hash::{Hash, Hasher};
 use std::iter::Sum;
-use std::ops::{Add, Index, Mul};
+use std::ops::{Add, AddAssign, Div, Index, Mul};
 
 use super::Color;
 use super::YCbCr;
@@ -62,6 +62,26 @@ macro_rules! rgb_from_floating_to_integral {
 
 rgb_from_floating_to_integral! { f32, [u8, u16, i8, i16] }
 rgb_from_floating_to_integral! { f64, [u8, u16, i8, i16] }
+
+// To test
+
+impl<T: AddAssign> AddAssign for RGB<T> {
+    fn add_assign(&mut self, rhs: RGB<T>) {
+        self.red += rhs.red;
+        self.green += rhs.green;
+        self.blue += rhs.blue;
+    }
+}
+
+impl<T: Div<Output = T> + Copy + Clone> Div<T> for RGB<T> {
+    type Output = RGB<T>;
+
+    fn div(self, rhs: T) -> Self::Output {
+        RGB::new(self.red / rhs, self.green / rhs, self.blue / rhs)
+    }
+}
+
+// End to test
 
 #[cfg(test)]
 mod tests {

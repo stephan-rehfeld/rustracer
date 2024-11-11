@@ -51,7 +51,7 @@ sphere {
     scale: 1.0 1.0 1.0
     rotation: 0.0 0.0 0.0
     material: phong_material {
-        diffuse_texture: chess_board_texture {
+        diffuse_texture: checkerboard_texture {
             a: 0.0 0.8 0.0
             b: 0.3 0.3 0.3
         }

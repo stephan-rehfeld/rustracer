@@ -9,6 +9,7 @@ pub mod farbfeld;
 pub mod generator;
 pub mod image_buffer;
 pub mod repeater;
+pub mod sampler;
 
 pub use image_buffer::ImageBuffer;
 
