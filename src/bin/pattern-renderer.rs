@@ -6,12 +6,10 @@ use rustracer::color::{RGB, RGBA};
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
 use rustracer::image::ImageBuffer;
-use rustracer::math::geometry::Rectangle2;
+use rustracer::math::geometry::{Circle, Rectangle2};
 use rustracer::math::{Point2, Vector2};
 use rustracer::random::WichmannHillPRNG;
 use rustracer::sampling::SamplingPatternSet;
-
-use rustracer::image::image_buffer::Circle;
 
 type FloatingPointType = f64;
 type ColorType = RGB<FloatingPointType>;

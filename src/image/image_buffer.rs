@@ -1,9 +1,7 @@
 use super::{Image, WritableImage};
 use crate::color::Color;
-use crate::math::geometry::{ImplicitNSphere, Rectangle2};
+use crate::math::geometry::{Circle, Rectangle2};
 use crate::math::{Point, Point2};
-
-pub type Circle<T> = ImplicitNSphere<Point2<T>>;
 
 pub struct ImageBuffer<C: Color> {
     pixel_data: Vec<C>,

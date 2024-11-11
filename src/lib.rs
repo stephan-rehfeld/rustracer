@@ -28,7 +28,7 @@ pub mod units;
 type Cylinder<T> = math::geometry::ImplicitCylinder<T>;
 type Disc<T> = math::geometry::ImplicitDisc3<T>;
 type Plane<T> = math::geometry::ImplicitPlane3<T>;
-type Sphere<T> = math::geometry::ImplicitNSphere<Point3<T>>;
+type Sphere<T> = math::geometry::Sphere<T>;
 type AxisAlignedBox<T> = math::geometry::AxisAlignedBox<Point3<T>>;
 type Triangle<T> = math::geometry::Triangle3<T>;
 
