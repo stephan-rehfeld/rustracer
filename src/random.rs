@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 pub trait RandomNumberGenerator<T> {
     fn next_random(&mut self) -> T;
 }
@@ -11,6 +13,20 @@ pub struct WichmannHillPRNG {
 impl WichmannHillPRNG {
     pub fn new(s1: u32, s2: u32, s3: u32) -> WichmannHillPRNG {
         WichmannHillPRNG { s1, s2, s3 }
+    }
+
+    pub fn from_seed(seed: u64) -> WichmannHillPRNG {
+        let s1 = seed % 30296;
+        let s2 = seed % 30307;
+        let s3 = seed % 30323;
+
+        WichmannHillPRNG::new(s1 as u32, s2 as u32, s3 as u32)
+    }
+
+    pub fn new_random() -> WichmannHillPRNG {
+        let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+
+        WichmannHillPRNG::from_seed(current_time)
     }
 }
 

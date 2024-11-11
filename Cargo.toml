@@ -10,3 +10,6 @@ default-run = "rustracer"
 
 [[bin]]
 name = "pattern-renderer"
+
+[[bin]]
+name = "programmatic-example"

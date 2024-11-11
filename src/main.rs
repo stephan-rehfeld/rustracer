@@ -1,169 +1,132 @@
-use rustracer::camera::PerspectiveCamera;
 use rustracer::color::{RGB, RGBA};
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
-use rustracer::image::SingleColorImage;
-use rustracer::light::{Light, PointLight, SpotLight};
-use rustracer::material::{LambertMaterial, PhongMaterial};
-use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle3};
-use rustracer::math::transform::Transform3;
-use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
-use rustracer::ray_casting::RayCaster;
-use rustracer::scene_graph::RenderableGeometry;
-use rustracer::traits::ToRadians;
-use rustracer::units::angle::Degrees;
+use rustracer::math::{Point2, Vector2};
+use rustracer::ray_casting::{RayCaster, Scene};
 use rustracer::units::length::Meter;
-use rustracer::Raytracer;
+
+use std::env;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
+type FloatingPointType = f64;
+type LengthType = Meter<FloatingPointType>;
+type ColorType = RGB<FloatingPointType>;
+
+struct Configuration {
+    scene: Scene<LengthType, ColorType>,
+    camera_name: String,
+    size: Vector2<FloatingPointType>,
+    output: String,
+}
+
+fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configuration, String> {
+    _ = args.next();
+    let mut size = Vector2::new(640.0, 480.0);
+    let mut camera_name: String = String::from("main");
+    let mut scene: Option<Scene<LengthType, ColorType>> = None;
+    let mut output: String = String::from("out.ff");
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--size" => {
+                let width = args.next();
+                if width.is_none() {
+                    return Err(String::from("Missing width for image."));
+                }
+                let width = width.unwrap().parse::<FloatingPointType>();
+                if let Err(m) = width {
+                    return Err(format!("Unable to parse width: {}", m));
+                }
+
+                let height = args.next();
+                if height.is_none() {
+                    return Err(String::from("Missing height for image."));
+                }
+                let height = height.unwrap().parse::<FloatingPointType>();
+                if let Err(m) = height {
+                    return Err(format!("Unable to parse height: {}", m));
+                }
+
+                size = Vector2::new(width.unwrap(), height.unwrap());
+            },
+            "--camera" => {
+                match args.next() {
+                    Some(c) => {
+                        camera_name = c;
+                    },
+                    None => {
+                        return Err(String::from("Missing camera name."));
+                    }
+                }
+            },
+            "-O" => {
+                match args.next() {
+                    Some(o) => {
+                        output = o;
+                    },
+                    None => {
+                        return Err(String::from("Missing output filename."));
+                    }
+                }
+            },
+
+            filename => {
+                match rustracer::parser::parse_scene::<LengthType>(filename) {
+                    Ok(s) => {
+                        scene = Some(s);
+                    },
+                    Err(err) => {
+                        return Err(format!("Failed to parse passed scene file. Error was: {:?}", err));
+                    }
+                }
+            },
+        }
+    }
+
+    if scene.is_none() {
+        return Err(String::from("No scene file was passed."));
+    }
+
+    Ok(Configuration { scene: scene.unwrap(), camera_name, size, output } )
+}
+
 fn main() {
-    let size = Vector2::new(640.0, 480.0);
+    match parse_configuration(env::args()) {
+        Ok(config) => {
+            let mut scene = config.scene;
+            let camera = scene.cameras.remove(&config.camera_name);
 
-    let plane = ImplicitPlane3::new(
-        Point3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(0.0)),
-        Normal3::new(0.0, 1.0, 0.0),
-        Vector3::new(1.0, 0.0, 0.0),
-    );
+            if camera.is_none() {
+                eprintln!("Missing camera with name {}", config.camera_name);
+                return;
+            }
 
-    let sphere = ImplicitNSphere::new(
-        Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(-4.0)),
-        Meter::new(1.0),
-    );
+            let raytracer = RayCaster::new(
+                config.size,
+                camera.unwrap(),
+                scene.geometries,
+                scene.lights,
+                scene.ambient_light,
+                scene.bg_color,
+                0.0001,
+            );
 
-    let aab = AxisAlignedBox::new(
-        Point3::new(Meter::new(-0.5), Meter::new(0.5), Meter::new(-0.5)),
-        Point3::new(Meter::new(0.5), Meter::new(1.5), Meter::new(0.5)),
-    );
+            let image_data = raytracer
+                .clamp_color(RGB::new(0.0, 0.0, 0.0), RGB::new(1.0, 1.0, 1.0))
+                .convert_color::<RGBA<f64>>()
+                .convert_color::<RGBA<u16>>()
+                .convert_coordinate::<Point2<usize>>()
+                .encode();
 
-    let n = Normal3::new(0.0, 0.0, 1.0);
+            let f = File::create(config.output).unwrap();
 
-    let triangle = Triangle3::new(
-        Point3::new(Meter::new(-3.0), Meter::new(3.0), Meter::new(-3.0)),
-        Point3::new(Meter::new(-1.0), Meter::new(3.0), Meter::new(-3.0)),
-        Point3::new(Meter::new(-1.0), Meter::new(1.0), Meter::new(-3.0)),
-        n,
-        n,
-        n,
-        Point2::new(0.0, 0.0),
-        Point2::new(1.0, 0.0),
-        Point2::new(0.0, 1.0),
-    );
+            let mut writer = BufWriter::new(f);
 
-    let plane_geometry = Box::new(RenderableGeometry::new(
-        plane,
-        LambertMaterial::new(SingleColorImage::new(
-            RGB::new(1.0, 0.0, 0.0),
-            Vector2::new(1.0, 1.0),
-        )),
-        Transform3::<f64>::ident(),
-    ));
-    let sphere_geometry = Box::new(RenderableGeometry::new(
-        sphere,
-        PhongMaterial::new(
-            SingleColorImage::new(RGB::new(0.0, 1.0, 0.0), Vector2::new(1.0, 1.0)),
-            SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
-            64.0,
-        ),
-        Transform3::<f64>::ident(),
-    ));
-    let aab_geometry = Box::new(RenderableGeometry::new(
-        aab,
-        LambertMaterial::new(SingleColorImage::new(
-            RGB::new(0.0, 0.0, 1.0),
-            Vector2::new(1.0, 1.0),
-        )),
-        Transform3::<f64>::ident(),
-    ));
-    let triangle_geometry = Box::new(RenderableGeometry::new(
-        triangle,
-        LambertMaterial::new(SingleColorImage::new(
-            RGB::new(1.0, 1.0, 0.0),
-            Vector2::new(1.0, 1.0),
-        )),
-        Transform3::<f64>::ident(),
-    ));
-
-    let sphere2 = ImplicitNSphere::new(
-        Point3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(0.0)),
-        Meter::new(1.0),
-    );
-
-    let sphere2_geometry = Box::new(RenderableGeometry::new(
-        sphere2,
-        PhongMaterial::new(
-            SingleColorImage::new(RGB::new(0.0, 1.0, 0.0), Vector2::new(1.0, 1.0)),
-            SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
-            64.0,
-        ),
-        Transform3::<f64>::ident(),
-    ));
-
-    /*let transform = Transform3::<f64>::ident()
-            .translate(-1.0, 0.0, 1.0)
-            .scale(0.1, 0.1, 0.1);
-
-        let node_geometries: Vec<
-            Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>,
-        > = vec![sphere2_geometry];
-
-        let node = Box::new(Node::new(transform, node_geometries));
-    */
-    let geometries: Vec<Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>> = vec![
-        plane_geometry,
-        aab_geometry,
-        sphere_geometry,
-        triangle_geometry,
-        //      node,
-    ];
-
-    let point_light = Box::new(PointLight::new(
-        RGB::new(0.8, 0.8, 0.8),
-        //Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),
-        Point3::new(Meter::new(0.0), Meter::new(5.0), Meter::new(0.0)),
-    ));
-
-    let spot_light = Box::new(SpotLight::new(
-        RGB::new(0.5, 0.5, 0.5),
-        Point3::new(Meter::new(0.0), Meter::new(4.0), Meter::new(0.0)),
-        Vector3::new(0.0, -1.0, 0.0),
-        Degrees::new(30.0).to_radians(),
-    ));
-
-    let lights: Vec<Box<dyn Light<Meter<f64>, RGB<f64>>>> = vec![point_light, spot_light];
-
-    let cam = Box::new(PerspectiveCamera::new(
-        Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),
-        Vector3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(-1.0)),
-        Vector3::new(Meter::new(0.0), Meter::new(1.0), Meter::new(0.0)),
-        Degrees::<f64>::new(90.0).to_radians(),
-    ));
-
-    let mut scene = rustracer::parser::parse_scene::<Meter<f64>>("example.scene").unwrap();
-
-    let raytracer = RayCaster::new(
-        size,
-        //cam,
-        scene.cameras.remove("main").unwrap(),
-        //geometries,
-        scene.geometries,
-        //lights,
-        scene.lights,
-        scene.ambient_light,
-        scene.bg_color,
-        0.0001,
-    );
-
-    let image_data = raytracer
-        .clamp_color(RGB::new(0.0, 0.0, 0.0), RGB::new(1.0, 1.0, 1.0))
-        .convert_color::<RGBA<f64>>()
-        .convert_color::<RGBA<u16>>()
-        .convert_coordinate::<Point2<usize>>()
-        .encode();
-
-    let f = File::create("output.ff").unwrap();
-
-    let mut writer = BufWriter::new(f);
-
-    let _ = writer.write_all(image_data.as_slice());
+            let _ = writer.write_all(image_data.as_slice());
+        }
+        Err(m) => {
+            eprintln!("{}", m);
+        }
+    }
 }
