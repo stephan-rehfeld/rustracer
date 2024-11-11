@@ -13,7 +13,6 @@ use rustracer::sampling::SamplingPatternSet;
 
 use rustracer::image::image_buffer::Circle;
 
-
 type FloatingPointType = f64;
 type ColorType = RGB<FloatingPointType>;
 
@@ -37,20 +36,30 @@ struct Configuration {
     seed: Option<u64>,
 }
 
-fn parse_next_usize(args: &mut impl Iterator<Item=String>, pattern: &str, parameter: &str) -> Result<usize, String> {
+fn parse_next_usize(
+    args: &mut impl Iterator<Item = String>,
+    pattern: &str,
+    parameter: &str,
+) -> Result<usize, String> {
     let value = args.next();
     if value.is_none() {
-        return Err(format!("Parameter '{}' for {} pattern is missing.", parameter, pattern));
+        return Err(format!(
+            "Parameter '{}' for {} pattern is missing.",
+            parameter, pattern
+        ));
     }
     let value = value.unwrap().parse::<usize>();
     if let Err(m) = value {
-        return Err(format!("Failed for parse parameter {} for {} pattern: {}.", parameter, pattern, m));
+        return Err(format!(
+            "Failed for parse parameter {} for {} pattern: {}.",
+            parameter, pattern, m
+        ));
     }
 
     Ok(value.unwrap())
 }
 
-fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configuration, String> {
+fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configuration, String> {
     let mut pattern: Option<Pattern> = None;
     let mut mode = Mode::Square;
     let mut seed: Option<u64> = None;
@@ -68,7 +77,7 @@ fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configura
                 }
 
                 pattern = Some(Pattern::Regular(rows.unwrap(), columns.unwrap()));
-            },
+            }
             "Random" => {
                 let patterns = parse_next_usize(&mut args, "Random", "patterns");
                 if let Err(m) = patterns {
@@ -80,7 +89,7 @@ fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configura
                 }
 
                 pattern = Some(Pattern::Random(patterns.unwrap(), samples.unwrap()));
-            },
+            }
             "Jittered" => {
                 let patterns = parse_next_usize(&mut args, "Jittered", "patterns");
                 if let Err(m) = patterns {
@@ -94,8 +103,12 @@ fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configura
                 if let Err(m) = columns {
                     return Err(m);
                 }
-                pattern = Some(Pattern::Jittered(patterns.unwrap(), rows.unwrap(), columns.unwrap()));
-            },
+                pattern = Some(Pattern::Jittered(
+                    patterns.unwrap(),
+                    rows.unwrap(),
+                    columns.unwrap(),
+                ));
+            }
             "NRooks" => {
                 let patterns = parse_next_usize(&mut args, "NRooks", "patterns");
                 if let Err(m) = patterns {
@@ -107,8 +120,7 @@ fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configura
                 }
 
                 pattern = Some(Pattern::NRooks(patterns.unwrap(), samples.unwrap()));
-
-            },
+            }
             "MultiJittered" => {
                 let patterns = parse_next_usize(&mut args, "MultiJittered", "patterns");
                 if let Err(m) = patterns {
@@ -122,55 +134,49 @@ fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configura
                 if let Err(m) = columns {
                     return Err(m);
                 }
-                pattern = Some(Pattern::MultiJittered(patterns.unwrap(), rows.unwrap(), columns.unwrap()));
-            },
+                pattern = Some(Pattern::MultiJittered(
+                    patterns.unwrap(),
+                    rows.unwrap(),
+                    columns.unwrap(),
+                ));
+            }
             "Hammersley" => {
                 let samples = parse_next_usize(&mut args, "NRooks", "samples");
                 if let Err(m) = samples {
                     return Err(m);
                 }
                 pattern = Some(Pattern::Hammersley(samples.unwrap()));
-
             }
-            "--seed" => {
-                match args.next() {
-                    Some(s) => {
-                        match s.parse::<u64>() {
-                            Ok(s) => {
-                                seed = Some(s);
-                            },
-                            Err(m) => {
-                                return Err(format!("Failed to parse seed: {}.", m));
-                            }
-                        }
-                    },
-                    None => {
-                        return Err(String::from("Missing Seed"));
+            "--seed" => match args.next() {
+                Some(s) => match s.parse::<u64>() {
+                    Ok(s) => {
+                        seed = Some(s);
                     }
+                    Err(m) => {
+                        return Err(format!("Failed to parse seed: {}.", m));
+                    }
+                },
+                None => {
+                    return Err(String::from("Missing Seed"));
                 }
             },
-            "--mode" => {
-                match args.next() {
-                    Some(m) => {
-                        match m.as_str() {
-                            "Square" => {
-                                mode = Mode::Square;
-                            },
-                            "Disc" => {
-                                mode = Mode::Disc;
-                            },
-                            m => {
-                                return Err(format!("Unknown mode: {},", m));
-                            },
-                        }
-                    },
-                    None => {
-                        return Err(String::from("Missing mode"));
+            "--mode" => match args.next() {
+                Some(m) => match m.as_str() {
+                    "Square" => {
+                        mode = Mode::Square;
                     }
+                    "Disc" => {
+                        mode = Mode::Disc;
+                    }
+                    m => {
+                        return Err(format!("Unknown mode: {},", m));
+                    }
+                },
+                None => {
+                    return Err(String::from("Missing mode"));
                 }
             },
-            _ => {
-            }
+            _ => {}
         }
     }
 
@@ -178,11 +184,14 @@ fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configura
         return Err(String::from("No pattern selected."));
     }
 
-    Ok(Configuration { pattern: pattern.unwrap(), mode, seed })
+    Ok(Configuration {
+        pattern: pattern.unwrap(),
+        mode,
+        seed,
+    })
 }
 
 fn main() {
-
     match parse_configuration(env::args()) {
         Ok(configuration) => {
             let mut rnd = if let Some(seed) = configuration.seed {
@@ -192,24 +201,43 @@ fn main() {
             };
 
             let patterns = match configuration.pattern {
-                Pattern::Regular(rows, columns) => SamplingPatternSet::<FloatingPointType>::regular_pattern(rows, columns),
-                Pattern::Random(patterns, samples) => SamplingPatternSet::<FloatingPointType>::random_patterns(patterns, samples, &mut rnd),
-                Pattern::Jittered(patterns, rows, columns) => SamplingPatternSet::<FloatingPointType>::jittered_patterns(patterns, rows, columns, &mut rnd),
-                Pattern::NRooks(patterns, samples) => SamplingPatternSet::<FloatingPointType>::n_rooks_patterns(patterns, samples, &mut rnd),
-                Pattern::MultiJittered(patterns, rows, columns) => SamplingPatternSet::<FloatingPointType>::multi_jittered_patterns(patterns, rows, columns, &mut rnd),
-                Pattern::Hammersley(samples) => SamplingPatternSet::<FloatingPointType>::hammersley_pattern(samples),
+                Pattern::Regular(rows, columns) => {
+                    SamplingPatternSet::<FloatingPointType>::regular_pattern(rows, columns)
+                }
+                Pattern::Random(patterns, samples) => {
+                    SamplingPatternSet::<FloatingPointType>::random_patterns(
+                        patterns, samples, &mut rnd,
+                    )
+                }
+                Pattern::Jittered(patterns, rows, columns) => {
+                    SamplingPatternSet::<FloatingPointType>::jittered_patterns(
+                        patterns, rows, columns, &mut rnd,
+                    )
+                }
+                Pattern::NRooks(patterns, samples) => {
+                    SamplingPatternSet::<FloatingPointType>::n_rooks_patterns(
+                        patterns, samples, &mut rnd,
+                    )
+                }
+                Pattern::MultiJittered(patterns, rows, columns) => {
+                    SamplingPatternSet::<FloatingPointType>::multi_jittered_patterns(
+                        patterns, rows, columns, &mut rnd,
+                    )
+                }
+                Pattern::Hammersley(samples) => {
+                    SamplingPatternSet::<FloatingPointType>::hammersley_pattern(samples)
+                }
             };
 
             match configuration.mode {
                 Mode::Square => {
                     render_square_patterns(patterns);
-                },
+                }
                 Mode::Disc => {
                     render_disc_patterns(patterns.mapped_to_disc());
                 }
             }
-
-        },
+        }
         Err(m) => {
             eprintln!("{}", m);
         }

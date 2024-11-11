@@ -24,7 +24,10 @@ impl WichmannHillPRNG {
     }
 
     pub fn new_random() -> WichmannHillPRNG {
-        let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let current_time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
 
         WichmannHillPRNG::from_seed(current_time)
     }

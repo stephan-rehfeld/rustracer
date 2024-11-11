@@ -20,7 +20,7 @@ struct Configuration {
     output: String,
 }
 
-fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configuration, String> {
+fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configuration, String> {
     _ = args.next();
     let mut size = Vector2::new(640.0, 480.0);
     let mut camera_name: String = String::from("main");
@@ -49,36 +49,33 @@ fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configura
                 }
 
                 size = Vector2::new(width.unwrap(), height.unwrap());
-            },
-            "--camera" => {
-                match args.next() {
-                    Some(c) => {
-                        camera_name = c;
-                    },
-                    None => {
-                        return Err(String::from("Missing camera name."));
-                    }
+            }
+            "--camera" => match args.next() {
+                Some(c) => {
+                    camera_name = c;
+                }
+                None => {
+                    return Err(String::from("Missing camera name."));
                 }
             },
-            "-O" => {
-                match args.next() {
-                    Some(o) => {
-                        output = o;
-                    },
-                    None => {
-                        return Err(String::from("Missing output filename."));
-                    }
+            "-O" => match args.next() {
+                Some(o) => {
+                    output = o;
+                }
+                None => {
+                    return Err(String::from("Missing output filename."));
                 }
             },
 
-            filename => {
-                match rustracer::parser::parse_scene::<LengthType>(filename) {
-                    Ok(s) => {
-                        scene = Some(s);
-                    },
-                    Err(err) => {
-                        return Err(format!("Failed to parse passed scene file. Error was: {:?}", err));
-                    }
+            filename => match rustracer::parser::parse_scene::<LengthType>(filename) {
+                Ok(s) => {
+                    scene = Some(s);
+                }
+                Err(err) => {
+                    return Err(format!(
+                        "Failed to parse passed scene file. Error was: {:?}",
+                        err
+                    ));
                 }
             },
         }
@@ -88,7 +85,12 @@ fn parse_configuration(mut args: impl Iterator<Item=String>) -> Result<Configura
         return Err(String::from("No scene file was passed."));
     }
 
-    Ok(Configuration { scene: scene.unwrap(), camera_name, size, output } )
+    Ok(Configuration {
+        scene: scene.unwrap(),
+        camera_name,
+        size,
+        output,
+    })
 }
 
 fn main() {

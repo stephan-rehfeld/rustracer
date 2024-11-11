@@ -84,7 +84,6 @@ fn main() {
         Transform3::<f64>::ident(),
     ));
 
-    
     let geometries: Vec<Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>> = vec![
         plane_geometry,
         aab_geometry,
