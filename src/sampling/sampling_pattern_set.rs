@@ -20,7 +20,9 @@ impl<T> SamplingPatternSet<T> {
     }
 
     pub fn draw_pattern(&self, rnd: &mut impl RandomNumberGenerator<usize>) -> &SamplingPattern<T> {
-        &self.patterns[rnd.next_random() % self.patterns.len()]
+        let index = rnd.next_random() % self.patterns.len();
+        println!("Draw pattern #{}.", index);
+        &self.patterns[index]
     }
 }
 

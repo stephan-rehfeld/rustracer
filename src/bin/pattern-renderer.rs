@@ -31,7 +31,7 @@ enum Mode {
 struct Configuration {
     pattern: Pattern,
     mode: Mode,
-    seed: Option<u64>,
+    seed: Option<u128>,
 }
 
 fn parse_next_usize(
@@ -60,7 +60,7 @@ fn parse_next_usize(
 fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configuration, String> {
     let mut pattern: Option<Pattern> = None;
     let mut mode = Mode::Square;
-    let mut seed: Option<u64> = None;
+    let mut seed: Option<u128> = None;
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -146,7 +146,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                 pattern = Some(Pattern::Hammersley(samples.unwrap()));
             }
             "--seed" => match args.next() {
-                Some(s) => match s.parse::<u64>() {
+                Some(s) => match s.parse::<u128>() {
                     Ok(s) => {
                         seed = Some(s);
                     }

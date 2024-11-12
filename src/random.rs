@@ -15,7 +15,7 @@ impl WichmannHillPRNG {
         WichmannHillPRNG { s1, s2, s3 }
     }
 
-    pub fn from_seed(seed: u64) -> WichmannHillPRNG {
+    pub fn from_seed(seed: u128) -> WichmannHillPRNG {
         let s1 = seed % 30296;
         let s2 = seed % 30307;
         let s3 = seed % 30323;
@@ -27,7 +27,7 @@ impl WichmannHillPRNG {
         let current_time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
-            .as_secs();
+            .as_nanos();
 
         WichmannHillPRNG::from_seed(current_time)
     }
