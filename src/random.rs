@@ -65,9 +65,18 @@ impl RandomNumberGenerator<f64> for WichmannHillPRNG {
 
 impl RandomNumberGenerator<usize> for WichmannHillPRNG {
     fn next_random(&mut self) -> usize {
-        (<WichmannHillPRNG as RandomNumberGenerator<f64>>::next_random(self) * (usize::MAX as f64))
-            as usize
+        let v = (<WichmannHillPRNG as RandomNumberGenerator<f64>>::next_random(self)
+            * (usize::MAX as f64)) as usize;
+        v
     }
 }
 
-// usize u8 u16 u32 u64 u128 isize i8 i16 i32 i64 i128
+impl RandomNumberGenerator<u8> for WichmannHillPRNG {
+    fn next_random(&mut self) -> u8 {
+        let v = (<WichmannHillPRNG as RandomNumberGenerator<f64>>::next_random(self)
+            * (u8::MAX as f64)) as u8;
+        v
+    }
+}
+
+// usize u16 u32 u64 u128 isize i8 i16 i32 i64 i128
