@@ -21,7 +21,7 @@ struct Configuration {
     camera_name: String,
     size: Vector2<FloatingPointType>,
     output: String,
-    anti_aliasing_patterns: SamplingPatternSet<FloatingPointType>,
+    anti_aliasing_patterns: SamplingPatternSet<Point2<FloatingPointType>>,
 }
 
 fn parse_next_usize(
@@ -54,7 +54,8 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
     let mut scene: Option<Scene<LengthType, ColorType>> = None;
     let mut output: String = String::from("out.ff");
     let mut rnd = WichmannHillPRNG::new_random();
-    let mut anti_aliasing_patterns = SamplingPatternSet::<FloatingPointType>::regular_pattern(1, 1);
+    let mut anti_aliasing_patterns =
+        SamplingPatternSet::<Point2<FloatingPointType>>::regular_pattern(1, 1);
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -70,7 +71,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                             return Err(m);
                         }
                         anti_aliasing_patterns =
-                            SamplingPatternSet::<FloatingPointType>::regular_pattern(
+                            SamplingPatternSet::<Point2<FloatingPointType>>::regular_pattern(
                                 rows.unwrap(),
                                 columns.unwrap(),
                             );
@@ -86,7 +87,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                         }
 
                         anti_aliasing_patterns =
-                            SamplingPatternSet::<FloatingPointType>::random_patterns(
+                            SamplingPatternSet::<Point2<FloatingPointType>>::random_patterns(
                                 patterns.unwrap(),
                                 samples.unwrap(),
                                 &mut rnd,
@@ -106,7 +107,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                             return Err(m);
                         }
                         anti_aliasing_patterns =
-                            SamplingPatternSet::<FloatingPointType>::jittered_patterns(
+                            SamplingPatternSet::<Point2<FloatingPointType>>::jittered_patterns(
                                 patterns.unwrap(),
                                 rows.unwrap(),
                                 columns.unwrap(),
@@ -124,7 +125,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                         }
 
                         anti_aliasing_patterns =
-                            SamplingPatternSet::<FloatingPointType>::n_rooks_patterns(
+                            SamplingPatternSet::<Point2<FloatingPointType>>::n_rooks_patterns(
                                 patterns.unwrap(),
                                 samples.unwrap(),
                                 &mut rnd,
@@ -144,7 +145,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                             return Err(m);
                         }
                         anti_aliasing_patterns =
-                            SamplingPatternSet::<FloatingPointType>::multi_jittered_patterns(
+                            SamplingPatternSet::<Point2<FloatingPointType>>::multi_jittered_patterns(
                                 patterns.unwrap(),
                                 rows.unwrap(),
                                 columns.unwrap(),
@@ -157,7 +158,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                             return Err(m);
                         }
                         anti_aliasing_patterns =
-                            SamplingPatternSet::<FloatingPointType>::hammersley_pattern(
+                            SamplingPatternSet::<Point2<FloatingPointType>>::hammersley_pattern(
                                 samples.unwrap(),
                             );
                     }

@@ -7,7 +7,7 @@ use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
 use rustracer::image::ImageBuffer;
 use rustracer::math::geometry::{Circle, Rectangle2};
-use rustracer::math::{Point2, Vector2};
+use rustracer::math::{Point2, Point3, Vector2};
 use rustracer::random::WichmannHillPRNG;
 use rustracer::sampling::SamplingPatternSet;
 
@@ -26,6 +26,7 @@ enum Pattern {
 enum Mode {
     Square,
     Disc,
+    Hemisphere(f64),
 }
 
 struct Configuration {
@@ -52,6 +53,22 @@ fn parse_next_usize(
             "Failed for parse parameter {} for {} pattern: {}.",
             parameter, pattern, m
         ));
+    }
+
+    Ok(value.unwrap())
+}
+
+fn parse_next_floating_point(
+    args: &mut impl Iterator<Item = String>,
+    parameter: &str,
+) -> Result<FloatingPointType, String> {
+    let value = args.next();
+    if value.is_none() {
+        return Err(format!("Parameter {} is missing.", parameter));
+    }
+    let value = value.unwrap().parse::<FloatingPointType>();
+    if let Err(m) = value {
+        return Err(format!("Failed for parse parameter {}: {}.", parameter, m));
     }
 
     Ok(value.unwrap())
@@ -166,6 +183,13 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                     "Disc" => {
                         mode = Mode::Disc;
                     }
+                    "Hemisphere" => {
+                        let e = parse_next_floating_point(&mut args, "e");
+                        if let Err(m) = e {
+                            return Err(m);
+                        }
+                        mode = Mode::Hemisphere(e.unwrap());
+                    }
                     m => {
                         return Err(format!("Unknown mode: {},", m));
                     }
@@ -200,30 +224,30 @@ fn main() {
 
             let patterns = match configuration.pattern {
                 Pattern::Regular(rows, columns) => {
-                    SamplingPatternSet::<FloatingPointType>::regular_pattern(rows, columns)
+                    SamplingPatternSet::<Point2<FloatingPointType>>::regular_pattern(rows, columns)
                 }
                 Pattern::Random(patterns, samples) => {
-                    SamplingPatternSet::<FloatingPointType>::random_patterns(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::random_patterns(
                         patterns, samples, &mut rnd,
                     )
                 }
                 Pattern::Jittered(patterns, rows, columns) => {
-                    SamplingPatternSet::<FloatingPointType>::jittered_patterns(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::jittered_patterns(
                         patterns, rows, columns, &mut rnd,
                     )
                 }
                 Pattern::NRooks(patterns, samples) => {
-                    SamplingPatternSet::<FloatingPointType>::n_rooks_patterns(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::n_rooks_patterns(
                         patterns, samples, &mut rnd,
                     )
                 }
                 Pattern::MultiJittered(patterns, rows, columns) => {
-                    SamplingPatternSet::<FloatingPointType>::multi_jittered_patterns(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::multi_jittered_patterns(
                         patterns, rows, columns, &mut rnd,
                     )
                 }
                 Pattern::Hammersley(samples) => {
-                    SamplingPatternSet::<FloatingPointType>::hammersley_pattern(samples)
+                    SamplingPatternSet::<Point2<FloatingPointType>>::hammersley_pattern(samples)
                 }
             };
 
@@ -234,6 +258,9 @@ fn main() {
                 Mode::Disc => {
                     render_disc_patterns(patterns.mapped_to_disc());
                 }
+                Mode::Hemisphere(e) => {
+                    render_hemisphere_patterns(patterns.mapped_to_hemisphere(e));
+                }
             }
         }
         Err(m) => {
@@ -242,7 +269,52 @@ fn main() {
     }
 }
 
-fn render_disc_patterns(patterns: SamplingPatternSet<FloatingPointType>) {
+fn render_hemisphere_patterns(patterns: SamplingPatternSet<Point3<FloatingPointType>>) {
+    for i in 0..patterns.len() {
+        let pattern = &patterns[i];
+        let mut image_buffer = ImageBuffer::new(Vector2::new(1200, 600), RGB::new(1.0, 1.0, 1.0));
+
+        image_buffer.draw_circle(
+            Circle::new(Point2::new(300, 300), 250),
+            RGB::new(0.8, 0.8, 1.0),
+        );
+
+        image_buffer.draw_circle(
+            Circle::new(Point2::new(900, 300), 250),
+            RGB::new(0.8, 0.8, 1.0),
+        );
+
+        for j in 0..pattern.len() {
+            let point = &pattern[j];
+            let transformed_point_1 = Point2::new(
+                300 + (point.x * 250.0) as isize,
+                300 - (point.y * 250.0) as isize,
+            );
+            let transformed_point_2 = Point2::new(
+                900 + (point.x * 250.0) as isize,
+                300 - (point.z * 250.0) as isize,
+            );
+
+            image_buffer.draw_circle(Circle::new(transformed_point_1, 5), RGB::new(1.0, 0.0, 0.0));
+            image_buffer.draw_circle(Circle::new(transformed_point_2, 5), RGB::new(1.0, 0.0, 0.0));
+        }
+
+        let converted_image_data = image_buffer
+            .convert_color::<RGBA<f64>>()
+            .convert_color::<RGBA<u16>>()
+            .encode();
+
+        let filename = format!("hemisphere-pattern-{:04}.ff", i);
+        let f = File::create(filename.clone()).unwrap();
+
+        let mut writer = BufWriter::new(f);
+
+        let _ = writer.write_all(converted_image_data.as_slice());
+        println!("Writing file:: {}.", filename);
+    }
+}
+
+fn render_disc_patterns(patterns: SamplingPatternSet<Point2<FloatingPointType>>) {
     for i in 0..patterns.len() {
         let pattern = &patterns[i];
         let mut image_buffer = ImageBuffer::new(Vector2::new(600, 600), RGB::new(1.0, 1.0, 1.0));
@@ -276,7 +348,7 @@ fn render_disc_patterns(patterns: SamplingPatternSet<FloatingPointType>) {
     }
 }
 
-fn render_square_patterns(patterns: SamplingPatternSet<FloatingPointType>) {
+fn render_square_patterns(patterns: SamplingPatternSet<Point2<FloatingPointType>>) {
     for i in 0..patterns.len() {
         let pattern = &patterns[i];
         let mut image_buffer = ImageBuffer::new(Vector2::new(600, 600), RGB::new(1.0, 1.0, 1.0));

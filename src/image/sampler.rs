@@ -8,7 +8,7 @@ use crate::sampling::SamplingPatternSet;
 use crate::traits::One;
 
 pub trait Sampler: Image {
-    fn sample<T>(self, patterns: SamplingPatternSet<T>) -> SamplerStruct<T, Self>
+    fn sample<T>(self, patterns: SamplingPatternSet<Point2<T>>) -> SamplerStruct<T, Self>
     where
         Self: Image<PointType = Point2<T>> + Sized;
 }
@@ -17,7 +17,7 @@ impl<I> Sampler for I
 where
     I: Image,
 {
-    fn sample<T>(self, patterns: SamplingPatternSet<T>) -> SamplerStruct<T, Self>
+    fn sample<T>(self, patterns: SamplingPatternSet<Point2<T>>) -> SamplerStruct<T, Self>
     where
         Self: Image<PointType = Point2<T>> + Sized,
     {
@@ -27,11 +27,11 @@ where
 
 pub struct SamplerStruct<T, I: Image<PointType = Point2<T>>> {
     source: I,
-    patterns: SamplingPatternSet<T>,
+    patterns: SamplingPatternSet<Point2<T>>,
 }
 
 impl<T, I: Image<PointType = Point2<T>>> SamplerStruct<T, I> {
-    pub fn new(source: I, patterns: SamplingPatternSet<T>) -> SamplerStruct<T, I> {
+    pub fn new(source: I, patterns: SamplingPatternSet<Point2<T>>) -> SamplerStruct<T, I> {
         SamplerStruct { source, patterns }
     }
 }
