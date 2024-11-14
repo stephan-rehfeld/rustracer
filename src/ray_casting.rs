@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::iter::Sum;
 use std::ops::Div;
 
 use crate::camera::RaytracingCamera;
@@ -70,7 +71,10 @@ where
 
 pub struct RayCaster<T: Length, C>
 where
-    C: Color<ChannelType = <T as Length>::ValueType>,
+    C: Color<ChannelType = <T as Length>::ValueType>
+        + Div<<T as Length>::ValueType, Output = C>
+        + Sum<C>,
+    <C as Color>::ChannelType: From<u16>,
 {
     size: Vector2<T::ValueType>,
     camera: Box<dyn RaytracingCamera<T>>,
@@ -83,7 +87,10 @@ where
 
 impl<T: Length, C> RayCaster<T, C>
 where
-    C: Color<ChannelType = <T as Length>::ValueType>,
+    C: Color<ChannelType = <T as Length>::ValueType>
+        + Div<<T as Length>::ValueType, Output = C>
+        + Sum<C>,
+    <C as Color>::ChannelType: From<u16>,
 {
     pub fn new(
         size: Vector2<T::ValueType>,
@@ -108,7 +115,10 @@ where
 
 impl<T: Length, C> Image for RayCaster<T, C>
 where
-    C: Color<ChannelType = <T as Length>::ValueType>,
+    C: Color<ChannelType = <T as Length>::ValueType>
+        + Div<<T as Length>::ValueType, Output = C>
+        + Sum<C>,
+    <C as Color>::ChannelType: From<u16>,
 {
     type ColorType = C;
     type PointType = Point2<<T as Length>::ValueType>;
@@ -119,51 +129,62 @@ where
 
     fn get(&self, p: Self::PointType) -> Self::ColorType {
         let p = Point2::new(p.x, self.size().y - p.y - <<T as Length>::ValueType>::one());
-        let ray = self.camera.ray_for(self.size, p);
+        let rays = self.camera.ray_for(self.size, p);
 
-        let mut hits: Vec<(
-            <Self as Raytracer>::ScalarType,
-            SurfacePoint<T>,
-            &dyn Material<T, ColorType = Self::ColorType>,
-        )> = self
-            .scene
+        let colors: Vec<C> = rays
             .iter()
-            .flat_map(|g| g.intersect(ray))
-            .filter(|(t, _, _)| *t > Zero::zero())
+            .map(|ray| {
+                let mut hits: Vec<(
+                    <Self as Raytracer>::ScalarType,
+                    SurfacePoint<T>,
+                    &dyn Material<T, ColorType = Self::ColorType>,
+                )> = self
+                    .scene
+                    .iter()
+                    .flat_map(|g| g.intersect(*ray))
+                    .filter(|(t, _, _)| *t > Zero::zero())
+                    .collect();
+                hits.sort_by(|(t1, _, _), (t2, _, _)| t1.partial_cmp(t2).unwrap());
+
+                if hits.is_empty() {
+                    self.bg_color
+                } else {
+                    let (_, sp, material) = hits.remove(0);
+                    let lights: Vec<&Box<dyn Light<T, C>>> = self
+                        .lights
+                        .iter()
+                        .filter(|light| {
+                            light.illuminates(sp, &|shadow_ray| {
+                                let mut hits: Vec<<Self as Raytracer>::ScalarType> = self
+                                    .scene
+                                    .iter()
+                                    .flat_map(|g| g.intersect(shadow_ray))
+                                    .map(|(t, _, _)| t)
+                                    .filter(|t| *t > self.shadow_tolerance)
+                                    .collect();
+                                hits.sort_by(|t1, t2| t1.partial_cmp(t2).unwrap());
+                                hits.first().copied()
+                            })
+                        })
+                        .collect();
+
+                    material.color_for(sp, ray.direction, lights, self.ambient_light)
+                }
+            })
             .collect();
-        hits.sort_by(|(t1, _, _), (t2, _, _)| t1.partial_cmp(t2).unwrap());
 
-        if hits.is_empty() {
-            self.bg_color
-        } else {
-            let (_, sp, material) = hits.remove(0);
-            let lights: Vec<&Box<dyn Light<T, C>>> = self
-                .lights
-                .iter()
-                .filter(|light| {
-                    light.illuminates(sp, &|shadow_ray| {
-                        let mut hits: Vec<<Self as Raytracer>::ScalarType> = self
-                            .scene
-                            .iter()
-                            .flat_map(|g| g.intersect(shadow_ray))
-                            .map(|(t, _, _)| t)
-                            .filter(|t| *t > self.shadow_tolerance)
-                            .collect();
-                        hits.sort_by(|t1, t2| t1.partial_cmp(t2).unwrap());
-                        hits.first().copied()
-                    })
-                })
-                .collect();
+        let len = colors.len() as u16;
+        let color: C = colors.into_iter().sum();
 
-            material.color_for(sp, ray.direction, lights, self.ambient_light)
-        }
+        color / <<C as Color>::ChannelType>::from(len)
     }
 }
 
 impl<T, C> Raytracer for RayCaster<T, C>
 where
     T: Length,
-    C: Color<ChannelType = <T as Div>::Output>,
+    C: Color<ChannelType = <T as Div>::Output> + Div<<T as Length>::ValueType, Output = C> + Sum<C>,
+    <C as Color>::ChannelType: From<u16>,
 {
     type ScalarType = <T as Div>::Output;
     type LengthType = T;

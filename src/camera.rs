@@ -13,7 +13,7 @@ where
         &self,
         size: Vector2<<T as Div>::Output>,
         p: Point2<<T as Div>::Output>,
-    ) -> ParametricLine<Point3<T>, Vector3<T>>;
+    ) -> Vec<ParametricLine<Point3<T>, Vector3<T>>>;
 }
 
 pub struct OrthographicCamera<T>
@@ -71,7 +71,7 @@ where
         &self,
         size: Vector2<<T as Div>::Output>,
         p: Point2<<T as Div>::Output>,
-    ) -> ParametricLine<Point3<T>, Vector3<T>> {
+    ) -> Vec<ParametricLine<Point3<T>, Vector3<T>>> {
         let aspect_ratio = size.x / size.y;
 
         let d = -(self.w * T::one());
@@ -83,11 +83,11 @@ where
             + self.u * T::one() * aspect_ratio * self.scale * x
             + self.v * T::one() * self.scale * y;
 
-        ParametricLine::new(o, d)
+        vec![ParametricLine::new(o, d)]
     }
 }
 
-pub struct PerspectiveCamera<T>
+pub struct PinholeCamera<T>
 where
     T: Div,
 {
@@ -98,7 +98,7 @@ where
     vertical_field_of_view: Radians<<T as Div>::Output>,
 }
 
-impl<T> PerspectiveCamera<T>
+impl<T> PinholeCamera<T>
 where
     T: Div + Mul + Mul<<T as Div>::Output, Output = T> + Sub<Output = T> + Clone + Copy,
     <T as Div>::Output: Add<Output = <T as Div>::Output>
@@ -120,14 +120,14 @@ where
         g: Vector3<T>,
         t: Vector3<T>,
         vertical_field_of_view: Radians<<T as Div>::Output>,
-    ) -> PerspectiveCamera<T> {
+    ) -> PinholeCamera<T> {
         let w = -g.normalized();
         let u = Vector3::cross(t, w).normalized();
         let v = Vector3::cross(w, u).normalized();
 
         let vertical_field_of_view = vertical_field_of_view.half();
 
-        PerspectiveCamera {
+        PinholeCamera {
             e,
             u,
             v,
@@ -137,7 +137,7 @@ where
     }
 }
 
-impl<T> RaytracingCamera<T> for PerspectiveCamera<T>
+impl<T> RaytracingCamera<T> for PinholeCamera<T>
 where
     T: Div + Mul + One + Copy,
     <T as Div>::Output: Add<Output = <T as Div>::Output>
@@ -157,7 +157,7 @@ where
         &self,
         size: Vector2<<T as Div>::Output>,
         p: Point2<<T as Div>::Output>,
-    ) -> ParametricLine<Point3<T>, Vector3<T>> {
+    ) -> Vec<ParametricLine<Point3<T>, Vector3<T>>> {
         let o = self.e;
 
         let a = -self.w * (size.y.half() / self.vertical_field_of_view.tan());
@@ -167,7 +167,7 @@ where
         let r = a + b + c;
         let d = r.normalized() * T::one();
 
-        ParametricLine::new(o, d)
+        vec![ParametricLine::new(o, d)]
     }
 }
 
@@ -231,11 +231,20 @@ mod tests {
                 let upper_right =
                     ParametricLine::new(Point3::new(3 as $type, 242.0 as $type, 321 as $type), g);
 
-                assert_eq!(orth.ray_for(size, Point2::new(320.0, 240.0)), center);
-                assert_eq!(orth.ray_for(size, Point2::new(0.0, 480.0)), upper_left);
-                assert_eq!(orth.ray_for(size, Point2::new(0.0, 0.0)), lower_left);
-                assert_eq!(orth.ray_for(size, Point2::new(640.0, 0.0)), lower_right);
-                assert_eq!(orth.ray_for(size, Point2::new(640.0, 480.0)), upper_right);
+                assert_eq!(orth.ray_for(size, Point2::new(320.0, 240.0)), vec![center]);
+                assert_eq!(
+                    orth.ray_for(size, Point2::new(0.0, 480.0)),
+                    vec![upper_left]
+                );
+                assert_eq!(orth.ray_for(size, Point2::new(0.0, 0.0)), vec![lower_left]);
+                assert_eq!(
+                    orth.ray_for(size, Point2::new(640.0, 0.0)),
+                    vec![lower_right]
+                );
+                assert_eq!(
+                    orth.ray_for(size, Point2::new(640.0, 480.0)),
+                    vec![upper_right]
+                );
             }
         };
     }
@@ -243,7 +252,7 @@ mod tests {
     orthographic_camera_ray_for! { f32, orthographic_camera_ray_for_f32 }
     orthographic_camera_ray_for! { f64, orthographic_camera_ray_for_f64 }
 
-    macro_rules! new_perspective_camera {
+    macro_rules! new_pinhole_camera {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
@@ -253,7 +262,7 @@ mod tests {
 
                 let fov = Degrees::<$type>::new(90.0).to_radians();
 
-                let persp = PerspectiveCamera::new(e, g, t, fov);
+                let persp = PinholeCamera::new(e, g, t, fov);
 
                 assert_eq!(persp.e, e);
                 assert_eq!(persp.u, Vector3::new(-1 as $type, 0 as $type, 0 as $type));
@@ -265,10 +274,10 @@ mod tests {
         };
     }
 
-    new_perspective_camera! { f32, new_perspective_camera_f32 }
-    new_perspective_camera! { f64, new_perspective_camera_f64 }
+    new_pinhole_camera! { f32, new_pinhole_camera_f32 }
+    new_pinhole_camera! { f64, new_pinhole_camera_f64 }
 
-    macro_rules! perspective_camera_ray_for {
+    macro_rules! pinhole_camera_ray_for {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
@@ -279,7 +288,7 @@ mod tests {
                 let fov = Degrees::<$type>::new(90.0).to_radians();
                 let size = Vector2::new(640.0, 480.0);
 
-                let persp = PerspectiveCamera::new(e, g, t, fov);
+                let persp = PinholeCamera::new(e, g, t, fov);
 
                 let center = ParametricLine::new(e, g);
                 let upper_left = ParametricLine::new(
@@ -303,15 +312,24 @@ mod tests {
                     Vector3::new(0.6859943405700354, 0.5144957554275266, -0.5144957554275266),
                 );
 
-                assert_eq!(persp.ray_for(size, Point2::new(320.0, 240.0)), center);
-                assert_eq!(persp.ray_for(size, Point2::new(0.0, 480.0)), upper_left);
-                assert_eq!(persp.ray_for(size, Point2::new(0.0, 0.0)), lower_left);
-                assert_eq!(persp.ray_for(size, Point2::new(640.0, 0.0)), lower_right);
-                assert_eq!(persp.ray_for(size, Point2::new(640.0, 480.0)), upper_right);
+                assert_eq!(persp.ray_for(size, Point2::new(320.0, 240.0)), vec![center]);
+                assert_eq!(
+                    persp.ray_for(size, Point2::new(0.0, 480.0)),
+                    vec![upper_left]
+                );
+                assert_eq!(persp.ray_for(size, Point2::new(0.0, 0.0)), vec![lower_left]);
+                assert_eq!(
+                    persp.ray_for(size, Point2::new(640.0, 0.0)),
+                    vec![lower_right]
+                );
+                assert_eq!(
+                    persp.ray_for(size, Point2::new(640.0, 480.0)),
+                    vec![upper_right]
+                );
             }
         };
     }
 
-    perspective_camera_ray_for! { f32, perspective_camera_ray_for_f32 }
-    perspective_camera_ray_for! { f64, perspective_camera_ray_for_f64 }
+    pinhole_camera_ray_for! { f32, pinhole_camera_ray_for_f32 }
+    pinhole_camera_ray_for! { f64, pinhole_camera_ray_for_f64 }
 }

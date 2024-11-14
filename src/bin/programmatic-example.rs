@@ -1,4 +1,4 @@
-use rustracer::camera::PerspectiveCamera;
+use rustracer::camera::PinholeCamera;
 use rustracer::color::{RGB, RGBA};
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
@@ -105,7 +105,7 @@ fn main() {
 
     let lights: Vec<Box<dyn Light<Meter<f64>, RGB<f64>>>> = vec![point_light, spot_light];
 
-    let cam = Box::new(PerspectiveCamera::new(
+    let cam = Box::new(PinholeCamera::new(
         Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),
         Vector3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(-1.0)),
         Vector3::new(Meter::new(0.0), Meter::new(1.0), Meter::new(0.0)),

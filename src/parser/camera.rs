@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use std::ops::{Mul, Neg};
 use std::str::FromStr;
 
-use crate::camera::{OrthographicCamera, PerspectiveCamera};
+use crate::camera::{OrthographicCamera, PinholeCamera};
 use crate::math::{Point3, Vector3};
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
@@ -14,7 +14,7 @@ use crate::units::length::Length;
 use crate::parser::util;
 use crate::parser::{FromTokens, ParsingError};
 
-impl<T: Length> FromTokens for (String, PerspectiveCamera<T>)
+impl<T: Length> FromTokens for (String, PinholeCamera<T>)
 where
     T: Neg<Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
@@ -32,7 +32,7 @@ where
 
     fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
         if let Err(cause) = util::check_next_token(tokens, "{") {
-            return Err(ParsingError::PerspectiveCameraParsingError(Box::new(cause)));
+            return Err(ParsingError::PinholeCameraParsingError(Box::new(cause)));
         }
 
         let mut id = "main";
@@ -56,7 +56,7 @@ where
                         eye_position = pos;
                     }
                     Err(cause) => {
-                        return Err(ParsingError::PerspectiveCameraParsingError(Box::new(cause)));
+                        return Err(ParsingError::PinholeCameraParsingError(Box::new(cause)));
                     }
                 },
                 "gaze_direction:" => match Vector3::from_tokens(tokens) {
@@ -64,7 +64,7 @@ where
                         gaze_direction = vec;
                     }
                     Err(cause) => {
-                        return Err(ParsingError::PerspectiveCameraParsingError(Box::new(cause)));
+                        return Err(ParsingError::PinholeCameraParsingError(Box::new(cause)));
                     }
                 },
                 "up_vector:" => match Vector3::from_tokens(tokens) {
@@ -72,7 +72,7 @@ where
                         up_vector = vec;
                     }
                     Err(cause) => {
-                        return Err(ParsingError::PerspectiveCameraParsingError(Box::new(cause)));
+                        return Err(ParsingError::PinholeCameraParsingError(Box::new(cause)));
                     }
                 },
                 "field_of_view:" => match tokens.next() {
@@ -102,7 +102,7 @@ where
         }
         Ok((
             id.to_string(),
-            PerspectiveCamera::new(
+            PinholeCamera::new(
                 eye_position,
                 gaze_direction,
                 up_vector,
@@ -123,7 +123,9 @@ where
 
     fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
         if let Err(cause) = util::check_next_token(tokens, "{") {
-            return Err(ParsingError::PerspectiveCameraParsingError(Box::new(cause)));
+            return Err(ParsingError::OrthographicCameraParsingError(Box::new(
+                cause,
+            )));
         }
 
         let mut id = "main";

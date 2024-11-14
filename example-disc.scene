@@ -14,7 +14,7 @@ disc {
     }
 }
 
-perspective_camera {
+pinhole_camera {
     id: main
     eye_position: 0.0 1.0 3.0
     gaze_direction: 0.0 0.0 -1.0
