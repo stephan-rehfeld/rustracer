@@ -246,9 +246,15 @@ fn main() {
                 return;
             }
 
+            let mut rnd = WichmannHillPRNG::new_random();
+
             let raytracer = RayCaster::new(
                 config.size,
                 camera.unwrap(),
+                SamplingPatternSet::<Point2<FloatingPointType>>::multi_jittered_patterns(
+                    10, 5, 5, &mut rnd,
+                )
+                .mapped_to_disc(),
                 scene.geometries,
                 scene.lights,
                 scene.ambient_light,

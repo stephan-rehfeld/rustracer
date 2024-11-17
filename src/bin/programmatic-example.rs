@@ -9,6 +9,7 @@ use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3,
 use rustracer::math::transform::Transform3;
 use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
 use rustracer::ray_casting::RayCaster;
+use rustracer::sampling::SamplingPatternSet;
 use rustracer::scene_graph::RenderableGeometry;
 use rustracer::traits::ToRadians;
 use rustracer::units::angle::Degrees;
@@ -115,6 +116,7 @@ fn main() {
     let raytracer = RayCaster::new(
         size,
         cam,
+        SamplingPatternSet::<Point2<f64>>::regular_pattern(1, 1),
         geometries,
         lights,
         RGB::new(0.1, 0.1, 0.1),

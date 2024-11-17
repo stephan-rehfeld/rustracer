@@ -9,6 +9,8 @@ use crate::light::Light;
 use crate::material::Material;
 use crate::math::geometry::{ParametricLine, SurfacePoint};
 use crate::math::{Normal3, Point2, Point3, Vector2, Vector3};
+use crate::random::WichmannHillPRNG;
+use crate::sampling::SamplingPatternSet;
 use crate::traits::{One, Zero};
 use crate::units::length::Length;
 use crate::{Raytracer, Renderable};
@@ -78,6 +80,7 @@ where
 {
     size: Vector2<T::ValueType>,
     camera: Box<dyn RaytracingCamera<T>>,
+    camera_sampling_pattern: SamplingPatternSet<Point2<<T as Length>::ValueType>>,
     scene: Vec<Box<<Self as Raytracer>::RenderableTraitType>>,
     lights: Vec<Box<dyn Light<T, C>>>,
     ambient_light: C,
@@ -95,6 +98,7 @@ where
     pub fn new(
         size: Vector2<T::ValueType>,
         camera: Box<dyn RaytracingCamera<T>>,
+        camera_sampling_pattern: SamplingPatternSet<Point2<<T as Length>::ValueType>>,
         scene: Vec<Box<<Self as Raytracer>::RenderableTraitType>>,
         lights: Vec<Box<dyn Light<T, C>>>,
         ambient_light: C,
@@ -104,6 +108,7 @@ where
         RayCaster {
             size,
             camera,
+            camera_sampling_pattern,
             scene,
             lights,
             ambient_light,
@@ -129,7 +134,12 @@ where
 
     fn get(&self, p: Self::PointType) -> Self::ColorType {
         let p = Point2::new(p.x, self.size().y - p.y - <<T as Length>::ValueType>::one());
-        let rays = self.camera.ray_for(self.size, p);
+        let mut rnd = WichmannHillPRNG::new_random();
+        let rays = self.camera.ray_for(
+            self.size,
+            p,
+            self.camera_sampling_pattern.draw_pattern(&mut rnd),
+        );
 
         let colors: Vec<C> = rays
             .iter()

@@ -1,6 +1,6 @@
-background_color: 0.0 0.0 0.0
+background_color: 0.7 0.7 0.7
 
-ambient_light: 0.0 0.0 0.0
+ambient_light: 0.1 0.1 0.1
 
 plane {
     position: 0.0 0.0 0.0
@@ -15,8 +15,49 @@ plane {
     }
 }
 
-pinhole_camera {
+sphere {
+    position: -3.0 1.0 -3.0
+    scale: 1.0 1.0 1.0
+    rotation: 0.0 0.0 0.0
+    material: lambert_material {
+        texture: single_color_texture {
+            color: 0.8 0.2 0.2
+        }
+    }
+}
+sphere {
+    position: 0.0 1.0 0.0
+    scale: 1.0 1.0 1.0
+    rotation: 0.0 0.0 0.0
+    material: lambert_material {
+        texture: single_color_texture {
+            color: 0.2 0.8 0.2
+        }
+    }
+}
+
+sphere {
+    position: 3.0 1.0 3.0
+    scale: 1.0 1.0 1.0
+    rotation: 0.0 0.0 0.0
+    material: lambert_material {
+        texture: single_color_texture {
+            color: 0.2 0.2 0.8
+        }
+    }
+}
+perspective_camera {
     id: main
+    eye_position: 0.0 1.0 8.0
+    gaze_direction: 0.0 0.0 -1.0
+    up_vector: 0.0 1.0 0.0
+    field_of_view: 90
+    lens_radius: 0.10
+    focal_length: 8.0
+}
+
+pinhole_camera {
+    id: second
     eye_position: 0.0 1.0 3.0
     gaze_direction: 0.0 0.0 -1.0
     up_vector: 0.0 1.0 0.0
@@ -28,3 +69,7 @@ point_light {
     color: 0.8 0.8 0.8
 }
 
+point_light {
+    position: 0.0 1.0 3.0
+    color: 0.8 0.8 0.8
+}

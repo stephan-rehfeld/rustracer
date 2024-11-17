@@ -5,7 +5,7 @@ use std::fs;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 use std::str::FromStr;
 
-use crate::camera::{OrthographicCamera, PinholeCamera, RaytracingCamera};
+use crate::camera::{OrthographicCamera, PerspectiveCamera, PinholeCamera, RaytracingCamera};
 use crate::color::RGB;
 use crate::light::{Light, PointLight, SpotLight};
 use crate::material::Material;
@@ -208,6 +208,16 @@ where
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
             },
+            "perspective_camera" => {
+                match <(String, PerspectiveCamera<T>)>::from_tokens(&mut tokens) {
+                    Ok((id, camera)) => {
+                        cameras.insert(id, Box::new(camera));
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                    }
+                }
+            }
             "orthographic_camera" => {
                 match <(String, OrthographicCamera<T>)>::from_tokens(&mut tokens) {
                     Ok((id, camera)) => {
