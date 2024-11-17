@@ -141,6 +141,10 @@ where
             self.camera_sampling_pattern.draw_pattern(&mut rnd),
         );
 
+        if rays.len() == 0 {
+            return C::default();
+        }
+
         let colors: Vec<C> = rays
             .iter()
             .map(|ray| {

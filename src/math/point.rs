@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Sub, SubAssign};
 
 use super::{Vector2, Vector3};
 
@@ -43,6 +43,26 @@ macro_rules! create_point_type {
         impl<T: AddAssign<U>, U> AddAssign<$vectorType<U>> for $name<T> {
             fn add_assign(&mut self, rhs: $vectorType<U>) {
                 $(self.$element += rhs.$element;)*
+            }
+        }
+
+        impl<T: Div<U>, U> Div<U> for $name<T>
+        where
+            U: Copy + Clone
+        {
+            type Output = $name<<T as Div<U>>::Output>;
+
+            fn div(self, rhs: U) -> Self::Output {
+                $name::new($(self.$element / rhs, )*)
+            }
+        }
+
+        impl<T: DivAssign<U>, U> DivAssign<U> for $name<T>
+        where
+            U: Copy + Clone
+        {
+            fn div_assign(&mut self, rhs: U) {
+                $(self.$element /= rhs;)*
             }
         }
 

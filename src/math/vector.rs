@@ -2,7 +2,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 
 use super::{Normal2, Normal3, Point2, Point3};
 
-use crate::traits::{Sqrt, Zero};
+use crate::traits::{Half, Sqrt, Zero};
 
 pub trait Vector {
     type ValueType;
@@ -189,6 +189,12 @@ macro_rules! create_vector_type {
 
             fn neg(self) -> Self::Output {
                 $name::new( $(-self.$element, )*)
+            }
+        }
+
+        impl<T: Half> Half for $name<T> {
+            fn half(&self) -> $name<T> {
+                $name::new( $(self.$element.half(), )*)
             }
         }
     }

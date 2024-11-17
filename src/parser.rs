@@ -5,7 +5,9 @@ use std::fs;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 use std::str::FromStr;
 
-use crate::camera::{OrthographicCamera, PerspectiveCamera, PinholeCamera, RaytracingCamera};
+use crate::camera::{
+    FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, RaytracingCamera,
+};
 use crate::color::RGB;
 use crate::light::{Light, PointLight, SpotLight};
 use crate::material::Material;
@@ -73,6 +75,8 @@ pub enum ParsingError {
     BoxParsingError(Box<ParsingError>),
     TriangleParsingError(Box<ParsingError>),
     PinholeCameraParsingError(Box<ParsingError>),
+    PerspectiveCameraParsingError(Box<ParsingError>),
+    FisheyeCameraParsingError(Box<ParsingError>),
     OrthographicCameraParsingError(Box<ParsingError>),
     PointLightParsingError(Box<ParsingError>),
     SpotLightParsingError(Box<ParsingError>),
@@ -228,7 +232,14 @@ where
                     }
                 }
             }
-
+            "fisheye_camera" => match <(String, FisheyeCamera<T>)>::from_tokens(&mut tokens) {
+                Ok((id, camera)) => {
+                    cameras.insert(id, Box::new(camera));
+                }
+                Err(cause) => {
+                    return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                }
+            },
             "point_light" => match PointLight::from_tokens(&mut tokens) {
                 Ok(point_light) => {
                     lights.push(Box::new(point_light));

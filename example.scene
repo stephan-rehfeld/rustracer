@@ -64,6 +64,14 @@ pinhole_camera {
     field_of_view: 90
 }
 
+fisheye_camera {
+    id: fish
+    eye_position: 0.0 1.0 3.0
+    gaze_direction: 0.0 0.0 -1.0
+    up_vector: 0.0 1.0 0.0
+    psi: 180
+}
+
 point_light {
     position: 0.0 2.0 0.0
     color: 0.8 0.8 0.8
