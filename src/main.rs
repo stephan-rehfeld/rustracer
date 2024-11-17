@@ -3,7 +3,7 @@ use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
 use rustracer::image::sampler::Sampler;
 use rustracer::math::{Point2, Vector2};
-use rustracer::random::WichmannHillPRNG;
+use rustracer::random::{RandomNumberGenerator, WichmannHillPRNG};
 use rustracer::ray_casting::{RayCaster, Scene};
 use rustracer::sampling::SamplingPatternSet;
 use rustracer::units::length::Meter;
@@ -22,6 +22,7 @@ struct Configuration {
     size: Vector2<FloatingPointType>,
     output: String,
     anti_aliasing_patterns: SamplingPatternSet<Point2<FloatingPointType>>,
+    camera_sampling_patterns: SamplingPatternSet<Point2<FloatingPointType>>,
 }
 
 fn parse_next_usize(
@@ -47,6 +48,129 @@ fn parse_next_usize(
     Ok(value.unwrap())
 }
 
+fn parse_sampling_pattern_set(
+    args: &mut impl Iterator<Item = String>,
+    rnd: &mut impl RandomNumberGenerator<FloatingPointType>,
+) -> Result<SamplingPatternSet<Point2<FloatingPointType>>, String> {
+    match args.next() {
+        Some(p) => match p.as_str() {
+            "Regular" => {
+                let rows = parse_next_usize(args, "Regular", "rows");
+                if let Err(m) = rows {
+                    return Err(m);
+                }
+                let columns = parse_next_usize(args, "Regular", "columns");
+                if let Err(m) = columns {
+                    return Err(m);
+                }
+                return Ok(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::regular_pattern(
+                        rows.unwrap(),
+                        columns.unwrap(),
+                    ),
+                );
+            }
+            "Random" => {
+                let patterns = parse_next_usize(args, "Random", "patterns");
+                if let Err(m) = patterns {
+                    return Err(m);
+                }
+                let samples = parse_next_usize(args, "Random", "samples");
+                if let Err(m) = samples {
+                    return Err(m);
+                }
+
+                return Ok(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::random_patterns(
+                        patterns.unwrap(),
+                        samples.unwrap(),
+                        rnd,
+                    ),
+                );
+            }
+            "Jittered" => {
+                let patterns = parse_next_usize(args, "Jittered", "patterns");
+                if let Err(m) = patterns {
+                    return Err(m);
+                }
+                let rows = parse_next_usize(args, "Jittered", "rows");
+                if let Err(m) = rows {
+                    return Err(m);
+                }
+                let columns = parse_next_usize(args, "Jittered", "columns");
+                if let Err(m) = columns {
+                    return Err(m);
+                }
+                return Ok(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::jittered_patterns(
+                        patterns.unwrap(),
+                        rows.unwrap(),
+                        columns.unwrap(),
+                        rnd,
+                    ),
+                );
+            }
+            "NRooks" => {
+                let patterns = parse_next_usize(args, "NRooks", "patterns");
+                if let Err(m) = patterns {
+                    return Err(m);
+                }
+                let samples = parse_next_usize(args, "NRooks", "samples");
+                if let Err(m) = samples {
+                    return Err(m);
+                }
+
+                return Ok(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::n_rooks_patterns(
+                        patterns.unwrap(),
+                        samples.unwrap(),
+                        rnd,
+                    ),
+                );
+            }
+            "MultiJittered" => {
+                let patterns = parse_next_usize(args, "MultiJittered", "patterns");
+                if let Err(m) = patterns {
+                    return Err(m);
+                }
+                let rows = parse_next_usize(args, "MultiJittered", "rows");
+                if let Err(m) = rows {
+                    return Err(m);
+                }
+                let columns = parse_next_usize(args, "MultiJittered", "columns");
+                if let Err(m) = columns {
+                    return Err(m);
+                }
+                return Ok(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::multi_jittered_patterns(
+                        patterns.unwrap(),
+                        rows.unwrap(),
+                        columns.unwrap(),
+                        rnd,
+                    ),
+                );
+            }
+            "Hammersley" => {
+                let samples = parse_next_usize(args, "NRooks", "samples");
+                if let Err(m) = samples {
+                    return Err(m);
+                }
+                return Ok(
+                    SamplingPatternSet::<Point2<FloatingPointType>>::hammersley_pattern(
+                        samples.unwrap(),
+                    ),
+                );
+            }
+            &_ => {
+                return Err(String::from("Unknown sampling pattern."));
+            }
+        },
+        None => {
+            return Err(String::from("Missing pattern name for anti-aliasing."));
+        }
+    }
+}
+
 fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configuration, String> {
     _ = args.next();
     let mut size = Vector2::new(640.0, 480.0);
@@ -57,117 +181,25 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
     let mut anti_aliasing_patterns =
         SamplingPatternSet::<Point2<FloatingPointType>>::regular_pattern(1, 1);
 
+    let mut camera_sampling_patterns =
+        SamplingPatternSet::<Point2<FloatingPointType>>::regular_pattern(5, 5);
+
     while let Some(arg) = args.next() {
         match arg.as_str() {
-            "--anti-aliasing" => match args.next() {
-                Some(p) => match p.as_str() {
-                    "Regular" => {
-                        let rows = parse_next_usize(&mut args, "Regular", "rows");
-                        if let Err(m) = rows {
-                            return Err(m);
-                        }
-                        let columns = parse_next_usize(&mut args, "Regular", "columns");
-                        if let Err(m) = columns {
-                            return Err(m);
-                        }
-                        anti_aliasing_patterns =
-                            SamplingPatternSet::<Point2<FloatingPointType>>::regular_pattern(
-                                rows.unwrap(),
-                                columns.unwrap(),
-                            );
-                    }
-                    "Random" => {
-                        let patterns = parse_next_usize(&mut args, "Random", "patterns");
-                        if let Err(m) = patterns {
-                            return Err(m);
-                        }
-                        let samples = parse_next_usize(&mut args, "Random", "samples");
-                        if let Err(m) = samples {
-                            return Err(m);
-                        }
-
-                        anti_aliasing_patterns =
-                            SamplingPatternSet::<Point2<FloatingPointType>>::random_patterns(
-                                patterns.unwrap(),
-                                samples.unwrap(),
-                                &mut rnd,
-                            );
-                    }
-                    "Jittered" => {
-                        let patterns = parse_next_usize(&mut args, "Jittered", "patterns");
-                        if let Err(m) = patterns {
-                            return Err(m);
-                        }
-                        let rows = parse_next_usize(&mut args, "Jittered", "rows");
-                        if let Err(m) = rows {
-                            return Err(m);
-                        }
-                        let columns = parse_next_usize(&mut args, "Jittered", "columns");
-                        if let Err(m) = columns {
-                            return Err(m);
-                        }
-                        anti_aliasing_patterns =
-                            SamplingPatternSet::<Point2<FloatingPointType>>::jittered_patterns(
-                                patterns.unwrap(),
-                                rows.unwrap(),
-                                columns.unwrap(),
-                                &mut rnd,
-                            );
-                    }
-                    "NRooks" => {
-                        let patterns = parse_next_usize(&mut args, "NRooks", "patterns");
-                        if let Err(m) = patterns {
-                            return Err(m);
-                        }
-                        let samples = parse_next_usize(&mut args, "NRooks", "samples");
-                        if let Err(m) = samples {
-                            return Err(m);
-                        }
-
-                        anti_aliasing_patterns =
-                            SamplingPatternSet::<Point2<FloatingPointType>>::n_rooks_patterns(
-                                patterns.unwrap(),
-                                samples.unwrap(),
-                                &mut rnd,
-                            );
-                    }
-                    "MultiJittered" => {
-                        let patterns = parse_next_usize(&mut args, "MultiJittered", "patterns");
-                        if let Err(m) = patterns {
-                            return Err(m);
-                        }
-                        let rows = parse_next_usize(&mut args, "MultiJittered", "rows");
-                        if let Err(m) = rows {
-                            return Err(m);
-                        }
-                        let columns = parse_next_usize(&mut args, "MultiJittered", "columns");
-                        if let Err(m) = columns {
-                            return Err(m);
-                        }
-                        anti_aliasing_patterns =
-                            SamplingPatternSet::<Point2<FloatingPointType>>::multi_jittered_patterns(
-                                patterns.unwrap(),
-                                rows.unwrap(),
-                                columns.unwrap(),
-                                &mut rnd,
-                            );
-                    }
-                    "Hammersley" => {
-                        let samples = parse_next_usize(&mut args, "NRooks", "samples");
-                        if let Err(m) = samples {
-                            return Err(m);
-                        }
-                        anti_aliasing_patterns =
-                            SamplingPatternSet::<Point2<FloatingPointType>>::hammersley_pattern(
-                                samples.unwrap(),
-                            );
-                    }
-                    &_ => {
-                        return Err(String::from("Unknown sampling pattern."));
-                    }
-                },
-                None => {
-                    return Err(String::from("Missing pattern name for anti-aliasing."));
+            "--anti-aliasing" => match parse_sampling_pattern_set(&mut args, &mut rnd) {
+                Ok(patterns) => {
+                    anti_aliasing_patterns = patterns;
+                }
+                Err(m) => {
+                    return Err(m);
+                }
+            },
+            "--camera-sampling" => match parse_sampling_pattern_set(&mut args, &mut rnd) {
+                Ok(patterns) => {
+                    camera_sampling_patterns = patterns;
+                }
+                Err(m) => {
+                    return Err(m);
                 }
             },
             "--size" => {
@@ -232,6 +264,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
         size,
         output,
         anti_aliasing_patterns,
+        camera_sampling_patterns,
     })
 }
 
@@ -246,15 +279,10 @@ fn main() {
                 return;
             }
 
-            let mut rnd = WichmannHillPRNG::new_random();
-
             let raytracer = RayCaster::new(
                 config.size,
                 camera.unwrap(),
-                SamplingPatternSet::<Point2<FloatingPointType>>::multi_jittered_patterns(
-                    10, 5, 5, &mut rnd,
-                )
-                .mapped_to_disc(),
+                config.camera_sampling_patterns.mapped_to_disc(),
                 scene.geometries,
                 scene.lights,
                 scene.ambient_light,
