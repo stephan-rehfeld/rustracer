@@ -56,6 +56,14 @@ perspective_camera {
     focal_length: 8.0
 }
 
+spherical_camera {
+    id: spherical
+    eye_position: 0.0 1.0 8.0
+    gaze_direction: 0.0 0.0 -1.0
+    up_vector: 0.0 1.0 0.0
+    field_of_view: 180
+}
+
 pinhole_camera {
     id: second
     eye_position: 0.0 1.0 3.0

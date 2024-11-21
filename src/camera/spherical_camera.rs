@@ -3,12 +3,12 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 use crate::math::geometry::ParametricLine;
 use crate::math::{NormalizableVector, Point2, Point3, Vector2, Vector3};
 use crate::sampling::SamplingPattern;
-use crate::traits::{Cos, Half, Min, One, Sin, Sqrt, Zero};
-use crate::units::angle::Radians;
+use crate::traits::{Cos, Half, Min, One, Sin, Sqrt, ToDegrees, ToRadians, Zero};
+use crate::units::angle::{Angle, Radians};
 
 use super::RaytracingCamera;
 
-pub struct FisheyeCamera<T>
+pub struct SphericalCamera<T>
 where
     T: Div,
 {
@@ -16,10 +16,10 @@ where
     u: Vector3<<T as Div>::Output>,
     v: Vector3<<T as Div>::Output>,
     w: Vector3<<T as Div>::Output>,
-    psi: Radians<<T as Div>::Output>,
+    vertical_field_of_view: Radians<<T as Div>::Output>,
 }
 
-impl<T> FisheyeCamera<T>
+impl<T> SphericalCamera<T>
 where
     T: Div + Mul + Mul<<T as Div>::Output, Output = T> + Sub<Output = T> + Clone + Copy,
     <T as Div>::Output: Add<Output = <T as Div>::Output>
@@ -40,23 +40,25 @@ where
         e: Point3<T>,
         g: Vector3<T>,
         t: Vector3<T>,
-        psi: Radians<<T as Div>::Output>,
-    ) -> FisheyeCamera<T> {
+        vertical_field_of_view: Radians<<T as Div>::Output>,
+    ) -> SphericalCamera<T> {
         let w = -g.normalized();
         let u = Vector3::cross(t, w).normalized();
         let v = Vector3::cross(w, u).normalized();
 
-        FisheyeCamera {
+        let vertical_field_of_view = vertical_field_of_view.half();
+
+        SphericalCamera {
             e,
             u,
             v,
             w,
-            psi: psi.half(),
+            vertical_field_of_view,
         }
     }
 }
 
-impl<T> RaytracingCamera<T> for FisheyeCamera<T>
+impl<T> RaytracingCamera<T> for SphericalCamera<T>
 where
     T: Copy + Div + One,
     <T as Div>::Output: Add<Output = <T as Div>::Output>
@@ -72,7 +74,11 @@ where
         + Sin<Output = <T as Div>::Output>
         + Sub<Output = <T as Div>::Output>
         + Sqrt<Output = <T as Div>::Output>
+        + ToDegrees
+        + ToRadians
         + Zero,
+    Radians<<T as Div>::Output>:
+        Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
 {
     fn ray_for(
         &self,
@@ -85,19 +91,21 @@ where
 
         let min_dim = half_size.x.min(half_size.y);
         let normalized_p = centerd_p / min_dim;
-        let r = normalized_p.as_vector().magnitude();
 
-        if r <= One::one() {
-            let psi = self.psi * r;
-            let sin_alpha = normalized_p.y / r;
-            let cos_alpha = normalized_p.x / r;
+        let ratio = size.x / size.y;
 
-            let direction = self.u * psi.sin() * cos_alpha + self.v * psi.sin() * sin_alpha
-                - self.w * psi.cos();
+        let horizontal_field_of_view = self.vertical_field_of_view * ratio;
 
-            vec![ParametricLine::new(self.e, direction * T::one())]
-        } else {
-            Vec::new()
-        }
+        let lambda = horizontal_field_of_view * normalized_p.x;
+        let psi = self.vertical_field_of_view * normalized_p.y;
+
+        let phi = Radians::half_turn() - lambda;
+        let theta = Radians::quarter_turn() - psi;
+
+        let direction = self.u * theta.sin() * phi.sin()
+            + self.v * theta.cos()
+            + self.w * theta.sin() * phi.cos();
+
+        vec![ParametricLine::new(self.e, direction * T::one())]
     }
 }

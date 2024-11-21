@@ -20,19 +20,78 @@ impl super::Unit for RadiansUnit {
     const UNIT: &'static str = "rad";
 }
 
-pub trait Angle: Cos + ToDegrees + ToRadians + Sin {}
+pub trait Angle: Cos + ToDegrees + ToRadians + Sin {
+    fn turn() -> Self;
+    fn half_turn() -> Self;
+    fn quarter_turn() -> Self;
+}
 
 pub type Degrees<T> = ValueWithPrefixAndUnit<T, None, DegreesUnit>;
 pub type Radians<T> = ValueWithPrefixAndUnit<T, None, RadiansUnit>;
 
-impl<T> Angle for Degrees<T>
+/*impl<T> Angle for Degrees<T>
 where
     T: ToDegrees + ToRadians,
     <T as ToRadians>::Output: Cos + Sin,
 {
+}*/
+
+impl Angle for Degrees<f32> {
+    fn turn() -> Self {
+        Degrees::new(360.0)
+    }
+
+    fn half_turn() -> Self {
+        Degrees::new(180.0)
+    }
+
+    fn quarter_turn() -> Self {
+        Degrees::new(90.0)
+    }
 }
 
-impl<T> Angle for Radians<T> where T: Cos + ToDegrees + ToRadians + Sin {}
+impl Angle for Degrees<f64> {
+    fn turn() -> Self {
+        Degrees::new(360.0)
+    }
+
+    fn half_turn() -> Self {
+        Degrees::new(180.0)
+    }
+
+    fn quarter_turn() -> Self {
+        Degrees::new(90.0)
+    }
+}
+
+//impl<T> Angle for Radians<T> where T: Cos + ToDegrees + ToRadians + Sin {}
+
+impl Angle for Radians<f32> {
+    fn turn() -> Self {
+        Radians::new(std::f32::consts::PI * 2.0)
+    }
+
+    fn half_turn() -> Self {
+        Radians::new(std::f32::consts::PI)
+    }
+
+    fn quarter_turn() -> Self {
+        Radians::new(std::f32::consts::PI / 2.0)
+    }
+}
+impl Angle for Radians<f64> {
+    fn turn() -> Self {
+        Radians::new(std::f64::consts::PI * 2.0)
+    }
+
+    fn half_turn() -> Self {
+        Radians::new(std::f64::consts::PI)
+    }
+
+    fn quarter_turn() -> Self {
+        Radians::new(std::f64::consts::PI / 2.0)
+    }
+}
 
 impl<T> Radians<T> {
     pub fn acos(v: T) -> Radians<<T as Acos>::Output>

@@ -7,6 +7,7 @@ use std::str::FromStr;
 
 use crate::camera::{
     FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, RaytracingCamera,
+    SphericalCamera,
 };
 use crate::color::RGB;
 use crate::light::{Light, PointLight, SpotLight};
@@ -16,9 +17,9 @@ use crate::math::transform::Transform3;
 use crate::math::{Normal3, Point3, Vector3};
 use crate::ray_casting::Scene;
 use crate::scene_graph::RenderableGeometry;
-use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, Sin, Sqrt, Tan, Zero};
+use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, Sin, Sqrt, Tan, ToRadians, Zero};
+use crate::units::angle::{Angle, Radians};
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
 
@@ -78,6 +79,7 @@ pub enum ParsingError {
     PerspectiveCameraParsingError(Box<ParsingError>),
     FisheyeCameraParsingError(Box<ParsingError>),
     OrthographicCameraParsingError(Box<ParsingError>),
+    SphericalCameraParsingError(Box<ParsingError>),
     PointLightParsingError(Box<ParsingError>),
     SpotLightParsingError(Box<ParsingError>),
     MissingElement(&'static str),
@@ -126,6 +128,8 @@ where
         + Div<Output = <T as Length>::ValueType>
         + Sub<Output = <<T as Length>::AreaType as Mul<T>>::Output>
         + Add<Output = <<T as Length>::AreaType as Mul<T>>::Output>,
+    Radians<<T as Div>::Output>:
+        Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
 {
     let file_content = fs::read_to_string(filename).expect("Unable to read file");
 
@@ -233,6 +237,14 @@ where
                 }
             }
             "fisheye_camera" => match <(String, FisheyeCamera<T>)>::from_tokens(&mut tokens) {
+                Ok((id, camera)) => {
+                    cameras.insert(id, Box::new(camera));
+                }
+                Err(cause) => {
+                    return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                }
+            },
+            "spherical_camera" => match <(String, SphericalCamera<T>)>::from_tokens(&mut tokens) {
                 Ok((id, camera)) => {
                     cameras.insert(id, Box::new(camera));
                 }
