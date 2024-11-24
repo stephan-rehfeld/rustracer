@@ -100,7 +100,7 @@ pub fn parse_scene<
 where
     <T as Length>::ValueType: FloatingPoint + MultiplyStable + Half,
     <<T as Length>::ValueType as FromStr>::Err: Error,
-    <T as Length>::AreaType: Mul<T> + Mul + Sqrt<Output = T> + SignedNumber<T::ValueType>,
+    <T as Length>::AreaType: Mul + Sqrt<Output = T> + SignedNumber<T::ValueType>,
     <<T as Length>::AreaType as Mul>::Output: Add<Output = <<T as Length>::AreaType as Mul>::Output>
         + Sub<Output = <<T as Length>::AreaType as Mul>::Output>
         + Sqrt<Output = <T as Length>::AreaType>
@@ -108,12 +108,7 @@ where
         + PartialOrd,
     <T as FromStr>::Err: Error,
     Normal3<<T as Length>::ValueType>: Orthonormal3,
-    <<T as Length>::AreaType as Mul<T>>::Output: PartialEq
-        + Copy
-        + Zero
-        + Div<Output = <T as Length>::ValueType>
-        + Sub<Output = <<T as Length>::AreaType as Mul<T>>::Output>
-        + Add<Output = <<T as Length>::AreaType as Mul<T>>::Output>,
+    <<T as Length>::AreaType as Mul<T>>::Output: Zero,
     Radians<<T as Div>::Output>:
         Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
 {

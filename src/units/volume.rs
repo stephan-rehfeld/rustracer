@@ -10,12 +10,21 @@ use crate::units::second_moment_of_area::SecondMomentOfArea;
 
 pub trait Volume:
     Number<Self::ValueType>
+    + Div<Output = Self::ValueType>
     + Div<Self::LengthType, Output = Self::AreaType>
     + Div<Self::AreaType, Output = Self::LengthType>
 {
     type ValueType: Number + Mul<Self, Output = Self>;
-    type LengthType: Length<ValueType = Self::ValueType>;
-    type AreaType: Area<ValueType = Self::ValueType>;
+    type LengthType: Length<
+        ValueType = Self::ValueType,
+        AreaType = Self::AreaType,
+        VolumeType = Self,
+    >;
+    type AreaType: Area<
+        ValueType = Self::ValueType,
+        LengthType = Self::LengthType,
+        VolumeType = Self,
+    >;
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]

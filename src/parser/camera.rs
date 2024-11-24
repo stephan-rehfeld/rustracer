@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Debug;
-use std::ops::Mul;
 use std::str::FromStr;
 
 use crate::camera::{
@@ -19,7 +18,7 @@ use crate::parser::{FromTokens, ParsingError};
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, PinholeCamera<T>)
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: Mul<T, Output = T> + FloatingPoint + Half + MultiplyStable,
+    <T as Length>::ValueType: FloatingPoint + Half + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -110,7 +109,7 @@ where
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, PerspectiveCamera<T>)
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: Mul<T, Output = T> + FloatingPoint + Half + MultiplyStable,
+    <T as Length>::ValueType: FloatingPoint + Half + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -324,7 +323,7 @@ where
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, FisheyeCamera<T>)
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: Mul<T, Output = T> + FloatingPoint + Half + MultiplyStable,
+    <T as Length>::ValueType: FloatingPoint + Half + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -409,7 +408,7 @@ where
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, SphericalCamera<T>)
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: Mul<T, Output = T> + FloatingPoint + Half + MultiplyStable,
+    <T as Length>::ValueType: FloatingPoint + Half + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {

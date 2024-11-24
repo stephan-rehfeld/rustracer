@@ -16,8 +16,16 @@ pub trait Area:
     + Div<Output = Self::ValueType>
 {
     type ValueType: Number + Mul<Self, Output = Self>;
-    type LengthType: Length<ValueType = Self::ValueType>;
-    type VolumeType: Volume<ValueType = Self::ValueType>;
+    type LengthType: Length<
+        ValueType = Self::ValueType,
+        AreaType = Self,
+        VolumeType = Self::VolumeType,
+    >;
+    type VolumeType: Volume<
+        ValueType = Self::ValueType,
+        LengthType = Self::LengthType,
+        AreaType = Self,
+    >;
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
