@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Debug;
-use std::ops::Neg;
 use std::str::FromStr;
 
 use crate::color::RGB;
@@ -10,7 +9,7 @@ use crate::math::{Normal3, Point2, Point3, Vector3};
 use crate::scene_graph::RenderableGeometry;
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, One, Sin, Sqrt, Zero};
+use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, One, SignedNumber, Sin, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
@@ -243,7 +242,7 @@ where
     }
 }
 
-impl<T: Length + Neg<Output = T>> FromTokens for RenderableAxisAlignedBox<T>
+impl<T: Length + SignedNumber<T::ValueType>> FromTokens for RenderableAxisAlignedBox<T>
 where
     <T as Length>::ValueType: FloatingPoint
         + Half

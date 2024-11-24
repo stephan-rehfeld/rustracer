@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fmt::Debug;
-use std::ops::{Mul, Neg};
+use std::ops::Mul;
 use std::str::FromStr;
 
 use crate::camera::{
@@ -9,16 +9,15 @@ use crate::camera::{
 use crate::math::{Point3, Vector3};
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{FloatingPoint, Half, One, Sqrt, Tan, Zero};
+use crate::traits::{FloatingPoint, Half, One, SignedNumber, Sqrt, Tan, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 
 use crate::parser::util;
 use crate::parser::{FromTokens, ParsingError};
 
-impl<T: Length> FromTokens for (String, PinholeCamera<T>)
+impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, PinholeCamera<T>)
 where
-    T: Neg<Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: Mul<T, Output = T>
         + Tan<Output = <T as Length>::ValueType>
@@ -114,9 +113,8 @@ where
     }
 }
 
-impl<T: Length> FromTokens for (String, PerspectiveCamera<T>)
+impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, PerspectiveCamera<T>)
 where
-    T: Neg<Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: Mul<T, Output = T>
         + Tan<Output = <T as Length>::ValueType>
@@ -242,9 +240,8 @@ where
     }
 }
 
-impl<T: Length> FromTokens for (String, OrthographicCamera<T>)
+impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, OrthographicCamera<T>)
 where
-    T: Neg<Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: FloatingPoint + Sqrt<Output = <T as Length>::ValueType>,
     <T as FromStr>::Err: Error + Debug,
@@ -336,9 +333,8 @@ where
     }
 }
 
-impl<T: Length> FromTokens for (String, FisheyeCamera<T>)
+impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, FisheyeCamera<T>)
 where
-    T: Neg<Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: Mul<T, Output = T>
         + Tan<Output = <T as Length>::ValueType>
@@ -428,9 +424,8 @@ where
     }
 }
 
-impl<T: Length> FromTokens for (String, SphericalCamera<T>)
+impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, SphericalCamera<T>)
 where
-    T: Neg<Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: Mul<T, Output = T>
         + Tan<Output = <T as Length>::ValueType>

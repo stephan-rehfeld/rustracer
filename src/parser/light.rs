@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fmt::Debug;
-use std::ops::{Mul, Neg};
+use std::ops::Mul;
 use std::str::FromStr;
 
 use crate::color::RGB;
@@ -8,7 +8,7 @@ use crate::light::{PointLight, SpotLight};
 use crate::math::{Point3, Vector3};
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{Sqrt, Zero};
+use crate::traits::{SignedNumber, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 
@@ -19,7 +19,7 @@ impl<T: Length> FromTokens for SpotLight<T, RGB<<T as Length>::ValueType>>
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: ToRadians<Output = <T as Length>::ValueType>
-        + Neg<Output = <T as Length>::ValueType>
+        + SignedNumber
         + MultiplyStable
         + Mul<T, Output = T>,
     <T as FromStr>::Err: Error + Debug,
@@ -102,8 +102,7 @@ where
 impl<T: Length> FromTokens for PointLight<T, RGB<<T as Length>::ValueType>>
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType:
-        Neg<Output = <T as Length>::ValueType> + MultiplyStable + Mul<T, Output = T>,
+    <T as Length>::ValueType: SignedNumber + MultiplyStable + Mul<T, Output = T>,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {

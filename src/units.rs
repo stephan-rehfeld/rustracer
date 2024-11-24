@@ -6,7 +6,9 @@ use std::ops::{
 };
 use std::str::FromStr;
 
-use crate::traits::{DivEuclid, Half, Number, One, RemEuclid, Zero};
+use crate::traits::{
+    ConvenienceNumber, DivEuclid, Half, Number, One, RemEuclid, SignedNumber, Zero,
+};
 
 pub mod angle;
 pub mod area;
@@ -349,3 +351,12 @@ impl<T: Number, P: Prefix, U: Unit> Number<T> for ValueWithPrefixAndUnit<T, P, U
         _unit: PhantomData,
     };
 }
+
+impl<T: SignedNumber, P: Prefix, U: Unit> SignedNumber<T> for ValueWithPrefixAndUnit<T, P, U> {}
+
+impl<T: ConvenienceNumber, P: Prefix, U: Unit> ConvenienceNumber<T>
+    for ValueWithPrefixAndUnit<T, P, U>
+{
+}
+
+//impl<T: FloatingPoint, P: Prefix, U: Unit> FloatingPoint<T> for ValueWithPrefixAndUnit<T, P, U> {}

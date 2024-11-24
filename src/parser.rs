@@ -17,7 +17,10 @@ use crate::math::{Normal3, Orthonormal3, Point3, Vector3};
 use crate::ray_casting::Scene;
 use crate::scene_graph::RenderableGeometry;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, Sin, Sqrt, Tan, ToRadians, Zero};
+use crate::traits::{
+    Acos, Atan2, ConvenienceNumber, Cos, FloatingPoint, Half, SignedNumber, Sin, Sqrt, Tan,
+    ToRadians, Zero,
+};
 use crate::units::angle::{Angle, Radians};
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
@@ -92,7 +95,9 @@ trait FromTokens: Sized {
     fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err>;
 }
 
-pub fn parse_scene<T: Length + Neg<Output = T> + Half + 'static>(
+pub fn parse_scene<
+    T: Length + SignedNumber<T::ValueType> + ConvenienceNumber<T::ValueType> + 'static,
+>(
     filename: &str,
 ) -> Result<Scene<T, RGB<<T as Length>::ValueType>>, ParsingError>
 where
