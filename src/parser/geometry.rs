@@ -7,9 +7,8 @@ use crate::material::Material;
 use crate::math::transform::Transform3;
 use crate::math::{Normal3, Point2, Point3, Vector3};
 use crate::scene_graph::RenderableGeometry;
-use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{Acos, Atan2, Cos, FloatingPoint, Half, One, SignedNumber, Sin, Sqrt, Zero};
+use crate::traits::{FloatingPoint, Half, One, SignedNumber, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
@@ -28,9 +27,6 @@ where
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
-        + Sin<Output = T::ValueType>
-        + Cos<Output = T::ValueType>
-        + ToRadians<Output = T::ValueType>
         + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
@@ -249,9 +245,6 @@ where
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
-        + Sin<Output = T::ValueType>
-        + Cos<Output = T::ValueType>
-        + ToRadians<Output = T::ValueType>
         + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
@@ -350,9 +343,6 @@ where
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
-        + Sin<Output = T::ValueType>
-        + Cos<Output = T::ValueType>
-        + ToRadians<Output = T::ValueType>
         + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
@@ -453,9 +443,6 @@ where
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
-        + Sin<Output = T::ValueType>
-        + Cos<Output = T::ValueType>
-        + ToRadians<Output = T::ValueType>
         + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
@@ -555,11 +542,6 @@ where
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
-        + Acos<Output = T::ValueType>
-        + Atan2<Output = T::ValueType>
-        + Sin<Output = T::ValueType>
-        + Cos<Output = T::ValueType>
-        + ToRadians<Output = T::ValueType>
         + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
@@ -657,11 +639,6 @@ where
         + FromStr
         + MultiplyStable
         + Sqrt<Output = <T as Length>::ValueType>
-        + Acos<Output = T::ValueType>
-        + Atan2<Output = T::ValueType>
-        + Sin<Output = T::ValueType>
-        + Cos<Output = T::ValueType>
-        + ToRadians<Output = T::ValueType>
         + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,

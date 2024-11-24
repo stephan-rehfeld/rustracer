@@ -217,20 +217,21 @@ impl Pi for f64 {
     const PI: f64 = std::f64::consts::PI;
 }
 
-pub trait FloatingPoint<N=Self>: SignedNumber<N>
-        + Acos
-        + Acosh
-        + Asin
-        + Asinh
-        + Atan
-        + Atan2
+// N = Neutral, FA = From Angle, TA = TO Angle
+pub trait FloatingPoint<N=Self, FA=Self, TA=Self>: SignedNumber<N>
+        + Acos<Output=TA>
+        + Acosh<Output=TA>
+        + Asin<Output=TA>
+        + Asinh<Output=TA>
+        + Atan<Output=TA>
+        + Atan2<Output=TA>
         + Cbrt
         + Ceil
         + Clamp
         + Classify
         + Copysign
-        + Cos
-        + Cosh
+        + Cos<Output=FA>
+        + Cosh<Output=FA>
         + Exp
         + Exp2
         + ExpM1
@@ -262,16 +263,16 @@ pub trait FloatingPoint<N=Self>: SignedNumber<N>
         + Recip
         + Round
         //+ RoundTiesEven
-        + Sin
-        + SinCos
-        + Sinh
+        + Sin<Output=FA>
+        + SinCos<Output=(FA,FA)>
+        + Sinh<Output=FA>
         + Sqrt
-        + Tan
-        + Tanh
+        + Tan<Output=FA>
+        + Tanh<Output=FA>
         + ToBits
         + ToDegrees
         //+ ToIntUnchecked
-        + ToRadians
+        + ToRadians<Output=TA>
         + TotalCmp
         + Trunc
 

@@ -9,7 +9,7 @@ use crate::camera::{
 use crate::math::{Point3, Vector3};
 use crate::traits::floating_point::ToRadians;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{FloatingPoint, Half, One, SignedNumber, Sqrt, Tan, Zero};
+use crate::traits::{FloatingPoint, Half, One, SignedNumber, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 
@@ -20,12 +20,10 @@ impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, PinholeCame
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: Mul<T, Output = T>
-        + Tan<Output = <T as Length>::ValueType>
         + FloatingPoint
         + Half
         + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + ToRadians<Output = <T as Length>::ValueType>,
+        + Sqrt<Output = <T as Length>::ValueType>,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -117,12 +115,10 @@ impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, Perspective
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: Mul<T, Output = T>
-        + Tan<Output = <T as Length>::ValueType>
         + FloatingPoint
         + Half
         + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + ToRadians<Output = <T as Length>::ValueType>,
+        + Sqrt<Output = <T as Length>::ValueType>,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -337,12 +333,10 @@ impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, FisheyeCame
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: Mul<T, Output = T>
-        + Tan<Output = <T as Length>::ValueType>
         + FloatingPoint
         + Half
         + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + ToRadians<Output = <T as Length>::ValueType>,
+        + Sqrt<Output = <T as Length>::ValueType>,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -428,12 +422,10 @@ impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, SphericalCa
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as Length>::ValueType: Mul<T, Output = T>
-        + Tan<Output = <T as Length>::ValueType>
         + FloatingPoint
         + Half
         + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + ToRadians<Output = <T as Length>::ValueType>,
+        + Sqrt<Output = <T as Length>::ValueType>,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {

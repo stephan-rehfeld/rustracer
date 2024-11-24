@@ -17,10 +17,7 @@ use crate::math::{Normal3, Orthonormal3, Point3, Vector3};
 use crate::ray_casting::Scene;
 use crate::scene_graph::RenderableGeometry;
 use crate::traits::number::MultiplyStable;
-use crate::traits::{
-    Acos, Atan2, ConvenienceNumber, Cos, FloatingPoint, Half, SignedNumber, Sin, Sqrt, Tan,
-    ToRadians, Zero,
-};
+use crate::traits::{ConvenienceNumber, Cos, FloatingPoint, Half, SignedNumber, Sin, Sqrt, Zero};
 use crate::units::angle::{Angle, Radians};
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
@@ -101,17 +98,11 @@ pub fn parse_scene<
     filename: &str,
 ) -> Result<Scene<T, RGB<<T as Length>::ValueType>>, ParsingError>
 where
-    <T as Length>::ValueType: Sin<Output = T::ValueType>
-        + Cos<Output = T::ValueType>
-        + Acos<Output = T::ValueType>
-        + Atan2<Output = T::ValueType>
-        + FloatingPoint
+    <T as Length>::ValueType: FloatingPoint
         + Mul<T, Output = T>
         + MultiplyStable
-        + Tan<Output = <T as Length>::ValueType>
         + Half
-        + Sqrt<Output = <T as Length>::ValueType>
-        + ToRadians<Output = <T as Length>::ValueType>,
+        + Sqrt<Output = <T as Length>::ValueType>,
     <<T as Length>::ValueType as FromStr>::Err: Error,
     <T as Length>::AreaType: Mul<T>
         + Mul
