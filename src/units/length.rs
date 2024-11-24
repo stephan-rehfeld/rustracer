@@ -3,6 +3,7 @@ use super::ValueWithPrefixAndUnit;
 
 use crate::traits::number::{Number, SelfMultiply};
 use crate::units::area::{Area, SquareMeter};
+use crate::units::second_moment_of_area::{MeterToThePowerOfFour, SecondMomentOfArea};
 use crate::units::volume::{CubicMeter, Volume};
 
 use std::ops::{Div, Mul};
@@ -19,11 +20,19 @@ pub trait Length:
         ValueType = Self::ValueType,
         LengthType = Self,
         VolumeType = Self::VolumeType,
+        SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
     >;
     type VolumeType: Volume<
         ValueType = Self::ValueType,
         LengthType = Self,
         AreaType = Self::AreaType,
+        SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
+    >;
+    type SecondMomentOfAreaType: SecondMomentOfArea<
+        ValueType = Self::ValueType,
+        LengthType = Self,
+        AreaType = Self::AreaType,
+        VolumeType = Self::VolumeType,
     >;
 }
 
@@ -60,9 +69,11 @@ where
         + SelfMultiply
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
-        + Mul<CubicMeter<T>, Output = CubicMeter<T>>,
+        + Mul<CubicMeter<T>, Output = CubicMeter<T>>
+        + Mul<MeterToThePowerOfFour<T>, Output = MeterToThePowerOfFour<T>>,
 {
     type ValueType = T;
     type AreaType = SquareMeter<T>;
     type VolumeType = CubicMeter<T>;
+    type SecondMomentOfAreaType = MeterToThePowerOfFour<T>;
 }

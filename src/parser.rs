@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Debug;
 use std::fs;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Div, Mul};
 use std::str::FromStr;
 
 use crate::camera::{
@@ -100,12 +100,8 @@ pub fn parse_scene<
 where
     <T as Length>::ValueType: FloatingPoint + MultiplyStable + Half,
     <<T as Length>::ValueType as FromStr>::Err: Error,
-    <T as Length>::AreaType: Mul + Sqrt<Output = T> + SignedNumber<T::ValueType>,
-    <<T as Length>::AreaType as Mul>::Output: Add<Output = <<T as Length>::AreaType as Mul>::Output>
-        + Sub<Output = <<T as Length>::AreaType as Mul>::Output>
-        + Sqrt<Output = <T as Length>::AreaType>
-        + Zero
-        + PartialOrd,
+    <T as Length>::AreaType: Sqrt<Output = T> + SignedNumber<T::ValueType>,
+    <T as Length>::SecondMomentOfAreaType: Sqrt<Output = <T as Length>::AreaType> + Zero,
     <T as FromStr>::Err: Error,
     Normal3<<T as Length>::ValueType>: Orthonormal3,
     <<T as Length>::AreaType as Mul<T>>::Output: Zero,

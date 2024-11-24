@@ -6,7 +6,7 @@ use std::ops::{Div, Mul};
 use crate::traits::number::{Number, SelfMultiply};
 use crate::units::area::{Area, SquareMeter};
 use crate::units::length::{Length, Meter};
-use crate::units::second_moment_of_area::SecondMomentOfArea;
+use crate::units::second_moment_of_area::{MeterToThePowerOfFour, SecondMomentOfArea};
 
 pub trait Volume:
     Number<Self::ValueType>
@@ -19,10 +19,18 @@ pub trait Volume:
         ValueType = Self::ValueType,
         AreaType = Self::AreaType,
         VolumeType = Self,
+        SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
     >;
     type AreaType: Area<
         ValueType = Self::ValueType,
         LengthType = Self::LengthType,
+        VolumeType = Self,
+        SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
+    >;
+    type SecondMomentOfAreaType: SecondMomentOfArea<
+        ValueType = Self::ValueType,
+        LengthType = Self::LengthType,
+        AreaType = Self::AreaType,
         VolumeType = Self,
     >;
 }
@@ -37,10 +45,10 @@ impl super::Unit for CubicMeterUnit {
 pub type CubicMeter<T> = ValueWithPrefixAndUnit<T, None, CubicMeterUnit>;
 
 impl<T: Mul> Mul<Meter<T>> for CubicMeter<T> {
-    type Output = SecondMomentOfArea<<T as Mul>::Output>;
+    type Output = MeterToThePowerOfFour<<T as Mul>::Output>;
 
     fn mul(self, rhs: Meter<T>) -> Self::Output {
-        SecondMomentOfArea::new(self.value * rhs.value)
+        MeterToThePowerOfFour::new(self.value * rhs.value)
     }
 }
 
@@ -66,9 +74,11 @@ where
         + SelfMultiply
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
-        + Mul<CubicMeter<T>, Output = CubicMeter<T>>,
+        + Mul<CubicMeter<T>, Output = CubicMeter<T>>
+        + Mul<MeterToThePowerOfFour<T>, Output = MeterToThePowerOfFour<T>>,
 {
     type ValueType = T;
     type LengthType = Meter<T>;
     type AreaType = SquareMeter<T>;
+    type SecondMomentOfAreaType = MeterToThePowerOfFour<T>;
 }

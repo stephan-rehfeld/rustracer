@@ -1,4 +1,5 @@
 use super::prefix::None;
+use super::second_moment_of_area::SecondMomentOfArea;
 use super::ValueWithPrefixAndUnit;
 
 use std::ops::{Div, Mul};
@@ -6,12 +7,13 @@ use std::ops::{Div, Mul};
 use crate::traits::floating_point::Sqrt;
 use crate::traits::number::{Number, SelfMultiply};
 use crate::units::length::{Length, Meter};
-use crate::units::second_moment_of_area::SecondMomentOfArea;
+use crate::units::second_moment_of_area::MeterToThePowerOfFour;
 use crate::units::volume::{CubicMeter, Volume};
 
 pub trait Area:
     Number<Self::ValueType>
     + Mul<Self::LengthType, Output = Self::VolumeType>
+    + Mul<Output = Self::SecondMomentOfAreaType>
     + Div<Self::LengthType, Output = Self::LengthType>
     + Div<Output = Self::ValueType>
 {
@@ -20,11 +22,19 @@ pub trait Area:
         ValueType = Self::ValueType,
         AreaType = Self,
         VolumeType = Self::VolumeType,
+        SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
     >;
     type VolumeType: Volume<
         ValueType = Self::ValueType,
         LengthType = Self::LengthType,
         AreaType = Self,
+        SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
+    >;
+    type SecondMomentOfAreaType: SecondMomentOfArea<
+        ValueType = Self::ValueType,
+        LengthType = Self::LengthType,
+        AreaType = Self,
+        VolumeType = Self::VolumeType,
     >;
 }
 
@@ -46,10 +56,10 @@ impl<T: Mul> Mul<Meter<T>> for SquareMeter<T> {
 }
 
 impl<T: Mul> Mul for SquareMeter<T> {
-    type Output = SecondMomentOfArea<<T as Mul>::Output>;
+    type Output = MeterToThePowerOfFour<<T as Mul>::Output>;
 
     fn mul(self, rhs: SquareMeter<T>) -> Self::Output {
-        SecondMomentOfArea::new(self.value * rhs.value)
+        MeterToThePowerOfFour::new(self.value * rhs.value)
     }
 }
 
@@ -75,9 +85,11 @@ where
         + SelfMultiply
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
-        + Mul<CubicMeter<T>, Output = CubicMeter<T>>,
+        + Mul<CubicMeter<T>, Output = CubicMeter<T>>
+        + Mul<MeterToThePowerOfFour<T>, Output = MeterToThePowerOfFour<T>>,
 {
     type ValueType = T;
     type LengthType = Meter<T>;
     type VolumeType = CubicMeter<T>;
+    type SecondMomentOfAreaType = MeterToThePowerOfFour<T>;
 }
