@@ -1,55 +1,20 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use super::{Normal2, Normal3, Point2, Point3};
+use super::{Normal2, Normal3, Orthonormal2, Orthonormal3, Point2, Point3};
 
 use crate::traits::{Half, Sqrt, Zero};
 
-pub trait Vector {
-    type ValueType;
+pub trait Vector: Copy {
+    const DIMS: u32;
+    type ValueType: Mul;
     type PointType;
     type NormalType;
-}
 
-pub trait NormalizableVector: Vector {
-    type NormalizedVectorType;
-
-    fn magnitude(self) -> Self::ValueType
-    where
-        <Self as Vector>::ValueType: Mul + Copy + Clone,
-        <<Self as Vector>::ValueType as Mul>::Output: Add<Output = <<Self as Vector>::ValueType as Mul>::Output>
-            + Sqrt<Output = <Self as Vector>::ValueType>
-            + Zero;
-
-    fn normalized(self) -> Self::NormalizedVectorType
-    where
-        <Self as Vector>::ValueType: Mul + Copy + Clone,
-        <<Self as Vector>::ValueType as Mul>::Output: Add<Output = <<Self as Vector>::ValueType as Mul>::Output>
-            + Sqrt<Output = <Self as Vector>::ValueType>
-            + Zero;
-}
-
-pub trait DotProduct<T = Self>: Vector
-where
-    T: Vector,
-{
-    type Output;
-
-    fn dot(self, v: T) -> Self::Output;
-}
-
-pub trait Orthonormal2<T> {
-    fn x_axis() -> Vector2<T>;
-    fn y_axis() -> Vector2<T>;
-}
-
-pub trait Orthonormal3<T> {
-    fn x_axis() -> Vector3<T>;
-    fn y_axis() -> Vector3<T>;
-    fn z_axis() -> Vector3<T>;
+    fn dot(self, rhs: Self) -> <Self::ValueType as Mul>::Output;
 }
 
 macro_rules! create_vector_type {
-    ($name: ident, [$($element: ident)+], $pointType: ident, $normalType: ident) => {
+    ($name: ident, [$($element: ident)+], $dims: literal, $pointType: ident, $normalType: ident) => {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
             $(
@@ -71,22 +36,49 @@ macro_rules! create_vector_type {
             }
         }
 
-        impl<T, U> DotProduct<$name<U>> for $name<T> where
-            T: Mul<U>,
-            <T as Mul<U>>::Output: Add<Output=<T as Mul<U>>::Output> + Zero
-        {
-            type Output = <T as Mul<U>>::Output;
-
-            fn dot(self, v: $name<U>) -> Self::Output {
+        impl<T> $name<T> {
+            pub fn dot<U>(self, v: $name<U>) -> <T as Mul<U>>::Output
+                where
+                            T: Mul<U>,
+                            <T as Mul<U>>::Output: Add<Output=<T as Mul<U>>::Output> + Zero {
                 $(self.$element * v.$element + )* Zero::zero()
             }
         }
 
-        impl<T> Vector for $name<T> {
+        impl<T: Div + Mul + Copy> Vector for $name<T> where
+            <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Zero
+        {
+            const DIMS: u32 = $dims;
+
             type ValueType = T;
             type PointType = $pointType<T>;
             type NormalType = $normalType<T>;
+
+            fn dot(self, v: Self) -> <T as Mul>::Output {
+                $(self.$element * v.$element + )* Zero::zero()
+            }
         }
+
+        impl<T> $name<T>
+        where
+            T: Mul + Copy,
+            <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Sqrt<Output=T> + Zero
+        {
+            pub fn magnitude(self) -> T {
+                self.dot(self).sqrt()
+            }
+        }
+
+        impl<T> $name<T>
+        where
+            T: Div + Mul + Copy,
+            <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Sqrt<Output=T> + Zero
+        {
+            pub fn normalized(self) -> $name<<T as Div>::Output> {
+                self / self.magnitude()
+            }
+        }
+
 
         impl<T> $name<T> where
             T: Div + Mul<<T as Div>::Output, Output=T> + Add<Output=T> + Sub<T, Output=T> + Zero + Copy,
@@ -96,27 +88,6 @@ macro_rules! create_vector_type {
                 let dot_product = self.dot(n.as_vector());
                 let dot_product_times_two = dot_product + dot_product;
                 self - n * dot_product_times_two
-            }
-        }
-
-        impl<T> NormalizableVector for $name<T> where
-            T: Div + Mul + Copy + Clone,
-        {
-            type NormalizedVectorType = $name<<T as Div>::Output>;
-
-            fn magnitude(self) -> Self::ValueType where
-                <Self as Vector>::ValueType: Mul + Copy + Clone,
-                <<Self as Vector>::ValueType as Mul>::Output: Add<Output=<<Self as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<Self as Vector>::ValueType> + Zero
-            {
-                self.dot(self).sqrt()
-            }
-
-            fn normalized(self) -> Self::NormalizedVectorType where
-                <Self as Vector>::ValueType: Mul + Copy + Clone,
-                <<Self as Vector>::ValueType as Mul>::Output: Add<Output=<<Self as Vector>::ValueType as Mul>::Output> + Sqrt<Output=<Self as Vector>::ValueType> + Zero
-
-            {
-                self / self.magnitude()
             }
         }
 
@@ -200,8 +171,8 @@ macro_rules! create_vector_type {
     }
 }
 
-create_vector_type! { Vector2, [x y], Point2, Normal2 }
-create_vector_type! { Vector3, [x y z], Point3, Normal3 }
+create_vector_type! { Vector2, [x y], 2, Point2, Normal2 }
+create_vector_type! { Vector3, [x y z], 3, Point3, Normal3 }
 
 impl<T> Vector3<T> {
     pub fn cross<U>(a: Vector3<T>, b: Vector3<U>) -> Vector3<<T as Mul<U>>::Output>
@@ -220,7 +191,7 @@ impl<T> Vector3<T> {
 
 macro_rules! impl_orthonormal2_for {
     ($($type: ty)* ) => ($(
-        impl Orthonormal2<$type> for Vector2<$type> {
+        impl Orthonormal2 for Vector2<$type> {
             fn x_axis() -> Vector2<$type> {
                 Vector2::new( 1 as $type, 0 as $type )
             }
@@ -236,7 +207,7 @@ impl_orthonormal2_for! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
 macro_rules! impl_orthonormal3_for {
     ($($type: ty)* ) => ($(
-        impl Orthonormal3<$type> for Vector3<$type> {
+        impl Orthonormal3 for Vector3<$type> {
             fn x_axis() -> Vector3<$type> {
                 Vector3::new( 1 as $type, 0 as $type, 0 as $type )
             }

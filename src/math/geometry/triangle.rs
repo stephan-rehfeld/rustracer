@@ -3,7 +3,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
-use crate::math::{Mat3x3, Normal3, NormalizableVector, Point2, Point3, Vector3};
+use crate::math::{Mat3x3, Normal3, Point2, Point3, Vector3};
 use crate::traits::{One, Sqrt, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -236,8 +236,7 @@ where
 pub mod tests {
     use super::*;
 
-    use crate::math::normal::Orthonormal3;
-    use crate::math::Normal3;
+    use crate::math::{Normal3, Orthonormal3};
 
     macro_rules! new_triangle {
         ($type: ty, $name: ident) => {
@@ -506,7 +505,7 @@ pub mod tests {
                             5 as $type,
                             SurfacePoint::new(
                                 Point3::new(0 as $type, 0 as $type, 0 as $type),
-                                Normal3::<$type>::z_axis(),
+                                Normal3::z_axis(),
                                 Point2::new(0.75 as $type, 0.5 as $type)
                             )
                         ),
@@ -514,7 +513,7 @@ pub mod tests {
                             6 as $type,
                             SurfacePoint::new(
                                 Point3::new(0 as $type, 0 as $type, -1 as $type),
-                                Normal3::<$type>::z_axis(),
+                                Normal3::z_axis(),
                                 Point2::new(0.75 as $type, 0.5 as $type)
                             )
                         ),
@@ -522,7 +521,7 @@ pub mod tests {
                             7 as $type,
                             SurfacePoint::new(
                                 Point3::new(0 as $type, 0 as $type, -2 as $type),
-                                Normal3::<$type>::z_axis(),
+                                Normal3::z_axis(),
                                 Point2::new(0.75 as $type, 0.5 as $type)
                             )
                         ),
@@ -530,7 +529,7 @@ pub mod tests {
                             8 as $type,
                             SurfacePoint::new(
                                 Point3::new(0 as $type, 0 as $type, -3 as $type),
-                                Normal3::<$type>::z_axis(),
+                                Normal3::z_axis(),
                                 Point2::new(0.75 as $type, 0.5 as $type)
                             )
                         ),

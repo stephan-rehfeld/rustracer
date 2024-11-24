@@ -3,7 +3,6 @@ use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
-use crate::math::vector::NormalizableVector;
 use crate::math::{Point2, Point3, Vector3};
 use crate::traits::{Atan2, Half, One, Pi, Sqrt, Zero};
 

@@ -3,8 +3,7 @@ use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use super::{ImplicitPlane3, Intersect, ParametricLine, SurfacePoint};
 
-use crate::math::normal::Orthonormal3;
-use crate::math::{Normal3, Point3, Vector3};
+use crate::math::{Normal3, Orthonormal3, Point3, Vector3};
 use crate::traits::{One, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -46,7 +45,7 @@ where
     <T as Mul<<T as Div>::Output>>::Output: PartialEq,
     <T as Mul<<T as Div>::Output>>::Output:
         Add<Output = <T as Mul<<T as Div>::Output>>::Output> + Zero,
-    Normal3<<T as Div>::Output>: Orthonormal3<<T as Div>::Output>,
+    Normal3<<T as Div>::Output>: Orthonormal3,
     Point3<T>: Sub<Output = Vector3<T>>,
 {
     type Output = Vec<(

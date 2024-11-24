@@ -2,7 +2,6 @@ use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
-use crate::math::vector::DotProduct;
 use crate::math::{Mat3x3, Normal3, Point2, Point3, Vector3};
 use crate::traits::{One, Zero};
 

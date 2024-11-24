@@ -1,27 +1,17 @@
 use std::ops::{Add, Mul, Neg};
 
-use crate::math::{Vector2, Vector3};
+use crate::math::{Orthonormal2, Orthonormal3, Vector2, Vector3};
 use crate::traits::Zero;
 
 pub trait Normal {
     type ValueType;
 }
 
-pub trait Orthonormal2<T> {
-    fn x_axis() -> Normal2<T>;
-    fn y_axis() -> Normal2<T>;
-}
-
-pub trait Orthonormal3<T> {
-    fn x_axis() -> Normal3<T>;
-    fn y_axis() -> Normal3<T>;
-    fn z_axis() -> Normal3<T>;
-}
-
 macro_rules! create_normal_type {
     ($name: ident, [$($element: ident)+], $vectorType: ident ) => {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
+
             $(
             pub(super) $element: T,
             )*
@@ -106,7 +96,7 @@ impl_mul_scalar_with_normal3! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 
 
 macro_rules! impl_orthonormal2_for {
     ($($type: ty)* ) => ($(
-        impl Orthonormal2<$type> for Normal2<$type> {
+        impl Orthonormal2 for Normal2<$type> {
             fn x_axis() -> Normal2<$type> {
                 Normal2::new( 1 as $type, 0 as $type )
             }
@@ -122,7 +112,7 @@ impl_orthonormal2_for! { u8 u16 u32 u64 u128 i8 i16 i32 i64 i128 f32 f64 }
 
 macro_rules! impl_orthonormal3_for {
     ($($type: ty)* ) => ($(
-        impl Orthonormal3<$type> for Normal3<$type> {
+        impl Orthonormal3 for Normal3<$type> {
             fn x_axis() -> Normal3<$type> {
                 Normal3::new( 1 as $type, 0 as $type, 0 as $type )
             }
@@ -173,8 +163,8 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let x_norm = Normal2::<$type>::x_axis();
-                let y_norm = Normal2::<$type>::y_axis();
+                let x_norm: Normal2<$type> = Normal2::x_axis();
+                let y_norm: Normal2<$type> = Normal2::y_axis();
 
                 assert_eq!(Normal2::dot(x_norm, y_norm), 0 as $type);
                 assert_eq!(Normal2::dot(x_norm, x_norm), 1 as $type);
@@ -287,9 +277,9 @@ mod tests {
         ($type: ty, $name: ident) => {
             #[test]
             fn $name() {
-                let x_norm = Normal3::<$type>::x_axis();
-                let y_norm = Normal3::<$type>::y_axis();
-                let z_norm = Normal3::<$type>::z_axis();
+                let x_norm: Normal3<$type> = Normal3::x_axis();
+                let y_norm: Normal3<$type> = Normal3::y_axis();
+                let z_norm: Normal3<$type> = Normal3::z_axis();
 
                 assert_eq!(Normal3::dot(x_norm, y_norm), 0 as $type);
                 assert_eq!(Normal3::dot(x_norm, z_norm), 0 as $type);

@@ -12,9 +12,8 @@ use crate::camera::{
 use crate::color::RGB;
 use crate::light::{Light, PointLight, SpotLight};
 use crate::material::Material;
-use crate::math::normal::Orthonormal3;
 use crate::math::transform::Transform3;
-use crate::math::{Normal3, Point3, Vector3};
+use crate::math::{Normal3, Orthonormal3, Point3, Vector3};
 use crate::ray_casting::Scene;
 use crate::scene_graph::RenderableGeometry;
 use crate::traits::number::MultiplyStable;
@@ -121,7 +120,7 @@ where
         + PartialOrd
         + Copy,
     <T as FromStr>::Err: Error,
-    Normal3<<T as Length>::ValueType>: Orthonormal3<<T as Length>::ValueType>,
+    Normal3<<T as Length>::ValueType>: Orthonormal3,
     <<T as Length>::AreaType as Mul<T>>::Output: PartialEq
         + Copy
         + Zero

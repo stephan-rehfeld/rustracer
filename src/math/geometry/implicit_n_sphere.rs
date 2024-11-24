@@ -1,8 +1,7 @@
 use std::fmt::Debug;
 use std::ops::{Mul, Sub};
 
-use crate::math::vector::DotProduct;
-use crate::math::Point;
+use crate::math::{Point, Vector};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ImplicitNSphere<P>
@@ -26,11 +25,14 @@ where
     pub fn test(self, point: P) -> <<P as Point>::ValueType as Mul>::Output
     where
         P: Sub,
-        <P as Sub>::Output:
-            DotProduct<Output = <<P as Point>::ValueType as Mul>::Output> + Copy + Clone,
+        <P as Sub>::Output: Vector + Copy + Clone,
         <P as Point>::ValueType: Mul,
         <<P as Point>::ValueType as Mul>::Output:
             Sub<Output = <<P as Point>::ValueType as Mul>::Output>,
+        <<<P as Sub>::Output as Vector>::ValueType as Mul>::Output: Sub<
+            <<P as Point>::ValueType as Mul>::Output,
+            Output = <<P as Point>::ValueType as Mul>::Output,
+        >,
     {
         let d = point - self.center;
         d.dot(d) - self.radius * self.radius

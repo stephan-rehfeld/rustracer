@@ -1,7 +1,7 @@
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::math::geometry::ParametricLine;
-use crate::math::{NormalizableVector, Point2, Point3, Vector2, Vector3};
+use crate::math::{Point2, Point3, Vector2, Vector3};
 use crate::sampling::SamplingPattern;
 use crate::traits::{Half, One, Sqrt, Zero};
 

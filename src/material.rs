@@ -4,7 +4,6 @@ use crate::color::Color;
 use crate::image::Image;
 use crate::light::Light;
 use crate::math::geometry::SurfacePoint;
-use crate::math::vector::{DotProduct, NormalizableVector};
 use crate::math::{Point2, Vector3};
 use crate::traits::floating_point::{Max, Powf, Sqrt};
 use crate::traits::{FloatingPoint, Zero};
