@@ -14,9 +14,9 @@ pub trait Length:
     + Mul<Self::AreaType, Output = Self::VolumeType>
     + Div<Output = Self::ValueType>
 {
-    type ValueType: Number;
-    type AreaType: Area;
-    type VolumeType: Volume;
+    type ValueType: Number + Mul<Self, Output = Self>;
+    type AreaType: Area<ValueType = Self::ValueType>;
+    type VolumeType: Volume<ValueType = Self::ValueType>;
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
@@ -46,7 +46,14 @@ impl<T: Mul> Mul<SquareMeter<T>> for Meter<T> {
 
 impl<T: SelfMultiply> SelfMultiply<T> for Meter<T> {}
 
-impl<T: Number + SelfMultiply> Length for Meter<T> {
+impl<T> Length for Meter<T>
+where
+    T: Number
+        + SelfMultiply
+        + Mul<Meter<T>, Output = Meter<T>>
+        + Mul<SquareMeter<T>, Output = SquareMeter<T>>
+        + Mul<CubicMeter<T>, Output = CubicMeter<T>>,
+{
     type ValueType = T;
     type AreaType = SquareMeter<T>;
     type VolumeType = CubicMeter<T>;

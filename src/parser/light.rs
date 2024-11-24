@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Debug;
-use std::ops::Mul;
 use std::str::FromStr;
 
 use crate::color::RGB;
@@ -18,10 +17,8 @@ use crate::parser::{FromTokens, ParsingError};
 impl<T: Length> FromTokens for SpotLight<T, RGB<<T as Length>::ValueType>>
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: ToRadians<Output = <T as Length>::ValueType>
-        + SignedNumber
-        + MultiplyStable
-        + Mul<T, Output = T>,
+    <T as Length>::ValueType:
+        ToRadians<Output = <T as Length>::ValueType> + SignedNumber + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -102,7 +99,7 @@ where
 impl<T: Length> FromTokens for PointLight<T, RGB<<T as Length>::ValueType>>
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: SignedNumber + MultiplyStable + Mul<T, Output = T>,
+    <T as Length>::ValueType: SignedNumber + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {

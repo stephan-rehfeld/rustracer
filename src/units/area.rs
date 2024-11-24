@@ -13,10 +13,11 @@ pub trait Area:
     Number<Self::ValueType>
     + Mul<Self::LengthType, Output = Self::VolumeType>
     + Div<Self::LengthType, Output = Self::LengthType>
+    + Div<Output = Self::ValueType>
 {
-    type ValueType: Number;
-    type LengthType: Length;
-    type VolumeType: Volume;
+    type ValueType: Number + Mul<Self, Output = Self>;
+    type LengthType: Length<ValueType = Self::ValueType>;
+    type VolumeType: Volume<ValueType = Self::ValueType>;
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
@@ -60,7 +61,14 @@ impl<T: Sqrt> Sqrt for SquareMeter<T> {
     }
 }
 
-impl<T: Number + SelfMultiply> Area for SquareMeter<T> {
+impl<T> Area for SquareMeter<T>
+where
+    T: Number
+        + SelfMultiply
+        + Mul<Meter<T>, Output = Meter<T>>
+        + Mul<SquareMeter<T>, Output = SquareMeter<T>>
+        + Mul<CubicMeter<T>, Output = CubicMeter<T>>,
+{
     type ValueType = T;
     type LengthType = Meter<T>;
     type VolumeType = CubicMeter<T>;

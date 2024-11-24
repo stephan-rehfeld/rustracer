@@ -18,12 +18,7 @@ pub fn parse_material<'a, T: Length>(
     tokens: &mut impl Iterator<Item = &'a str>,
 ) -> Result<Box<dyn Material<T, ColorType = RGB<<T as Length>::ValueType>>>, ParsingError>
 where
-    <T as Length>::ValueType: FloatingPoint
-        + Half
-        + FromStr
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + 'static,
+    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Debug;
 use std::fs;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 use std::str::FromStr;
 
 use crate::camera::{
@@ -98,23 +98,14 @@ pub fn parse_scene<
     filename: &str,
 ) -> Result<Scene<T, RGB<<T as Length>::ValueType>>, ParsingError>
 where
-    <T as Length>::ValueType: FloatingPoint
-        + Mul<T, Output = T>
-        + MultiplyStable
-        + Half
-        + Sqrt<Output = <T as Length>::ValueType>,
+    <T as Length>::ValueType: FloatingPoint + MultiplyStable + Half,
     <<T as Length>::ValueType as FromStr>::Err: Error,
-    <T as Length>::AreaType: Mul<T>
-        + Mul
-        + Div<Output = <T as Length>::ValueType>
-        + Sqrt<Output = T>
-        + Neg<Output = <T as Length>::AreaType>,
+    <T as Length>::AreaType: Mul<T> + Mul + Sqrt<Output = T> + SignedNumber<T::ValueType>,
     <<T as Length>::AreaType as Mul>::Output: Add<Output = <<T as Length>::AreaType as Mul>::Output>
         + Sub<Output = <<T as Length>::AreaType as Mul>::Output>
         + Sqrt<Output = <T as Length>::AreaType>
         + Zero
-        + PartialOrd
-        + Copy,
+        + PartialOrd,
     <T as FromStr>::Err: Error,
     Normal3<<T as Length>::ValueType>: Orthonormal3,
     <<T as Length>::AreaType as Mul<T>>::Output: PartialEq

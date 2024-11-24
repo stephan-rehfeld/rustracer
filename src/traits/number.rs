@@ -3,7 +3,7 @@ use std::iter::{Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
 use std::str::FromStr;
 
-use super::{One, Sqrt, Zero};
+use super::{One, Zero};
 
 macro_rules! implement_one_parameter_proxy_trait_with_output {
     ($traitName: ident, $function: ident, $($type: ty)*  ) => {

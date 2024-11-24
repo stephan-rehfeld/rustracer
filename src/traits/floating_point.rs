@@ -266,7 +266,7 @@ pub trait FloatingPoint<N=Self, FA=Self, TA=Self>: SignedNumber<N>
         + Sin<Output=FA>
         + SinCos<Output=(FA,FA)>
         + Sinh<Output=FA>
-        + Sqrt
+        + Sqrt<Output=Self>
         + Tan<Output=FA>
         + Tanh<Output=FA>
         + ToBits
@@ -275,7 +275,6 @@ pub trait FloatingPoint<N=Self, FA=Self, TA=Self>: SignedNumber<N>
         + ToRadians<Output=TA>
         + TotalCmp
         + Trunc
-
         + Pi
           {
     const DIGITS: u32;

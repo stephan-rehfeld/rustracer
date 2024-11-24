@@ -19,11 +19,7 @@ use crate::parser::{FromTokens, ParsingError};
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, PinholeCamera<T>)
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: Mul<T, Output = T>
-        + FloatingPoint
-        + Half
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>,
+    <T as Length>::ValueType: Mul<T, Output = T> + FloatingPoint + Half + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -114,11 +110,7 @@ where
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, PerspectiveCamera<T>)
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: Mul<T, Output = T>
-        + FloatingPoint
-        + Half
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>,
+    <T as Length>::ValueType: Mul<T, Output = T> + FloatingPoint + Half + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -239,7 +231,7 @@ where
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, OrthographicCamera<T>)
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: FloatingPoint + Sqrt<Output = <T as Length>::ValueType>,
+    <T as Length>::ValueType: FloatingPoint,
     <T as FromStr>::Err: Error + Debug,
 {
     type Err = ParsingError;
@@ -332,11 +324,7 @@ where
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, FisheyeCamera<T>)
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: Mul<T, Output = T>
-        + FloatingPoint
-        + Half
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>,
+    <T as Length>::ValueType: Mul<T, Output = T> + FloatingPoint + Half + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -421,11 +409,7 @@ where
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for (String, SphericalCamera<T>)
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: Mul<T, Output = T>
-        + FloatingPoint
-        + Half
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>,
+    <T as Length>::ValueType: Mul<T, Output = T> + FloatingPoint + Half + MultiplyStable,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {

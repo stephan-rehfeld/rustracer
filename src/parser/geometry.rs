@@ -22,12 +22,7 @@ use crate::parser::{material, util};
 
 impl<T: Length> FromTokens for RenderableTriangle<T>
 where
-    <T as Length>::ValueType: FloatingPoint
-        + Half
-        + FromStr
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + 'static,
+    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as FromStr>::Err: Error,
@@ -240,12 +235,7 @@ where
 
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for RenderableAxisAlignedBox<T>
 where
-    <T as Length>::ValueType: FloatingPoint
-        + Half
-        + FromStr
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + 'static,
+    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
@@ -338,12 +328,7 @@ where
 
 impl<T: Length> FromTokens for RenderableDisc<T>
 where
-    <T as Length>::ValueType: FloatingPoint
-        + Half
-        + FromStr
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + 'static,
+    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
@@ -438,12 +423,7 @@ where
 
 impl<T: Length> FromTokens for RenderablePlane<T>
 where
-    <T as Length>::ValueType: FloatingPoint
-        + Half
-        + FromStr
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + 'static,
+    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
@@ -537,12 +517,7 @@ where
 
 impl<T: Length> FromTokens for RenderableSphere<T>
 where
-    <T as Length>::ValueType: FloatingPoint
-        + Half
-        + FromStr
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + 'static,
+    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
@@ -634,12 +609,7 @@ where
 
 impl<T: Length> FromTokens for RenderableCylinder<T>
 where
-    <T as Length>::ValueType: FloatingPoint
-        + Half
-        + FromStr
-        + MultiplyStable
-        + Sqrt<Output = <T as Length>::ValueType>
-        + 'static,
+    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
