@@ -1,9 +1,11 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Div, Mul};
 
 use crate::math::geometry::ParametricLine;
 use crate::math::{Point2, Point3, Vector2, Vector3};
 use crate::sampling::SamplingPattern;
-use crate::traits::{Cos, Half, Min, One, Sin, Sqrt, Zero};
+use crate::traits::{
+    ConvenientNumber, Cos, FloatingPoint, Half, Min, Number, One, SelfMulNumber, Sin, Sqrt,
+};
 use crate::units::angle::Radians;
 
 use super::RaytracingCamera;
@@ -21,20 +23,9 @@ where
 
 impl<T> FisheyeCamera<T>
 where
-    T: Div + Mul + Mul<<T as Div>::Output, Output = T> + Sub<Output = T> + Clone + Copy,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Div<Output = <T as Div>::Output>
-        + Half
-        + Neg<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Sub<Output = <T as Div>::Output>
-        + Sqrt<Output = <T as Div>::Output>
-        + Zero
-        + Copy,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output>
-        + Sub<Output = <T as Mul>::Output>
-        + Sqrt<Output = T>
-        + Zero,
+    T: Number<<T as Div>::Output> + SelfMulNumber<<T as Div>::Output>,
+    <T as Div>::Output: FloatingPoint + ConvenientNumber,
+    <T as Mul>::Output: Number<<T as Div>::Output> + ConvenientNumber + Sqrt<Output = T>,
 {
     pub fn new(
         e: Point3<T>,
@@ -58,21 +49,8 @@ where
 
 impl<T> RaytracingCamera<T> for FisheyeCamera<T>
 where
-    T: Copy + Div + One,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Copy
-        + Cos<Output = <T as Div>::Output>
-        + Div<Output = <T as Div>::Output>
-        + Half
-        + Min
-        + Mul<Output = <T as Div>::Output>
-        + Mul<T, Output = T>
-        + One
-        + PartialOrd
-        + Sin<Output = <T as Div>::Output>
-        + Sub<Output = <T as Div>::Output>
-        + Sqrt<Output = <T as Div>::Output>
-        + Zero,
+    T: Number<<T as Div>::Output>,
+    <T as Div>::Output: FloatingPoint + ConvenientNumber + Mul<T, Output = T>,
 {
     fn ray_for(
         &self,

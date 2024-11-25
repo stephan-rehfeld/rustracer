@@ -5,7 +5,7 @@ use std::ops::{Add, Index, Mul};
 use super::Color;
 use super::RGB;
 
-use crate::traits::{MultiplyStable, Number, SelfMultiply};
+use crate::traits::Number;
 
 create_color_type! { YCbCr, [y cb cr] }
 

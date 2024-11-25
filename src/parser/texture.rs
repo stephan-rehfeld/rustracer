@@ -6,13 +6,12 @@ use crate::color::RGB;
 use crate::image::generator::{Checkerboard, Grid};
 use crate::image::{Image, SingleColorImage};
 use crate::math::{Point2, Vector2};
-use crate::traits::number::MultiplyStable;
-use crate::traits::{Half, One};
+use crate::traits::{ConvenientNumber, Number, One};
 
 use crate::parser::util;
 use crate::parser::{FromTokens, ParsingError};
 
-pub fn parse_texture<'a, T: FromStr + MultiplyStable + Half + 'static>(
+pub fn parse_texture<'a, T: FromStr + Number + ConvenientNumber + 'static>(
     tokens: &mut impl Iterator<Item = &'a str>,
 ) -> Result<Box<dyn Image<ColorType = RGB<T>, PointType = Point2<T>>>, ParsingError>
 where
@@ -37,7 +36,7 @@ where
     }
 }
 
-impl<T: FromStr + MultiplyStable> FromTokens for SingleColorImage<RGB<T>, Vector2<T>>
+impl<T: FromStr + Number> FromTokens for SingleColorImage<RGB<T>, Vector2<T>>
 where
     <T as FromStr>::Err: Error + Debug,
 {
@@ -75,7 +74,7 @@ where
     }
 }
 
-impl<T: FromStr + MultiplyStable + Half> FromTokens for Checkerboard<RGB<T>>
+impl<T: FromStr + Number + ConvenientNumber> FromTokens for Checkerboard<RGB<T>>
 where
     <T as FromStr>::Err: Error + Debug,
 {
@@ -136,7 +135,7 @@ where
     }
 }
 
-impl<T: FromStr + MultiplyStable + Half> FromTokens for Grid<RGB<T>>
+impl<T: FromStr + Number + ConvenientNumber> FromTokens for Grid<RGB<T>>
 where
     <T as FromStr>::Err: Error + Debug,
 {

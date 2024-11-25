@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Debug;
 use std::fs;
-use std::ops::{Div, Mul};
+use std::ops::Div;
 use std::str::FromStr;
 
 use crate::camera::{
@@ -16,8 +16,7 @@ use crate::math::transform::Transform3;
 use crate::math::{Normal3, Orthonormal3, Point3, Vector3};
 use crate::ray_casting::Scene;
 use crate::scene_graph::RenderableGeometry;
-use crate::traits::number::MultiplyStable;
-use crate::traits::{ConvenienceNumber, Cos, FloatingPoint, Half, SignedNumber, Sin, Sqrt, Zero};
+use crate::traits::{ConvenientNumber, Cos, FloatingPoint, SignedNumber, Sin, Sqrt, Zero};
 use crate::units::angle::{Angle, Radians};
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
@@ -92,19 +91,17 @@ trait FromTokens: Sized {
     fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err>;
 }
 
-pub fn parse_scene<
-    T: Length + SignedNumber<T::ValueType> + ConvenienceNumber<T::ValueType> + 'static,
->(
+pub fn parse_scene<T: Length + SignedNumber<T::ValueType> + ConvenientNumber + 'static>(
     filename: &str,
 ) -> Result<Scene<T, RGB<<T as Length>::ValueType>>, ParsingError>
 where
-    <T as Length>::ValueType: FloatingPoint + MultiplyStable + Half,
+    <T as Length>::ValueType: FloatingPoint + ConvenientNumber,
     <<T as Length>::ValueType as FromStr>::Err: Error,
-    <T as Length>::AreaType: Sqrt<Output = T> + SignedNumber<T::ValueType>,
-    <T as Length>::SecondMomentOfAreaType: Sqrt<Output = <T as Length>::AreaType> + Zero,
+    <T as Length>::AreaType: Sqrt<Output = T> + SignedNumber<T::ValueType> + ConvenientNumber,
+    <T as Length>::SecondMomentOfAreaType:
+        Sqrt<Output = <T as Length>::AreaType> + ConvenientNumber,
     <T as FromStr>::Err: Error,
     Normal3<<T as Length>::ValueType>: Orthonormal3,
-    <<T as Length>::AreaType as Mul<T>>::Output: Zero,
     Radians<<T as Div>::Output>:
         Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
 {

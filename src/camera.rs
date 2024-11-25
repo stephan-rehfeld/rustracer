@@ -3,6 +3,7 @@ use std::ops::Div;
 use crate::math::geometry::ParametricLine;
 use crate::math::{Point2, Point3, Vector2, Vector3};
 use crate::sampling::SamplingPattern;
+
 pub trait RaytracingCamera<T>
 where
     T: Div,

@@ -3,7 +3,7 @@ use super::ValueWithPrefixAndUnit;
 
 use std::ops::{Div, Mul};
 
-use crate::traits::{Number, SelfMultiply, Sqrt};
+use crate::traits::{Number, Sqrt};
 use crate::units::area::{Area, SquareMeter};
 use crate::units::length::{Length, Meter};
 use crate::units::volume::{CubicMeter, Volume};
@@ -69,7 +69,6 @@ impl<T: Sqrt> Sqrt for MeterToThePowerOfFour<T> {
 impl<T> SecondMomentOfArea for MeterToThePowerOfFour<T>
 where
     T: Number
-        + SelfMultiply
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
         + Mul<CubicMeter<T>, Output = CubicMeter<T>>

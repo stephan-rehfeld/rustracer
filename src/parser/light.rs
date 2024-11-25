@@ -6,7 +6,6 @@ use crate::color::RGB;
 use crate::light::{PointLight, SpotLight};
 use crate::math::{Point3, Vector3};
 use crate::traits::floating_point::ToRadians;
-use crate::traits::number::MultiplyStable;
 use crate::traits::{FloatingPoint, SignedNumber, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
@@ -17,7 +16,7 @@ use crate::parser::{FromTokens, ParsingError};
 impl<T: Length> FromTokens for SpotLight<T, RGB<<T as Length>::ValueType>>
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: FloatingPoint + SignedNumber + MultiplyStable,
+    <T as Length>::ValueType: FloatingPoint,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {
@@ -98,7 +97,7 @@ where
 impl<T: Length> FromTokens for PointLight<T, RGB<<T as Length>::ValueType>>
 where
     <T as Length>::AreaType: Sqrt<Output = T>,
-    <T as Length>::ValueType: SignedNumber + MultiplyStable,
+    <T as Length>::ValueType: SignedNumber,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
 {

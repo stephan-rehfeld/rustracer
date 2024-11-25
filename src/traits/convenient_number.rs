@@ -1,5 +1,3 @@
-use crate::traits::Number;
-
 pub trait Half {
     fn half(&self) -> Self;
 }
@@ -48,9 +46,15 @@ macro_rules! implement_one_for {
 
 implement_one_for! { u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize f32 f64 }
 
-pub trait ConvenienceNumber<T = Self>: Number<T> + Half + One + Zero {}
+pub trait ConvenientNumber: Half + One + Zero {}
 
-impl<T: Number + Half + One + Zero> ConvenienceNumber<T> for T {}
+macro_rules! implement_convenient_number_for {
+    ($($type: ty)*) => {$(
+        impl ConvenientNumber for $type {}
+    )*}
+}
+
+implement_convenient_number_for! { u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize f32 f64 }
 
 #[cfg(test)]
 mod tests {

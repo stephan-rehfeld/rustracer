@@ -89,7 +89,7 @@ macro_rules! create_and_implement_proxy_trait {
 
 }
 
-pub mod convenience_number;
+pub mod convenient_number;
 pub mod floating_point;
 pub mod number;
 pub mod number_with_size;
@@ -97,7 +97,7 @@ pub mod signed_number;
 
 use std::num::NonZeroI32;
 
-pub use convenience_number::*;
+pub use convenient_number::*;
 pub use floating_point::*;
 pub use number::*;
 pub use number_with_size::*;

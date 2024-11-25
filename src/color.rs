@@ -1,7 +1,7 @@
 use std::iter::Sum;
 use std::ops::{Add, Index, Mul};
 
-use crate::traits::{MultiplyStable, Number, SelfMultiply};
+use crate::traits::Number;
 
 pub trait Color:
     Add<Output = Self>
@@ -14,7 +14,7 @@ pub trait Color:
     + PartialEq
     + Index<usize, Output = Self::ChannelType>
 {
-    type ChannelType: Number + SelfMultiply + MultiplyStable;
+    type ChannelType: Number;
 
     fn clamped(self, min: Self, max: Self) -> Self
     where
@@ -43,7 +43,7 @@ macro_rules! create_color_type {
             }
         }
 
-        impl<T: Number + SelfMultiply + MultiplyStable> Color for $name<T> {
+        impl<T: Number> Color for $name<T> {
             type ChannelType = T;
 
             fn clamped(self, min: $name<T>, max: $name<T>) -> $name<T> where T: PartialOrd {

@@ -7,8 +7,7 @@ use crate::material::Material;
 use crate::math::transform::Transform3;
 use crate::math::{Normal3, Point2, Point3, Vector3};
 use crate::scene_graph::RenderableGeometry;
-use crate::traits::number::MultiplyStable;
-use crate::traits::{FloatingPoint, Half, One, SignedNumber, Sqrt, Zero};
+use crate::traits::{ConvenientNumber, FloatingPoint, One, SignedNumber, Sqrt, Zero};
 use crate::units::angle::Degrees;
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
@@ -22,7 +21,7 @@ use crate::parser::{material, util};
 
 impl<T: Length> FromTokens for RenderableTriangle<T>
 where
-    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
+    <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as FromStr>::Err: Error,
@@ -235,7 +234,7 @@ where
 
 impl<T: Length + SignedNumber<T::ValueType>> FromTokens for RenderableAxisAlignedBox<T>
 where
-    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
+    <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
@@ -328,7 +327,7 @@ where
 
 impl<T: Length> FromTokens for RenderableDisc<T>
 where
-    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
+    <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
@@ -423,7 +422,7 @@ where
 
 impl<T: Length> FromTokens for RenderablePlane<T>
 where
-    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
+    <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
@@ -517,7 +516,7 @@ where
 
 impl<T: Length> FromTokens for RenderableSphere<T>
 where
-    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
+    <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
@@ -609,7 +608,7 @@ where
 
 impl<T: Length> FromTokens for RenderableCylinder<T>
 where
-    <T as Length>::ValueType: FloatingPoint + Half + FromStr + MultiplyStable + 'static,
+    <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {

@@ -4,8 +4,7 @@ use super::ValueWithPrefixAndUnit;
 
 use std::ops::{Div, Mul};
 
-use crate::traits::floating_point::Sqrt;
-use crate::traits::number::{Number, SelfMultiply};
+use crate::traits::{Number, SelfMulNumber, Sqrt};
 use crate::units::length::{Length, Meter};
 use crate::units::second_moment_of_area::MeterToThePowerOfFour;
 use crate::units::volume::{CubicMeter, Volume};
@@ -63,6 +62,8 @@ impl<T: Mul> Mul for SquareMeter<T> {
     }
 }
 
+impl<T: SelfMulNumber<T>> SelfMulNumber<T> for SquareMeter<T> {}
+
 impl<T: Div> Div<Meter<T>> for SquareMeter<T> {
     type Output = Meter<<T as Div>::Output>;
 
@@ -82,7 +83,6 @@ impl<T: Sqrt> Sqrt for SquareMeter<T> {
 impl<T> Area for SquareMeter<T>
 where
     T: Number
-        + SelfMultiply
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
         + Mul<CubicMeter<T>, Output = CubicMeter<T>>

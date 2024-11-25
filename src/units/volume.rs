@@ -3,7 +3,7 @@ use super::ValueWithPrefixAndUnit;
 
 use std::ops::{Div, Mul};
 
-use crate::traits::number::{Number, SelfMultiply};
+use crate::traits::number::Number;
 use crate::units::area::{Area, SquareMeter};
 use crate::units::length::{Length, Meter};
 use crate::units::second_moment_of_area::{MeterToThePowerOfFour, SecondMomentOfArea};
@@ -71,7 +71,6 @@ impl<T: Div> Div<SquareMeter<T>> for CubicMeter<T> {
 impl<T> Volume for CubicMeter<T>
 where
     T: Number
-        + SelfMultiply
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
         + Mul<CubicMeter<T>, Output = CubicMeter<T>>

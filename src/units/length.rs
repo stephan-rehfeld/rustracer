@@ -1,7 +1,7 @@
 use super::prefix::None;
 use super::ValueWithPrefixAndUnit;
 
-use crate::traits::number::{Number, SelfMultiply};
+use crate::traits::number::{Number, SelfMulNumber};
 use crate::units::area::{Area, SquareMeter};
 use crate::units::second_moment_of_area::{MeterToThePowerOfFour, SecondMomentOfArea};
 use crate::units::volume::{CubicMeter, Volume};
@@ -10,7 +10,7 @@ use std::ops::{Div, Mul};
 
 pub trait Length:
     Number<Self::ValueType>
-    + SelfMultiply<Self::ValueType>
+    + SelfMulNumber<Self::ValueType>
     + Mul<Output = Self::AreaType>
     + Mul<Self::AreaType, Output = Self::VolumeType>
     + Div<Output = Self::ValueType>
@@ -61,12 +61,11 @@ impl<T: Mul> Mul<SquareMeter<T>> for Meter<T> {
     }
 }
 
-impl<T: SelfMultiply> SelfMultiply<T> for Meter<T> {}
+impl<T: SelfMulNumber<T>> SelfMulNumber<T> for Meter<T> {}
 
 impl<T> Length for Meter<T>
 where
     T: Number
-        + SelfMultiply
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
         + Mul<CubicMeter<T>, Output = CubicMeter<T>>

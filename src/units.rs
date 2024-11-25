@@ -7,7 +7,7 @@ use std::ops::{
 use std::str::FromStr;
 
 use crate::traits::{
-    ConvenienceNumber, DivEuclid, Half, Number, One, RemEuclid, SignedNumber, Zero,
+    Abs, ConvenientNumber, DivEuclid, Half, Number, One, RemEuclid, SignedNumber, Signum, Zero,
 };
 
 pub mod angle;
@@ -197,14 +197,6 @@ impl<T: for<'a> MulAssign<&'a T>, P, U> MulAssign<&T> for ValueWithPrefixAndUnit
     }
 }
 
-impl<T: Neg, P, U> Neg for ValueWithPrefixAndUnit<T, P, U> {
-    type Output = ValueWithPrefixAndUnit<<T as Neg>::Output, P, U>;
-
-    fn neg(self) -> Self::Output {
-        ValueWithPrefixAndUnit::new(-self.value)
-    }
-}
-
 impl<T: Default, P, U> Default for ValueWithPrefixAndUnit<T, P, U> {
     fn default() -> Self {
         ValueWithPrefixAndUnit::new(T::default())
@@ -321,6 +313,41 @@ impl<T: UpperExp, P: Prefix, U: Unit> UpperExp for ValueWithPrefixAndUnit<T, P, 
     }
 }
 
+impl<T: Number, P: Prefix, U: Unit> Number<T> for ValueWithPrefixAndUnit<T, P, U> {
+    const MAX: Self = ValueWithPrefixAndUnit {
+        value: T::MAX,
+        _prefix: PhantomData,
+        _unit: PhantomData,
+    };
+    const MIN: Self = ValueWithPrefixAndUnit {
+        value: T::MIN,
+        _prefix: PhantomData,
+        _unit: PhantomData,
+    };
+}
+
+impl<T: Neg, P, U> Neg for ValueWithPrefixAndUnit<T, P, U> {
+    type Output = ValueWithPrefixAndUnit<<T as Neg>::Output, P, U>;
+
+    fn neg(self) -> Self::Output {
+        ValueWithPrefixAndUnit::new(-self.value)
+    }
+}
+
+impl<T: Abs, P, U> Abs for ValueWithPrefixAndUnit<T, P, U> {
+    fn abs(self) -> Self {
+        ValueWithPrefixAndUnit::new(self.value.abs())
+    }
+}
+
+impl<T: Signum, P, U> Signum for ValueWithPrefixAndUnit<T, P, U> {
+    fn signum(self) -> Self {
+        ValueWithPrefixAndUnit::new(self.value.signum())
+    }
+}
+
+impl<T: SignedNumber, P: Prefix, U: Unit> SignedNumber<T> for ValueWithPrefixAndUnit<T, P, U> {}
+
 impl<T: Half, P, U> Half for ValueWithPrefixAndUnit<T, P, U> {
     fn half(&self) -> ValueWithPrefixAndUnit<T, P, U> {
         Self::new(self.value.half())
@@ -339,24 +366,6 @@ impl<T: Zero, P, U> Zero for ValueWithPrefixAndUnit<T, P, U> {
     }
 }
 
-impl<T: Number, P: Prefix, U: Unit> Number<T> for ValueWithPrefixAndUnit<T, P, U> {
-    const MAX: Self = ValueWithPrefixAndUnit {
-        value: T::MAX,
-        _prefix: PhantomData,
-        _unit: PhantomData,
-    };
-    const MIN: Self = ValueWithPrefixAndUnit {
-        value: T::MIN,
-        _prefix: PhantomData,
-        _unit: PhantomData,
-    };
-}
-
-impl<T: SignedNumber, P: Prefix, U: Unit> SignedNumber<T> for ValueWithPrefixAndUnit<T, P, U> {}
-
-impl<T: ConvenienceNumber, P: Prefix, U: Unit> ConvenienceNumber<T>
-    for ValueWithPrefixAndUnit<T, P, U>
-{
-}
+impl<T: ConvenientNumber, P: Prefix, U: Unit> ConvenientNumber for ValueWithPrefixAndUnit<T, P, U> {}
 
 //impl<T: FloatingPoint, P: Prefix, U: Unit> FloatingPoint<T> for ValueWithPrefixAndUnit<T, P, U> {}

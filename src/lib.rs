@@ -6,7 +6,7 @@ use material::Material;
 use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::transform::Transform3;
 use math::{Normal, Normal3, Point, Point3, Vector, Vector3};
-use traits::{MultiplyStable, Sqrt};
+use traits::{Number, Sqrt};
 use units::length::Length;
 
 use crate::scene_graph::RenderableGeometry;
@@ -56,7 +56,7 @@ where
         Intersect<G, Output = Vec<(<T as Div>::Output, SurfacePoint<T>)>>,
     G: Copy + Clone,
     T: Copy + Clone,
-    T::ValueType: MultiplyStable + Mul<T, Output = T> + Sqrt<Output = T::ValueType>,
+    T::ValueType: Number + Mul<T, Output = T> + Sqrt<Output = T::ValueType>,
     M: Material<T>,
     <M as Material<T>>::ColorType: Color<ChannelType = <T as Div>::Output>,
 {
@@ -137,7 +137,6 @@ mod tests {
 
     use color::RGB;
     use math::{Normal3, Point2};
-    use traits::number::MultiplyStable;
     use traits::Zero;
 
     use crate::light::Light;
@@ -177,7 +176,7 @@ mod tests {
 
     impl<T: Length> Material<T> for MockMaterial<T>
     where
-        <T as Length>::ValueType: MultiplyStable,
+        <T as Length>::ValueType: Number,
     {
         type ColorType = RGB<<T as Length>::ValueType>;
 

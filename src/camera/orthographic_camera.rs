@@ -3,7 +3,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 use crate::math::geometry::ParametricLine;
 use crate::math::{Point2, Point3, Vector2, Vector3};
 use crate::sampling::SamplingPattern;
-use crate::traits::{Half, One, Sqrt, Zero};
+use crate::traits::{ConvenientNumber, FloatingPoint, Half, Number, One, SelfMulNumber, Sqrt};
 
 use super::RaytracingCamera;
 
@@ -20,19 +20,9 @@ where
 
 impl<T> OrthographicCamera<T>
 where
-    T: Div + Mul + Mul<<T as Div>::Output, Output = T> + Sub<Output = T> + Clone + Copy,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Div<Output = <T as Div>::Output>
-        + Neg<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Sub<Output = <T as Div>::Output>
-        + Sqrt<Output = <T as Div>::Output>
-        + Zero
-        + Copy,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output>
-        + Sub<Output = <T as Mul>::Output>
-        + Sqrt<Output = T>
-        + Zero,
+    T: Number<<T as Div>::Output> + SelfMulNumber<<T as Div>::Output>,
+    <T as Div>::Output: FloatingPoint + ConvenientNumber,
+    <T as Mul>::Output: Number<<T as Div>::Output> + ConvenientNumber + Sqrt<Output = T>,
 {
     pub fn new(
         e: Point3<T>,

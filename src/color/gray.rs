@@ -4,7 +4,7 @@ use std::ops::{Add, Index, Mul};
 
 use super::Color;
 
-use crate::traits::{MultiplyStable, Number, SelfMultiply};
+use crate::traits::Number;
 
 create_color_type! { Gray, [value] }
 

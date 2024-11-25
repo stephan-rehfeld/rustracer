@@ -103,10 +103,10 @@ pub trait Number<N=Self>: DivEuclid
     const MIN: Self;
 }
 
-pub trait SelfMultiply<N = Self>: Number<N> + Mul {}
+pub trait SelfMulNumber<N>: Number<N> + Mul {}
 
-pub trait MultiplyStable:
-    SelfMultiply + Div<Output = Self> + Mul<Output = Self> + Product + for<'a> Product<&'a Self>
+pub trait InvariantMulNumber:
+    Number + Div<Output = Self> + Mul<Output = Self> + Product + for<'a> Product<&'a Self>
 {
 }
 
@@ -123,8 +123,9 @@ macro_rules! implement_number_trait {
 
 implement_number_trait! { f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
 
-implement_marker_trait! { SelfMultiply, f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
-implement_marker_trait! { MultiplyStable, f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
+impl<T: Number<T>> SelfMulNumber<T> for T {}
+
+implement_marker_trait! { InvariantMulNumber, f32 f64 i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
 
 #[cfg(test)]
 mod tests {

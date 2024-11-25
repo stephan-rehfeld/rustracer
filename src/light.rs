@@ -1,9 +1,9 @@
 use std::fmt::Debug;
-use std::ops::{Div, Mul, Neg};
+use std::ops::{Div, Mul};
 
 use crate::math::geometry::{ParametricLine, SurfacePoint};
 use crate::math::{Point3, Vector3};
-use crate::traits::{Cos, MultiplyStable, Sqrt, Zero};
+use crate::traits::{Cos, FloatingPoint, SignedNumber, Sqrt, Zero};
 use crate::units::angle::Radians;
 use crate::units::length::Length;
 
@@ -43,8 +43,7 @@ impl<T, C> Light<T, C> for DirectionalLight<T, C>
 where
     C: Copy,
     T: Length,
-    <T as Length>::ValueType:
-        MultiplyStable + Mul<T, Output = T> + Neg<Output = <T as Length>::ValueType>,
+    <T as Length>::ValueType: SignedNumber + Mul<T, Output = T>,
 {
     fn direction_from(&self, _p: Point3<T>) -> Vector3<<T as Div>::Output> {
         -self.direction
@@ -83,8 +82,7 @@ impl<T, C> Light<T, C> for PointLight<T, C>
 where
     C: Copy,
     T: Length,
-    <T as Length>::ValueType:
-        MultiplyStable + Mul<T, Output = T> + Neg<Output = <T as Length>::ValueType>,
+    <T as Length>::ValueType: SignedNumber + Mul<T, Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
     fn direction_from(&self, p: Point3<T>) -> Vector3<<T as Div>::Output> {
@@ -148,10 +146,7 @@ impl<T, C> Light<T, C> for SpotLight<T, C>
 where
     C: Copy,
     T: Length,
-    <T as Length>::ValueType: Cos<Output = <T as Length>::ValueType>
-        + MultiplyStable
-        + Mul<T, Output = T>
-        + Neg<Output = <T as Length>::ValueType>,
+    <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
     fn direction_from(&self, p: Point3<T>) -> Vector3<<T as Div>::Output> {
