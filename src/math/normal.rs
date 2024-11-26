@@ -1,14 +1,19 @@
-use std::ops::{Add, Mul, Neg};
+use std::fmt::Debug;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
-use crate::math::{Orthonormal2, Orthonormal3, Vector2, Vector3};
+use crate::math::{Orthonormal2, Orthonormal3, Point, Point2, Point3, Vector2, Vector3};
 use crate::traits::Zero;
 
-pub trait Normal {
+use super::Vector;
+
+pub trait Normal: Copy + Clone {
     type ValueType;
+    type VectorType: Vector<ValueType = Self::ValueType>;
+    type PointType: Point<ValueType = Self::ValueType>;
 }
 
 macro_rules! create_normal_type {
-    ($name: ident, [$($element: ident)+], $vectorType: ident ) => {
+    ($name: ident, [$($element: ident)+], $vectorType: ident, $pointType: ident ) => {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
 
@@ -34,8 +39,12 @@ macro_rules! create_normal_type {
             }
         }
 
-        impl<T> Normal for $name<T> {
+        impl<T: Add<Output=T> + Div + Mul + Sub<Output=T> + Copy + PartialEq + Debug> Normal for $name<T> where
+            <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Zero
+        {
             type ValueType = T;
+            type VectorType = $vectorType<T>;
+            type PointType = $pointType<T>;
         }
 
         impl<T: Neg> Neg for $name<T> {
@@ -59,8 +68,8 @@ macro_rules! create_normal_type {
     }
 }
 
-create_normal_type! { Normal2, [x y], Vector2 }
-create_normal_type! { Normal3, [x y z], Vector3 }
+create_normal_type! { Normal2, [x y], Vector2, Point2 }
+create_normal_type! { Normal3, [x y z], Vector3, Point3 }
 
 macro_rules! impl_mul_scalar_with_normal2 {
     ($($type: ty)+ ) => ($(

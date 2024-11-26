@@ -1,16 +1,14 @@
 use super::ImplicitNSphere;
 
-use std::fmt::Debug;
-use std::ops::{Add, Sub};
-
 use crate::math::geometry::Rectangle2;
 use crate::math::{Point2, Vector2};
+use crate::traits::Number;
 
 pub type Circle<T> = ImplicitNSphere<Point2<T>>;
 
 impl<T> Circle<T>
 where
-    T: Add<Output = T> + Sub<Output = T> + PartialEq + Copy + Debug,
+    T: Number,
 {
     pub fn bound(self) -> Rectangle2<T> {
         let point = Point2::new(self.center.x - self.radius, self.center.y - self.radius);

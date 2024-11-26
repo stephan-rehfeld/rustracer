@@ -1,15 +1,16 @@
-use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use std::fmt::Debug;
+use std::ops::{Add, Div, Mul, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::{Mat3x3, Normal3, Point2, Point3, Vector3};
-use crate::traits::{One, Zero};
+use crate::traits::{FloatingPoint, Number, One, SelfMulNumber, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ImplicitPlane3<T>
 where
-    T: Mul + Div + Copy + Clone,
-    <T as Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
+    T: Div,
+    <T as Div>::Output: Debug + PartialEq + Copy,
 {
     anchor: Point3<T>,
     normal: Normal3<<T as Div>::Output>,
@@ -18,8 +19,8 @@ where
 
 impl<T> ImplicitPlane3<T>
 where
-    T: Mul + Div + Copy + Clone,
-    <T as Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
+    T: Div + Copy,
+    <T as Div>::Output: Debug + PartialEq + Copy,
 {
     pub fn new(
         anchor: Point3<T>,
@@ -33,12 +34,9 @@ where
         }
     }
 
-    pub fn test(self, p: Point3<T>) -> <T as Mul<<T as Div>::Output>>::Output
+    pub fn test(self, p: Point3<T>) -> T
     where
-        T: Mul<<T as Div>::Output>,
-        T: Sub<Output = T>,
-        <T as Mul<<T as Div>::Output>>::Output:
-            Add<Output = <T as Mul<<T as Div>::Output>>::Output> + Zero,
+        T: Add<Output = T> + Sub<Output = T> + Mul<<T as Div>::Output, Output = T> + Zero,
     {
         (p - self.anchor).dot(self.normal.as_vector())
     }
@@ -46,23 +44,10 @@ where
 
 impl<T> Intersect<ImplicitPlane3<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
-    T: One + Mul + Div + Add<Output = T> + Zero + Copy + Clone,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Div + PartialEq + Zero,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Div<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Neg<Output = <T as Div>::Output>
-        + One
-        + Rem<Output = <T as Div>::Output>
-        + Sub<Output = <T as Div>::Output>
-        + std::fmt::Debug
-        + Zero
-        + PartialEq
-        + Clone
-        + Copy,
+    T: SelfMulNumber<<T as Div>::Output>,
+    <T as Mul>::Output: Number<<T as Div>::Output>,
+    <T as Div>::Output: FloatingPoint,
     Point3<T>: Sub<Output = Vector3<T>>,
-    <T as Mul<<T as Div>::Output>>::Output: PartialEq,
-    T: Mul<<T as Div>::Output, Output = T>,
 {
     type Output = Vec<(
         <<T as Mul<<T as Div>::Output>>::Output as Div>::Output,
@@ -96,8 +81,10 @@ where
             let v = -m3.determinant() / m_determinante;
 
             let uv: Point2<<T as Div>::Output> = Point2::new(
-                (u % One::one() + One::one()) % One::one(),
-                (v % One::one() + One::one()) % One::one(),
+                (u % <T as Div>::Output::one() + <T as Div>::Output::one())
+                    % <T as Div>::Output::one(),
+                (v % <T as Div>::Output::one() + <T as Div>::Output::one())
+                    % <T as Div>::Output::one(),
             );
 
             vec![(t, SurfacePoint::new(p, n, uv))]
@@ -213,11 +200,6 @@ mod tests {
         };
     }
 
-    parametric_line_intersect_implicit_plane3! { i8, parametric_line_intersect_implicit_plane3_i8 }
-    parametric_line_intersect_implicit_plane3! { i16, parametric_line_intersect_implicit_plane3_i16 }
-    parametric_line_intersect_implicit_plane3! { i32, parametric_line_intersect_implicit_plane3_i32 }
-    parametric_line_intersect_implicit_plane3! { i64, parametric_line_intersect_implicit_plane3_i64 }
-    parametric_line_intersect_implicit_plane3! { i128, parametric_line_intersect_implicit_plane3_i128 }
     parametric_line_intersect_implicit_plane3! { f32, parametric_line_intersect_implicit_plane3_f32 }
     parametric_line_intersect_implicit_plane3! { f64, parametric_line_intersect_implicit_plane3_f64 }
 }

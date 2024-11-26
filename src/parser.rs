@@ -16,7 +16,9 @@ use crate::math::transform::Transform3;
 use crate::math::{Normal3, Orthonormal3, Point3, Vector3};
 use crate::ray_casting::Scene;
 use crate::scene_graph::RenderableGeometry;
-use crate::traits::{ConvenientNumber, Cos, FloatingPoint, SignedNumber, Sin, Sqrt, Zero};
+use crate::traits::{
+    ConvenientNumber, Cos, FloatingPoint, Number, SelfMulNumber, SignedNumber, Sin, Sqrt, Zero,
+};
 use crate::units::angle::{Angle, Radians};
 use crate::units::length::Length;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
@@ -97,9 +99,12 @@ pub fn parse_scene<T: Length + SignedNumber<T::ValueType> + ConvenientNumber + '
 where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber,
     <<T as Length>::ValueType as FromStr>::Err: Error,
-    <T as Length>::AreaType: Sqrt<Output = T> + SignedNumber<T::ValueType> + ConvenientNumber,
+    <T as Length>::AreaType: Sqrt<Output = T>
+        + SelfMulNumber<T::ValueType>
+        + SignedNumber<T::ValueType>
+        + ConvenientNumber,
     <T as Length>::SecondMomentOfAreaType:
-        Sqrt<Output = <T as Length>::AreaType> + ConvenientNumber,
+        Number<T::ValueType> + Sqrt<Output = <T as Length>::AreaType> + ConvenientNumber,
     <T as FromStr>::Err: Error,
     Normal3<<T as Length>::ValueType>: Orthonormal3,
     Radians<<T as Div>::Output>:

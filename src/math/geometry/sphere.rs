@@ -1,50 +1,26 @@
-use std::fmt::Debug;
-use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use std::ops::{Div, Mul};
 
 use super::{ImplicitNSphere, Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::{Point2, Point3, Vector3};
 use crate::traits::floating_point::Pi;
-use crate::traits::{Acos, Atan2, Half, One, Sqrt, Zero};
+use crate::traits::{
+    Acos, Atan2, ConvenientNumber, FloatingPoint, Half, Number, One, SelfMulNumber, SignedNumber,
+    Sqrt, Zero,
+};
 
 pub type Sphere<T> = ImplicitNSphere<Point3<T>>;
 
 impl<T> Intersect<Sphere<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
-    T: Add<Output = T>
-        + Sub<Output = T>
-        + Mul
-        + Mul<<T as Div>::Output, Output = T>
-        + Div
-        + Copy
-        + Debug
-        + PartialEq,
-    <T as Div>::Output: Acos<Output = <T as Div>::Output>
-        + Add<Output = <T as Div>::Output>
-        + Atan2<Output = <T as Div>::Output>
-        + Debug
+    T: SelfMulNumber<<T as Div>::Output>,
+    <T as Div>::Output: FloatingPoint + ConvenientNumber + Pi,
+    <T as Mul>::Output: SelfMulNumber<<T as Div>::Output>
+        + SignedNumber<<T as Div>::Output>
         + Div<Output = <T as Div>::Output>
-        + Half
-        + Neg<Output = <T as Div>::Output>
-        + Rem<Output = <T as Div>::Output>
-        + Pi
-        + One
-        + PartialEq
-        + Copy,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output>
-        + Sub<Output = <T as Mul>::Output>
-        + Mul
-        + Div<Output = <T as Div>::Output>
-        + Sqrt<Output = T>
-        + Neg<Output = <T as Mul>::Output>
-        + Zero
-        + Copy,
-    <<T as Mul>::Output as Mul>::Output: Add<Output = <<T as Mul>::Output as Mul>::Output>
-        + Sub<Output = <<T as Mul>::Output as Mul>::Output>
-        + Sqrt<Output = <T as Mul>::Output>
-        + Zero
-        + PartialEq
-        + PartialOrd,
+        + Sqrt<Output = T>,
+    <<T as Mul>::Output as Mul>::Output:
+        Number<<T as Div>::Output> + Sqrt<Output = <T as Mul>::Output>,
 {
     type Output = Vec<(<T as Div>::Output, SurfacePoint<T>)>;
 
@@ -70,8 +46,8 @@ where
             let theta = v.y.acos();
             let phi = v.x.atan2(v.z);
 
-            let u = (phi / Pi::PI).half();
-            let v = -(theta / Pi::PI);
+            let u = (phi / <T as Div>::Output::PI).half();
+            let v = -(theta / <T as Div>::Output::PI);
 
             let uv: Point2<<T as Div>::Output> = Point2::new(u, v);
             vec![(t, SurfacePoint::new(p, n, uv))]
@@ -96,18 +72,18 @@ where
             let phi1 = v1.x.atan2(v1.z);
             let phi2 = v2.x.atan2(v2.z);
 
-            let u1 = (phi1 / Pi::PI).half();
-            let u2 = (phi2 / Pi::PI).half();
-            let v1 = -(theta1 / Pi::PI);
-            let v2 = -(theta2 / Pi::PI);
+            let u1 = (phi1 / <T as Div>::Output::PI).half();
+            let u2 = (phi2 / <T as Div>::Output::PI).half();
+            let v1 = -(theta1 / <T as Div>::Output::PI);
+            let v2 = -(theta2 / <T as Div>::Output::PI);
 
             let uv1: Point2<<T as Div>::Output> = Point2::new(
-                (u1 + One::one()) % One::one(),
-                (v1 + One::one()) % One::one(),
+                (u1 + <T as Div>::Output::one()) % <T as Div>::Output::one(),
+                (v1 + <T as Div>::Output::one()) % <T as Div>::Output::one(),
             );
             let uv2: Point2<<T as Div>::Output> = Point2::new(
-                (u2 + One::one()) % One::one(),
-                (v2 + One::one()) % One::one(),
+                (u2 + <T as Div>::Output::one()) % <T as Div>::Output::one(),
+                (v2 + <T as Div>::Output::one()) % <T as Div>::Output::one(),
             );
 
             vec![

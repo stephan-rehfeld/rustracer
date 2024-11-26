@@ -1,10 +1,13 @@
 use std::fmt::Debug;
-use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::{Point2, Point3, Vector3};
-use crate::traits::{Atan2, Half, One, Pi, Sqrt, Zero};
+use crate::traits::{
+    Atan2, ConvenientNumber, FloatingPoint, Half, Number, One, Pi, SelfMulNumber, SignedNumber,
+    Sqrt, Zero,
+};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ImplicitCylinder<T> {
@@ -35,40 +38,14 @@ impl<T> ImplicitCylinder<T> {
 
 impl<T> Intersect<ImplicitCylinder<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
-    T: Add<Output = T>
-        + Div
-        + Half
-        + Mul
-        + Mul<<T as Div>::Output, Output = T>
-        + Neg<Output = T>
-        + Sub<Output = T>
-        + Zero
-        + Copy
-        + PartialOrd,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Atan2<Output = <T as Div>::Output>
-        + Copy
-        + Div<Output = <T as Div>::Output>
-        + Debug
-        + Half
-        + One
-        + PartialEq
-        + Pi
-        + Rem<Output = <T as Div>::Output>,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output>
+    T: SignedNumber<<T as Div>::Output> + SelfMulNumber<<T as Div>::Output> + ConvenientNumber,
+    <T as Div>::Output: FloatingPoint + ConvenientNumber + Pi,
+    <T as Mul>::Output: SignedNumber<<T as Div>::Output>
         + Div<Output = <T as Div>::Output>
         + Mul
-        + Neg<Output = <T as Mul>::Output>
-        + Sub<Output = <T as Mul>::Output>
-        + Sqrt<Output = T>
-        + Zero
-        + Copy,
-    <<T as Mul>::Output as Mul>::Output: Add<Output = <<T as Mul>::Output as Mul>::Output>
-        + Sub<Output = <<T as Mul>::Output as Mul>::Output>
-        + Sqrt<Output = <T as Mul>::Output>
-        + Zero
-        + PartialEq
-        + PartialOrd,
+        + Sqrt<Output = T>,
+    <<T as Mul>::Output as Mul>::Output:
+        Number<<T as Div>::Output> + ConvenientNumber + Sqrt<Output = <T as Mul>::Output>,
 {
     type Output = Vec<(<T as Div>::Output, SurfacePoint<T>)>;
 
@@ -101,7 +78,7 @@ where
 
             let phi = n.x.atan2(n.z);
 
-            let u = (phi / Pi::PI).half();
+            let u = (phi / <T as Div>::Output::PI).half();
             let v = (vec.y + cylinder.height.half()) / cylinder.height;
 
             let uv: Point2<<T as Div>::Output> = Point2::new(u, v);
@@ -126,12 +103,12 @@ where
                     .as_normal();
                 let phi1 = n1.x.atan2(n1.z);
 
-                let u1 = (phi1 / Pi::PI).half();
+                let u1 = (phi1 / <T as Div>::Output::PI).half();
                 let v1 = (vec1.y + cylinder.height.half()) / cylinder.height;
 
                 let uv1: Point2<<T as Div>::Output> = Point2::new(
-                    (u1 + One::one()) % One::one(),
-                    (v1 + One::one()) % One::one(),
+                    (u1 + <T as Div>::Output::one()) % <T as Div>::Output::one(),
+                    (v1 + <T as Div>::Output::one()) % <T as Div>::Output::one(),
                 );
 
                 hits.push((t1, SurfacePoint::new(p1, n1, uv1)));
@@ -143,12 +120,12 @@ where
                     .as_normal();
                 let phi2 = n2.x.atan2(n2.z);
 
-                let u2 = (phi2 / Pi::PI).half();
+                let u2 = (phi2 / <T as Div>::Output::PI).half();
                 let v2 = (vec2.y + cylinder.height.half()) / cylinder.height;
 
                 let uv2: Point2<<T as Div>::Output> = Point2::new(
-                    (u2 + One::one()) % One::one(),
-                    (v2 + One::one()) % One::one(),
+                    (u2 + <T as Div>::Output::one()) % <T as Div>::Output::one(),
+                    (v2 + <T as Div>::Output::one()) % <T as Div>::Output::one(),
                 );
 
                 hits.push((t2, SurfacePoint::new(p2, n2, uv2)));

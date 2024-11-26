@@ -1,14 +1,25 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Sub, SubAssign};
+use std::fmt::Debug;
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Sub, SubAssign};
 
-use super::{Vector2, Vector3};
+use super::{Normal, Normal2, Normal3, Vector, Vector2, Vector3};
 
-pub trait Point {
-    type ValueType;
-    type VectorType;
+use crate::traits::Zero;
+
+pub trait Point:
+    Add<Self::VectorType, Output = Self>
+    + Sub<Output = Self::VectorType>
+    + Sub<Self::VectorType, Output = Self>
+    + Sized
+    + Copy
+    + Clone
+{
+    type ValueType: Mul + Copy + Clone + PartialEq + Debug;
+    type VectorType: Vector<ValueType = Self::ValueType>;
+    type NormalType: Normal<ValueType = Self::ValueType>;
 }
 
 macro_rules! create_point_type {
-    ($name: ident, [$($element: ident)+], $vectorType: ident ) => {
+    ($name: ident, [$($element: ident)+], $vectorType: ident, $normalType: ident ) => {
         #[derive(Debug,PartialEq,Clone,Copy)]
         pub struct $name<T> {
             $(
@@ -27,9 +38,13 @@ macro_rules! create_point_type {
 
         }
 
-        impl<T> Point for $name<T> {
+        impl<T: Add<Output=T> + Div + Mul + Sub<Output=T> + Copy + Debug + PartialEq> Point for $name<T>
+        where
+            <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Zero
+        {
             type ValueType = T;
             type VectorType = $vectorType<T>;
+            type NormalType = $normalType<T>;
         }
 
         impl<T: Add<U>, U> Add<$vectorType<U>> for $name<T> {
@@ -90,8 +105,8 @@ macro_rules! create_point_type {
     }
 }
 
-create_point_type! { Point2, [ x y ], Vector2 }
-create_point_type! { Point3, [ x y z ], Vector3 }
+create_point_type! { Point2, [ x y ], Vector2, Normal2 }
+create_point_type! { Point3, [ x y z ], Vector3, Normal3 }
 
 #[cfg(test)]
 mod tests {

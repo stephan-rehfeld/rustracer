@@ -1,10 +1,10 @@
 use std::fmt::Debug;
-use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use std::ops::{Div, Mul, Sub};
 
 use super::{ImplicitPlane3, Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::{Normal3, Orthonormal3, Point3, Vector3};
-use crate::traits::{One, Zero};
+use crate::traits::{FloatingPoint, Number, SelfMulNumber};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct AxisAlignedBox<P> {
@@ -20,31 +20,9 @@ impl<P> AxisAlignedBox<P> {
 
 impl<T> Intersect<AxisAlignedBox<Point3<T>>> for ParametricLine<Point3<T>, Vector3<T>>
 where
-    T: Mul
-        + Mul<<T as Div>::Output, Output = T>
-        + One
-        + Div
-        + Add<Output = T>
-        + Copy
-        + Clone
-        + PartialOrd,
-    T: Mul<<T as Div>::Output, Output = T>,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Div<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Neg<Output = <T as Div>::Output>
-        + One
-        + Rem<Output = <T as Div>::Output>
-        + Sub<Output = <T as Div>::Output>
-        + Debug
-        + Zero
-        + PartialEq
-        + Clone
-        + Copy,
-    <T as Mul>::Output: Add<Output = <T as Mul>::Output> + Div + PartialEq + Zero,
-    <T as Mul<<T as Div>::Output>>::Output: PartialEq,
-    <T as Mul<<T as Div>::Output>>::Output:
-        Add<Output = <T as Mul<<T as Div>::Output>>::Output> + Zero,
+    T: SelfMulNumber<<T as Div>::Output>,
+    <T as Div>::Output: FloatingPoint,
+    <T as Mul>::Output: Number<<T as Div>::Output>,
     Normal3<<T as Div>::Output>: Orthonormal3,
     Point3<T>: Sub<Output = Vector3<T>>,
 {

@@ -5,7 +5,7 @@ use crate::image::Image;
 use crate::math::{Point, Point2};
 use crate::random::WichmannHillPRNG;
 use crate::sampling::SamplingPatternSet;
-use crate::traits::One;
+use crate::traits::{Number, One};
 
 pub trait Sampler: Image {
     fn sample<T>(self, patterns: SamplingPatternSet<Point2<T>>) -> SamplerStruct<T, Self>
@@ -36,7 +36,7 @@ impl<T, I: Image<PointType = Point2<T>>> SamplerStruct<T, I> {
     }
 }
 
-impl<T, I: Image<PointType = Point2<T>>> Image for SamplerStruct<T, I>
+impl<T: Number, I: Image<PointType = Point2<T>>> Image for SamplerStruct<T, I>
 where
     T: AddAssign + Add<Output = T>,
     Point2<T>: Copy,

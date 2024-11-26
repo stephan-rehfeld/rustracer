@@ -1,10 +1,10 @@
 use std::fmt::Debug;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Div, Mul};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::{Mat3x3, Normal3, Point2, Point3, Vector3};
-use crate::traits::{One, Sqrt, Zero};
+use crate::traits::{ConvenientNumber, FloatingPoint, Number, One, SelfMulNumber, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Triangle3<T: Div>
@@ -53,24 +53,11 @@ where
 
 impl<T: Div> Intersect<Triangle3<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Sub<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Div<Output = <T as Div>::Output>
-        + Neg<Output = <T as Div>::Output>
-        + Sqrt<Output = <T as Div>::Output>
-        + One
-        + Zero
-        + Debug
-        + PartialOrd
-        + Copy
-        + PartialEq,
-    T: Add<Output = T> + Mul<<T as Div>::Output, Output = T> + Sub<Output = T> + Mul + Div + Copy,
+    T: SelfMulNumber<<T as Div>::Output>,
+    <T as Div>::Output: FloatingPoint + ConvenientNumber,
     <T as Mul>::Output: Mul<T>,
-    <<T as Mul>::Output as Mul<T>>::Output: Add<Output = <<T as Mul>::Output as Mul<T>>::Output>
-        + Sub<Output = <<T as Mul>::Output as Mul<T>>::Output>
-        + Div<Output = <T as Div>::Output>,
-    <<T as Mul>::Output as Mul<T>>::Output: Zero + PartialEq + Copy,
+    <<T as Mul>::Output as Mul<T>>::Output:
+        Number<<T as Div>::Output> + Div<Output = <T as Div>::Output>,
 {
     type Output = Vec<(<T as Div>::Output, SurfacePoint<T>)>;
 
@@ -111,7 +98,7 @@ where
         let m3 = m.change_column_3(v);
 
         let t = m3.determinant() / m_determinante;
-        let alpha = -beta - gamma + One::one();
+        let alpha = -beta - gamma + <T as Div>::Output::one();
 
         let p = self.at(t);
         let n = (triangle.na * alpha + triangle.nb * beta + triangle.nc * gamma)
@@ -189,24 +176,11 @@ impl<T: Div> Triangle3Mesh<T> {
 
 impl<T: Div> Intersect<&Triangle3Mesh<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Sub<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Div<Output = <T as Div>::Output>
-        + Neg<Output = <T as Div>::Output>
-        + Sqrt<Output = <T as Div>::Output>
-        + One
-        + Zero
-        + Debug
-        + PartialOrd
-        + Copy
-        + PartialEq,
-    T: Add<Output = T> + Mul<<T as Div>::Output, Output = T> + Sub<Output = T> + Mul + Div + Copy,
+    T: SelfMulNumber<<T as Div>::Output>,
+    <T as Div>::Output: FloatingPoint + ConvenientNumber,
     <T as Mul>::Output: Mul<T>,
-    <<T as Mul>::Output as Mul<T>>::Output: Add<Output = <<T as Mul>::Output as Mul<T>>::Output>
-        + Sub<Output = <<T as Mul>::Output as Mul<T>>::Output>
-        + Div<Output = <T as Div>::Output>,
-    <<T as Mul>::Output as Mul<T>>::Output: Zero + PartialEq + Copy,
+    <<T as Mul>::Output as Mul<T>>::Output:
+        Number<<T as Div>::Output> + Div<Output = <T as Div>::Output>,
 {
     type Output = Vec<(<T as Div>::Output, SurfacePoint<T>)>;
 

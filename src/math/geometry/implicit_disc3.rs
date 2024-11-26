@@ -1,15 +1,18 @@
-use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use std::fmt::Debug;
+use std::ops::{Add, Div, Mul, Sub};
 
 use super::{Intersect, ParametricLine, SurfacePoint};
 
 use crate::math::{Mat3x3, Normal3, Point2, Point3, Vector3};
-use crate::traits::{Atan2, One, Sqrt, Zero};
+use crate::traits::{
+    Atan2, ConvenientNumber, FloatingPoint, Number, One, SelfMulNumber, Sqrt, Zero,
+};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ImplicitDisc3<T>
 where
-    T: Mul + Div + Copy + Clone,
-    <T as Div>::Output: std::fmt::Debug + PartialEq + Clone + Copy,
+    T: Div + Copy + Clone,
+    <T as Div>::Output: Debug + PartialEq + Clone + Copy,
 {
     anchor: Point3<T>,
     normal: Normal3<<T as Div>::Output>,
@@ -49,25 +52,10 @@ where
 
 impl<T> Intersect<ImplicitDisc3<T>> for ParametricLine<Point3<T>, Vector3<T>>
 where
-    T: One + Mul + Div + Add<Output = T> + Zero + Copy + Clone + PartialOrd,
-    <T as Mul>::Output:
-        Add<Output = <T as Mul>::Output> + Div + PartialEq + Sqrt<Output = T> + Zero,
-    <T as Div>::Output: Add<Output = <T as Div>::Output>
-        + Atan2<Output = <T as Div>::Output>
-        + Div<Output = <T as Div>::Output>
-        + Mul<Output = <T as Div>::Output>
-        + Neg<Output = <T as Div>::Output>
-        + One
-        + Rem<Output = <T as Div>::Output>
-        + Sub<Output = <T as Div>::Output>
-        + std::fmt::Debug
-        + Zero
-        + PartialEq
-        + Clone
-        + Copy,
+    T: SelfMulNumber<<T as Div>::Output> + ConvenientNumber,
+    <T as Mul>::Output: Number<<T as Div>::Output> + ConvenientNumber + Sqrt<Output = T>,
+    <T as Div>::Output: FloatingPoint<<T as Div>::Output>,
     Point3<T>: Sub<Output = Vector3<T>>,
-    <T as Mul<<T as Div>::Output>>::Output: PartialEq,
-    T: Mul<<T as Div>::Output, Output = T>,
 {
     type Output = Vec<(
         <<T as Mul<<T as Div>::Output>>::Output as Div>::Output,
@@ -105,11 +93,14 @@ where
 
             let z = -m3.determinant() / m_determinante;
 
-            let u = (x * x + z * z) / (disc.radius / One::one());
+            let u = (x * x + z * z) / (disc.radius / T::one());
             let v = x.atan2(z);
 
-            let uv: Point2<<T as Div>::Output> =
-                Point2::new(u, (v % One::one() + One::one()) % One::one());
+            let uv: Point2<<T as Div>::Output> = Point2::new(
+                u,
+                (v % <T as Div>::Output::one() + <T as Div>::Output::one())
+                    % <T as Div>::Output::one(),
+            );
 
             vec![(t, SurfacePoint::new(p, n, uv))]
         }

@@ -1,14 +1,21 @@
+use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use super::{Normal2, Normal3, Orthonormal2, Orthonormal3, Point2, Point3};
+use super::{Normal, Normal2, Normal3, Orthonormal2, Orthonormal3, Point, Point2, Point3};
 
 use crate::traits::{Half, Sqrt, Zero};
 
-pub trait Vector: Copy {
+pub trait Vector:
+    Add<Output = Self>
+    + Add<Self::PointType, Output = Self::PointType>
+    + Sub<Output = Self>
+    + Copy
+    + Clone
+{
     const DIMS: u32;
     type ValueType: Mul;
-    type PointType;
-    type NormalType;
+    type PointType: Point<ValueType = Self::ValueType>;
+    type NormalType: Normal<ValueType = Self::ValueType>;
 
     fn dot(self, rhs: Self) -> <Self::ValueType as Mul>::Output;
 }
@@ -45,7 +52,7 @@ macro_rules! create_vector_type {
             }
         }
 
-        impl<T: Div + Mul + Copy> Vector for $name<T> where
+        impl<T: Add<Output=T> + Div + Mul + Sub<Output=T> + Copy + PartialEq + Debug> Vector for $name<T> where
             <T as Mul>::Output: Add<Output=<T as Mul>::Output> + Zero
         {
             const DIMS: u32 = $dims;
