@@ -13,6 +13,7 @@ use crate::scene_graph::RenderableGeometry;
 
 pub mod camera;
 pub mod color;
+pub mod diffuse_ray_tracer;
 pub mod image;
 pub mod light;
 pub mod material;

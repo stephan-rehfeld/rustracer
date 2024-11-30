@@ -1,14 +1,13 @@
 use rustracer::color::{RGB, RGBA};
+use rustracer::diffuse_ray_tracer::DiffuseRayTracer;
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
-use rustracer::image::sampler::Sampler;
 use rustracer::math::{Point2, Vector2};
 use rustracer::random::{RandomNumberGenerator, WichmannHillPRNG};
-use rustracer::ray_casting::{RayCaster, Scene};
+use rustracer::ray_casting::Scene;
 use rustracer::sampling::{
     HammersleyPatternGenerator, JitteredPatternGenerator, MultiJitteredPatterGenerator,
-    NRooksPatternGenerator, PatternMapping, RandomPatternGenerator, RegularPatternGenerator,
-    SamplingPatternSet,
+    NRooksPatternGenerator, RandomPatternGenerator, RegularPatternGenerator, SamplingPatternSet,
 };
 use rustracer::units::length::Meter;
 
@@ -23,10 +22,9 @@ type ColorType = RGB<FloatingPointType>;
 struct Configuration {
     scene: Scene<LengthType, ColorType>,
     camera_name: String,
-    size: Vector2<FloatingPointType>,
+    size: Vector2<usize>,
     output: String,
-    anti_aliasing_patterns: SamplingPatternSet<Point2<FloatingPointType>>,
-    camera_sampling_patterns: SamplingPatternSet<Point2<FloatingPointType>>,
+    sampling_patterns: SamplingPatternSet<Point2<FloatingPointType>>,
 }
 
 fn parse_next_usize(
@@ -177,30 +175,19 @@ fn parse_sampling_pattern_set(
 
 fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configuration, String> {
     _ = args.next();
-    let mut size = Vector2::new(640.0, 480.0);
+    let mut size = Vector2::new(640, 480);
     let mut camera_name: String = String::from("main");
     let mut scene: Option<Scene<LengthType, ColorType>> = None;
     let mut output: String = String::from("out.ff");
     let mut rnd = WichmannHillPRNG::new_random();
-    let mut anti_aliasing_patterns =
+    let mut sampling_patterns =
         SamplingPatternSet::<Point2<FloatingPointType>>::regular_pattern(1, 1);
-
-    let mut camera_sampling_patterns =
-        SamplingPatternSet::<Point2<FloatingPointType>>::regular_pattern(5, 5);
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
-            "--anti-aliasing" => match parse_sampling_pattern_set(&mut args, &mut rnd) {
+            "--sampling" => match parse_sampling_pattern_set(&mut args, &mut rnd) {
                 Ok(patterns) => {
-                    anti_aliasing_patterns = patterns;
-                }
-                Err(m) => {
-                    return Err(m);
-                }
-            },
-            "--camera-sampling" => match parse_sampling_pattern_set(&mut args, &mut rnd) {
-                Ok(patterns) => {
-                    camera_sampling_patterns = patterns;
+                    sampling_patterns = patterns;
                 }
                 Err(m) => {
                     return Err(m);
@@ -211,7 +198,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                 if width.is_none() {
                     return Err(String::from("Missing width for image."));
                 }
-                let width = width.unwrap().parse::<FloatingPointType>();
+                let width = width.unwrap().parse::<usize>();
                 if let Err(m) = width {
                     return Err(format!("Unable to parse width: {}", m));
                 }
@@ -220,7 +207,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                 if height.is_none() {
                     return Err(String::from("Missing height for image."));
                 }
-                let height = height.unwrap().parse::<FloatingPointType>();
+                let height = height.unwrap().parse::<usize>();
                 if let Err(m) = height {
                     return Err(format!("Unable to parse height: {}", m));
                 }
@@ -267,38 +254,25 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
         camera_name,
         size,
         output,
-        anti_aliasing_patterns,
-        camera_sampling_patterns,
+        sampling_patterns,
     })
 }
 
 fn main() {
     match parse_configuration(env::args()) {
         Ok(config) => {
-            let mut scene = config.scene;
-            let camera = scene.cameras.remove(&config.camera_name);
+            let diffuse_ray_tracer =
+                DiffuseRayTracer::<LengthType>::new(config.sampling_patterns, 0.0001);
 
-            if camera.is_none() {
-                eprintln!("Missing camera with name {}", config.camera_name);
-                return;
-            }
+            let rnd = WichmannHillPRNG::new_random();
 
-            let raytracer = RayCaster::new(
-                config.size,
-                camera.unwrap(),
-                config.camera_sampling_patterns.mapped_to_disc(),
-                scene.geometries,
-                scene.lights,
-                scene.bg_color,
-                0.0001,
-            );
+            let rendered_image =
+                diffuse_ray_tracer.render(config.scene, &config.camera_name, config.size, rnd);
 
-            let image_data = raytracer
-                .sample(config.anti_aliasing_patterns)
+            let image_data = rendered_image
                 .clamp_color(RGB::new(0.0, 0.0, 0.0), RGB::new(1.0, 1.0, 1.0))
                 .convert_color::<RGBA<f64>>()
                 .convert_color::<RGBA<u16>>()
-                .convert_coordinate::<Point2<usize>>()
                 .encode();
 
             let f = File::create(config.output).unwrap();

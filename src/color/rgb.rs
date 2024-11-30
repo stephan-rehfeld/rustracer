@@ -1,6 +1,6 @@
 use std::hash::{Hash, Hasher};
 use std::iter::Sum;
-use std::ops::{Add, AddAssign, Div, Index, Mul};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul};
 
 use super::Color;
 use super::YCbCr;
@@ -78,6 +78,14 @@ impl<T: Div<Output = T> + Copy + Clone> Div<T> for RGB<T> {
 
     fn div(self, rhs: T) -> Self::Output {
         RGB::new(self.red / rhs, self.green / rhs, self.blue / rhs)
+    }
+}
+
+impl<T: DivAssign + Copy> DivAssign<T> for RGB<T> {
+    fn div_assign(&mut self, rhs: T) {
+        self.red /= rhs;
+        self.green /= rhs;
+        self.blue /= rhs;
     }
 }
 

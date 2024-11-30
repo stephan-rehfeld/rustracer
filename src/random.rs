@@ -4,6 +4,7 @@ pub trait RandomNumberGenerator<T> {
     fn next_random(&mut self) -> T;
 }
 
+#[derive(Clone, Copy)]
 pub struct WichmannHillPRNG {
     s1: u32,
     s2: u32,
