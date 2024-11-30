@@ -9,9 +9,9 @@ use crate::light::Light;
 use crate::material::Material;
 use crate::math::geometry::{ParametricLine, SurfacePoint};
 use crate::math::{Normal3, Point2, Point3, Vector2, Vector3};
-use crate::random::WichmannHillPRNG;
+use crate::random::{RandomNumberGenerator, WichmannHillPRNG};
 use crate::sampling::SamplingPatternSet;
-use crate::traits::{One, Zero};
+use crate::traits::{FloatingPoint, One, Zero};
 use crate::units::length::Length;
 use crate::{Raytracer, Renderable};
 
@@ -71,12 +71,28 @@ where
     }
 }
 
+pub struct AmbientOcclusion<T: Length> {
+    patterns: SamplingPatternSet<Point3<T::ValueType>>,
+    distance: T,
+}
+
+impl<T: Length> AmbientOcclusion<T> {
+    pub fn new(
+        patterns: SamplingPatternSet<Point3<T::ValueType>>,
+        distance: T,
+    ) -> AmbientOcclusion<T> {
+        AmbientOcclusion { patterns, distance }
+    }
+}
+
 pub struct RayCaster<T: Length, C>
 where
+    T::ValueType: FloatingPoint,
     C: Color<ChannelType = <T as Length>::ValueType>
         + Div<<T as Length>::ValueType, Output = C>
         + Sum<C>,
     <C as Color>::ChannelType: From<u16>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
 {
     size: Vector2<T::ValueType>,
     camera: Box<dyn RaytracingCamera<T>>,
@@ -86,14 +102,17 @@ where
     ambient_light: C,
     bg_color: C,
     shadow_tolerance: <T as Length>::ValueType,
+    ambient_occlusion: Option<AmbientOcclusion<T>>,
 }
 
 impl<T: Length, C> RayCaster<T, C>
 where
+    T::ValueType: FloatingPoint,
     C: Color<ChannelType = <T as Length>::ValueType>
         + Div<<T as Length>::ValueType, Output = C>
         + Sum<C>,
     <C as Color>::ChannelType: From<u16>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
 {
     pub fn new(
         size: Vector2<T::ValueType>,
@@ -104,6 +123,7 @@ where
         ambient_light: C,
         bg_color: C,
         shadow_tolerance: <T as Length>::ValueType,
+        ambient_occlusion: Option<AmbientOcclusion<T>>,
     ) -> RayCaster<T, C> {
         RayCaster {
             size,
@@ -114,16 +134,19 @@ where
             ambient_light,
             bg_color,
             shadow_tolerance,
+            ambient_occlusion,
         }
     }
 }
 
 impl<T: Length, C> Image for RayCaster<T, C>
 where
+    T::ValueType: FloatingPoint,
     C: Color<ChannelType = <T as Length>::ValueType>
         + Div<<T as Length>::ValueType, Output = C>
         + Sum<C>,
     <C as Color>::ChannelType: From<u16>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
 {
     type ColorType = C;
     type PointType = Point2<<T as Length>::ValueType>;
@@ -182,7 +205,52 @@ where
                         })
                         .collect();
 
-                    material.color_for(sp, ray.direction, lights, self.ambient_light)
+                    let al = if let Some(ref ac) = self.ambient_occlusion {
+                        let mut rnd = WichmannHillPRNG::new_random();
+
+                        let w = sp.n.as_vector();
+                        let rnd_vector: Vector3<T::ValueType> =
+                            Vector3::new(rnd.next_random(), rnd.next_random(), rnd.next_random())
+                                .normalized();
+                        let v = Vector3::cross(w, rnd_vector).normalized();
+                        let u = Vector3::cross(v, w);
+
+                        let pattern = ac.patterns.draw_pattern(&mut rnd);
+
+                        let mut rays: T::ValueType = Zero::zero();
+                        let mut shadow_hits: T::ValueType = Zero::zero();
+
+                        for i in 0..pattern.len() {
+                            rays += T::ValueType::one();
+                            let sample = pattern[i];
+                            let direction = (u * sample.x + v * sample.y + w * sample.z)
+                                .normalized()
+                                * T::one();
+
+                            let shadow_ray = ParametricLine::new(sp.p, direction);
+
+                            let hits: Vec<<Self as Raytracer>::ScalarType> = self
+                                .scene
+                                .iter()
+                                .flat_map(|g| g.intersect(shadow_ray))
+                                .map(|(t, _, _)| t)
+                                .filter(|t| *t > self.shadow_tolerance)
+                                .filter(|t| *t < ac.distance / T::one())
+                                .collect();
+
+                            if hits.len() > 0 {
+                                shadow_hits += T::ValueType::one();
+                            }
+                        }
+
+                        let c = (rays - shadow_hits) / rays;
+
+                        self.ambient_light * c
+                    } else {
+                        self.ambient_light
+                    };
+
+                    material.color_for(sp, ray.direction, lights, al)
                 }
             })
             .collect();
@@ -197,8 +265,10 @@ where
 impl<T, C> Raytracer for RayCaster<T, C>
 where
     T: Length,
+    T::ValueType: FloatingPoint,
     C: Color<ChannelType = <T as Div>::Output> + Div<<T as Length>::ValueType, Output = C> + Sum<C>,
     <C as Color>::ChannelType: From<u16>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
 {
     type ScalarType = <T as Div>::Output;
     type LengthType = T;

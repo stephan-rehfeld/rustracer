@@ -2,6 +2,7 @@ use super::prefix::None;
 use super::ValueWithPrefixAndUnit;
 
 use crate::traits::number::{Number, SelfMulNumber};
+use crate::traits::ConvenientNumber;
 use crate::units::area::{Area, SquareMeter};
 use crate::units::second_moment_of_area::{MeterToThePowerOfFour, SecondMomentOfArea};
 use crate::units::volume::{CubicMeter, Volume};
@@ -66,6 +67,7 @@ impl<T: SelfMulNumber<T>> SelfMulNumber<T> for Meter<T> {}
 impl<T> Length for Meter<T>
 where
     T: Number
+        + ConvenientNumber
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
         + Mul<CubicMeter<T>, Output = CubicMeter<T>>

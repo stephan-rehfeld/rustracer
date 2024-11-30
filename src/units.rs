@@ -367,5 +367,3 @@ impl<T: Zero, P, U> Zero for ValueWithPrefixAndUnit<T, P, U> {
 }
 
 impl<T: ConvenientNumber, P: Prefix, U: Unit> ConvenientNumber for ValueWithPrefixAndUnit<T, P, U> {}
-
-//impl<T: FloatingPoint, P: Prefix, U: Unit> FloatingPoint<T> for ValueWithPrefixAndUnit<T, P, U> {}

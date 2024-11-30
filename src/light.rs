@@ -12,7 +12,7 @@ where
     T: Div + Copy + Debug,
     <T as Div>::Output: Copy + Debug + PartialEq,
 {
-    fn direction_from(&self, p: Point3<T>) -> Vector3<<T as Div>::Output>;
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output>;
     fn get_color(&self) -> C;
     // Change parameter to SurfacePoint
     fn illuminates(
@@ -45,7 +45,7 @@ where
     T: Length,
     <T as Length>::ValueType: SignedNumber + Mul<T, Output = T>,
 {
-    fn direction_from(&self, _p: Point3<T>) -> Vector3<<T as Div>::Output> {
+    fn direction_from(&self, _sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
         -self.direction
     }
 
@@ -61,7 +61,7 @@ where
         self.direction.dot(sp.n.as_vector()) > Zero::zero()
             && shadow_check(ParametricLine::new(
                 sp.p,
-                self.direction_from(sp.p) * T::one(),
+                self.direction_from(sp) * T::one(),
             ))
             .is_none()
     }
@@ -85,8 +85,8 @@ where
     <T as Length>::ValueType: SignedNumber + Mul<T, Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
-    fn direction_from(&self, p: Point3<T>) -> Vector3<<T as Div>::Output> {
-        (self.position - p).normalized()
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+        (self.position - sp.p).normalized()
     }
 
     fn get_color(&self) -> C {
@@ -98,10 +98,10 @@ where
         sp: SurfacePoint<T>,
         shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
     ) -> bool {
-        if self.direction_from(sp.p).dot(sp.n.as_vector()) > Zero::zero() {
+        if self.direction_from(sp).dot(sp.n.as_vector()) > Zero::zero() {
             let ot = shadow_check(ParametricLine::new(
                 sp.p,
-                self.direction_from(sp.p) * T::one(),
+                self.direction_from(sp) * T::one(),
             ));
             match ot {
                 Some(t) => t > ((self.position - sp.p).magnitude() / T::one()),
@@ -149,8 +149,8 @@ where
     <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
 {
-    fn direction_from(&self, p: Point3<T>) -> Vector3<<T as Div>::Output> {
-        (self.position - p).normalized()
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+        (self.position - sp.p).normalized()
     }
 
     fn get_color(&self) -> C {
@@ -162,15 +162,12 @@ where
         sp: SurfacePoint<T>,
         shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
     ) -> bool {
-        let direction = self.direction_from(sp.p);
+        let direction = self.direction_from(sp);
 
         if direction.dot(sp.n.as_vector()) > Zero::zero()
             && (-direction).dot(self.direction) > self.angle.cos()
         {
-            let ot = shadow_check(ParametricLine::new(
-                sp.p,
-                self.direction_from(sp.p) * T::one(),
-            ));
+            let ot = shadow_check(ParametricLine::new(sp.p, direction * T::one()));
             match ot {
                 Some(t) => t > ((self.position - sp.p).magnitude() / T::one()),
                 None => true,
@@ -181,12 +178,46 @@ where
     }
 }
 
+pub struct AmbientLight<C> {
+    color: C,
+}
+
+impl<C> AmbientLight<C> {
+    pub fn new(color: C) -> AmbientLight<C> {
+        AmbientLight { color }
+    }
+}
+
+impl<T, C> Light<T, C> for AmbientLight<C>
+where
+    C: Copy,
+    T: Length,
+    <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
+    <T as Length>::AreaType: Sqrt<Output = T>,
+{
+    fn get_color(&self) -> C {
+        self.color
+    }
+
+    fn illuminates(
+        &self,
+        _sp: SurfacePoint<T>,
+        _shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+    ) -> bool {
+        true
+    }
+
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+        sp.n.as_vector().normalized()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     use crate::color::RGB;
-    use crate::math::Vector3;
+    use crate::math::{Normal3, Point2, Vector3};
     use crate::units::length::Meter;
 
     macro_rules! new_directional_light {
@@ -232,9 +263,27 @@ mod tests {
                     Meter::<$type>::new(20989.0),
                 );
 
-                assert_eq!(-direction, light.direction_from(p1));
-                assert_eq!(-direction, light.direction_from(p2));
-                assert_eq!(-direction, light.direction_from(p3));
+                let sp1 = SurfacePoint::new(
+                    p1,
+                    Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                    Point2::new(0 as $type, 0 as $type),
+                );
+
+                let sp2 = SurfacePoint::new(
+                    p2,
+                    Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                    Point2::new(0 as $type, 0 as $type),
+                );
+
+                let sp3 = SurfacePoint::new(
+                    p3,
+                    Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                    Point2::new(0 as $type, 0 as $type),
+                );
+
+                assert_eq!(-direction, light.direction_from(sp1));
+                assert_eq!(-direction, light.direction_from(sp2));
+                assert_eq!(-direction, light.direction_from(sp3));
             }
         };
     }
@@ -292,52 +341,76 @@ mod tests {
 
                 assert_eq!(
                     Vector3::new(0.0, 1.0, 0.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(0.0),
-                        Meter::<$type>::new(-1.0),
-                        Meter::<$type>::new(0.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(0.0),
+                            Meter::<$type>::new(-1.0),
+                            Meter::<$type>::new(0.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
                 assert_eq!(
                     Vector3::new(0.0, -1.0, 0.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(0.0),
-                        Meter::<$type>::new(10.0),
-                        Meter::<$type>::new(0.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(0.0),
+                            Meter::<$type>::new(10.0),
+                            Meter::<$type>::new(0.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
 
                 assert_eq!(
                     Vector3::new(-1.0, 0.0, 0.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(123.0),
-                        Meter::<$type>::new(1.0),
-                        Meter::<$type>::new(0.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(123.0),
+                            Meter::<$type>::new(1.0),
+                            Meter::<$type>::new(0.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
                 assert_eq!(
                     Vector3::new(1.0, 0.0, 0.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(-5234.0),
-                        Meter::<$type>::new(1.0),
-                        Meter::<$type>::new(0.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(-5234.0),
+                            Meter::<$type>::new(1.0),
+                            Meter::<$type>::new(0.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
 
                 assert_eq!(
                     Vector3::new(0.0, 0.0, -1.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(0.0),
-                        Meter::<$type>::new(1.0),
-                        Meter::<$type>::new(53737.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(0.0),
+                            Meter::<$type>::new(1.0),
+                            Meter::<$type>::new(53737.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
                 assert_eq!(
                     Vector3::new(0.0, 0.0, 1.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(0.0),
-                        Meter::<$type>::new(1.0),
-                        Meter::<$type>::new(-236.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(0.0),
+                            Meter::<$type>::new(1.0),
+                            Meter::<$type>::new(-236.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
             }
@@ -423,52 +496,76 @@ mod tests {
 
                 assert_eq!(
                     Vector3::new(0.0, 1.0, 0.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(0.0),
-                        Meter::<$type>::new(-1.0),
-                        Meter::<$type>::new(0.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(0.0),
+                            Meter::<$type>::new(-1.0),
+                            Meter::<$type>::new(0.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
                 assert_eq!(
                     Vector3::new(0.0, -1.0, 0.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(0.0),
-                        Meter::<$type>::new(10.0),
-                        Meter::<$type>::new(0.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(0.0),
+                            Meter::<$type>::new(10.0),
+                            Meter::<$type>::new(0.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
 
                 assert_eq!(
                     Vector3::new(-1.0, 0.0, 0.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(123.0),
-                        Meter::<$type>::new(1.0),
-                        Meter::<$type>::new(0.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(123.0),
+                            Meter::<$type>::new(1.0),
+                            Meter::<$type>::new(0.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
                 assert_eq!(
                     Vector3::new(1.0, 0.0, 0.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(-5234.0),
-                        Meter::<$type>::new(1.0),
-                        Meter::<$type>::new(0.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(-5234.0),
+                            Meter::<$type>::new(1.0),
+                            Meter::<$type>::new(0.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
 
                 assert_eq!(
                     Vector3::new(0.0, 0.0, -1.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(0.0),
-                        Meter::<$type>::new(1.0),
-                        Meter::<$type>::new(53737.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(0.0),
+                            Meter::<$type>::new(1.0),
+                            Meter::<$type>::new(53737.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
                 assert_eq!(
                     Vector3::new(0.0, 0.0, 1.0),
-                    light.direction_from(Point3::new(
-                        Meter::<$type>::new(0.0),
-                        Meter::<$type>::new(1.0),
-                        Meter::<$type>::new(-236.0)
+                    light.direction_from(SurfacePoint::new(
+                        Point3::new(
+                            Meter::<$type>::new(0.0),
+                            Meter::<$type>::new(1.0),
+                            Meter::<$type>::new(-236.0)
+                        ),
+                        Normal3::new(0 as $type, 1 as $type, 0 as $type),
+                        Point2::new(0 as $type, 0 as $type),
                     ))
                 );
             }

@@ -1,6 +1,6 @@
 background_color: 0.7 0.7 0.7
 
-ambient_light: 0.1 0.1 0.1
+ambient_light: 0.2 0.2 0.2
 
 plane {
     position: 0.0 0.0 0.0
@@ -48,7 +48,7 @@ sphere {
 }
 perspective_camera {
     id: main
-    eye_position: 0.0 1.0 8.0
+    eye_position: 0.0 1.0 6.0
     gaze_direction: 0.0 0.0 -1.0
     up_vector: 0.0 1.0 0.0
     field_of_view: 90
@@ -66,7 +66,7 @@ spherical_camera {
 
 pinhole_camera {
     id: second
-    eye_position: 0.0 1.0 3.0
+    eye_position: 0.0 1.0 6.0
     gaze_direction: 0.0 0.0 -1.0
     up_vector: 0.0 1.0 0.0
     field_of_view: 90

@@ -122,6 +122,7 @@ fn main() {
         RGB::new(0.1, 0.1, 0.1),
         RGB::new(0.0, 0.0, 0.0),
         0.0001,
+        None,
     );
 
     let image_data = raytracer

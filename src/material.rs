@@ -92,7 +92,7 @@ where
                 .map(|light| {
                     self.texture.get(sp.uv)
                         * light.get_color()
-                        * light.direction_from(sp.p).dot(sp.n.as_vector())
+                        * light.direction_from(sp).dot(sp.n.as_vector())
                 })
                 .sum()
     }
@@ -140,8 +140,8 @@ where
                 let ambient_term = self.diffuse_texture.get(sp.uv) * ambient_light;
                 let diffuse_term = self.diffuse_texture.get(sp.uv)
                     * light.get_color()
-                    * light.direction_from(sp.p).dot(sp.n.as_vector());
-                let reflected_light = light.direction_from(sp.p).reflect_on(sp.n).normalized();
+                    * light.direction_from(sp).dot(sp.n.as_vector());
+                let reflected_light = light.direction_from(sp).reflect_on(sp.n).normalized();
                 let specular_term = self.specular_texture.get(sp.uv)
                     * light.get_color()
                     * reflected_light

@@ -4,12 +4,14 @@ use super::ValueWithPrefixAndUnit;
 use std::ops::{Div, Mul};
 
 use crate::traits::number::Number;
+use crate::traits::ConvenientNumber;
 use crate::units::area::{Area, SquareMeter};
 use crate::units::length::{Length, Meter};
 use crate::units::second_moment_of_area::{MeterToThePowerOfFour, SecondMomentOfArea};
 
 pub trait Volume:
     Number<Self::ValueType>
+    + ConvenientNumber
     + Div<Output = Self::ValueType>
     + Div<Self::LengthType, Output = Self::AreaType>
     + Div<Self::AreaType, Output = Self::LengthType>
@@ -71,6 +73,7 @@ impl<T: Div> Div<SquareMeter<T>> for CubicMeter<T> {
 impl<T> Volume for CubicMeter<T>
 where
     T: Number
+        + ConvenientNumber
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
         + Mul<CubicMeter<T>, Output = CubicMeter<T>>
