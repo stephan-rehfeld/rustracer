@@ -3,6 +3,7 @@ use std::ops::Index;
 
 use crate::math::{Point2, Point3};
 use crate::random::RandomNumberGenerator;
+use crate::traits::RadicalInverse;
 
 use super::SamplingPattern;
 
@@ -33,8 +34,13 @@ impl<T> Index<usize> for SamplingPatternSet<T> {
     }
 }
 
-impl SamplingPatternSet<Point2<f32>> {
-    pub fn mapped_to_disc(&self) -> SamplingPatternSet<Point2<f32>> {
+pub trait PatternMapping<T> {
+    fn mapped_to_disc(&self) -> SamplingPatternSet<Point2<T>>;
+    fn mapped_to_hemisphere(&self, e: T) -> SamplingPatternSet<Point3<T>>;
+}
+
+impl PatternMapping<f32> for SamplingPatternSet<Point2<f32>> {
+    fn mapped_to_disc(&self) -> SamplingPatternSet<Point2<f32>> {
         let patterns = self
             .patterns
             .iter()
@@ -44,7 +50,7 @@ impl SamplingPatternSet<Point2<f32>> {
         SamplingPatternSet::new(patterns)
     }
 
-    pub fn mapped_to_hemisphere(&self, e: f32) -> SamplingPatternSet<Point3<f32>> {
+    fn mapped_to_hemisphere(&self, e: f32) -> SamplingPatternSet<Point3<f32>> {
         let patterns = self
             .patterns
             .iter()
@@ -55,8 +61,8 @@ impl SamplingPatternSet<Point2<f32>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f64>> {
-    pub fn mapped_to_disc(&self) -> SamplingPatternSet<Point2<f64>> {
+impl PatternMapping<f64> for SamplingPatternSet<Point2<f64>> {
+    fn mapped_to_disc(&self) -> SamplingPatternSet<Point2<f64>> {
         let patterns = self
             .patterns
             .iter()
@@ -66,7 +72,7 @@ impl SamplingPatternSet<Point2<f64>> {
         SamplingPatternSet::new(patterns)
     }
 
-    pub fn mapped_to_hemisphere(&self, e: f64) -> SamplingPatternSet<Point3<f64>> {
+    fn mapped_to_hemisphere(&self, e: f64) -> SamplingPatternSet<Point3<f64>> {
         let patterns = self
             .patterns
             .iter()
@@ -77,8 +83,12 @@ impl SamplingPatternSet<Point2<f64>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f32>> {
-    pub fn regular_pattern(rows: usize, columns: usize) -> SamplingPatternSet<Point2<f32>> {
+pub trait RegularPatternGenerator<T> {
+    fn regular_pattern(rows: usize, column: usize) -> SamplingPatternSet<Point2<T>>;
+}
+
+impl RegularPatternGenerator<f32> for SamplingPatternSet<Point2<f32>> {
+    fn regular_pattern(rows: usize, columns: usize) -> SamplingPatternSet<Point2<f32>> {
         let mut points = Vec::new();
         let x_step = ((columns + 1) as f32).recip();
         let y_step = ((rows + 1) as f32).recip();
@@ -97,8 +107,8 @@ impl SamplingPatternSet<Point2<f32>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f64>> {
-    pub fn regular_pattern(rows: usize, columns: usize) -> SamplingPatternSet<Point2<f64>> {
+impl RegularPatternGenerator<f64> for SamplingPatternSet<Point2<f64>> {
+    fn regular_pattern(rows: usize, columns: usize) -> SamplingPatternSet<Point2<f64>> {
         let mut points = Vec::new();
         let x_step = ((columns + 1) as f64).recip();
         let y_step = ((rows + 1) as f64).recip();
@@ -117,8 +127,16 @@ impl SamplingPatternSet<Point2<f64>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f32>> {
-    pub fn random_patterns(
+pub trait RandomPatternGenerator<T> {
+    fn random_patterns(
+        patterns: usize,
+        samples: usize,
+        rnd: &mut impl RandomNumberGenerator<T>,
+    ) -> SamplingPatternSet<Point2<T>>;
+}
+
+impl RandomPatternGenerator<f32> for SamplingPatternSet<Point2<f32>> {
+    fn random_patterns(
         patterns: usize,
         samples: usize,
         rnd: &mut impl RandomNumberGenerator<f32>,
@@ -137,8 +155,8 @@ impl SamplingPatternSet<Point2<f32>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f64>> {
-    pub fn random_patterns(
+impl RandomPatternGenerator<f64> for SamplingPatternSet<Point2<f64>> {
+    fn random_patterns(
         patterns: usize,
         samples: usize,
         rnd: &mut impl RandomNumberGenerator<f64>,
@@ -157,8 +175,17 @@ impl SamplingPatternSet<Point2<f64>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f32>> {
-    pub fn jittered_patterns(
+pub trait JitteredPatternGenerator<T> {
+    fn jittered_patterns(
+        patterns: usize,
+        rows: usize,
+        columns: usize,
+        rnd: &mut impl RandomNumberGenerator<T>,
+    ) -> SamplingPatternSet<Point2<T>>;
+}
+
+impl JitteredPatternGenerator<f32> for SamplingPatternSet<Point2<f32>> {
+    fn jittered_patterns(
         patterns: usize,
         rows: usize,
         columns: usize,
@@ -191,8 +218,8 @@ impl SamplingPatternSet<Point2<f32>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f64>> {
-    pub fn jittered_patterns(
+impl JitteredPatternGenerator<f64> for SamplingPatternSet<Point2<f64>> {
+    fn jittered_patterns(
         patterns: usize,
         rows: usize,
         columns: usize,
@@ -225,8 +252,16 @@ impl SamplingPatternSet<Point2<f64>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f32>> {
-    pub fn n_rooks_patterns(
+pub trait NRooksPatternGenerator<T> {
+    fn n_rooks_patterns(
+        patterns: usize,
+        samples: usize,
+        rnd: &mut impl RandomNumberGenerator<T>,
+    ) -> SamplingPatternSet<Point2<T>>;
+}
+
+impl NRooksPatternGenerator<f32> for SamplingPatternSet<Point2<f32>> {
+    fn n_rooks_patterns(
         patterns: usize,
         samples: usize,
         rnd: &mut impl RandomNumberGenerator<f32>,
@@ -272,8 +307,8 @@ impl SamplingPatternSet<Point2<f32>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f64>> {
-    pub fn n_rooks_patterns(
+impl NRooksPatternGenerator<f64> for SamplingPatternSet<Point2<f64>> {
+    fn n_rooks_patterns(
         patterns: usize,
         samples: usize,
         rnd: &mut impl RandomNumberGenerator<f64>,
@@ -319,9 +354,17 @@ impl SamplingPatternSet<Point2<f64>> {
     }
 }
 
-// Multijittered Generator
-impl SamplingPatternSet<Point2<f32>> {
-    pub fn multi_jittered_patterns(
+pub trait MultiJitteredPatterGenerator<T> {
+    fn multi_jittered_patterns(
+        patterns: usize,
+        rows: usize,
+        columns: usize,
+        rnd: &mut impl RandomNumberGenerator<T>,
+    ) -> SamplingPatternSet<Point2<T>>;
+}
+
+impl MultiJitteredPatterGenerator<f32> for SamplingPatternSet<Point2<f32>> {
+    fn multi_jittered_patterns(
         patterns: usize,
         rows: usize,
         columns: usize,
@@ -385,8 +428,8 @@ impl SamplingPatternSet<Point2<f32>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f64>> {
-    pub fn multi_jittered_patterns(
+impl MultiJitteredPatterGenerator<f64> for SamplingPatternSet<Point2<f64>> {
+    fn multi_jittered_patterns(
         patterns: usize,
         rows: usize,
         columns: usize,
@@ -450,75 +493,53 @@ impl SamplingPatternSet<Point2<f64>> {
     }
 }
 
-impl SamplingPatternSet<Point2<f32>> {
-    pub fn hammersley_pattern(num_points: usize) -> SamplingPatternSet<Point2<f32>> {
+pub trait HammersleyPatternGenerator<T> {
+    fn hammersley_pattern(num_points: usize) -> SamplingPatternSet<Point2<T>>;
+}
+
+impl HammersleyPatternGenerator<f32> for SamplingPatternSet<Point2<f32>> {
+    fn hammersley_pattern(num_points: usize) -> SamplingPatternSet<Point2<f32>> {
         let mut points = vec![Point2::new(0.0, 0.0)];
 
         let x_step = ((num_points - 1) as f32).recip();
 
         for p in 1..num_points {
-            let point = Point2::new((p as f32) * x_step, Self::radical_inverse(p));
+            let point = Point2::new((p as f32) * x_step, f32::radical_inverse(p));
             points.push(point);
         }
 
         SamplingPatternSet::new(vec![SamplingPattern::new(points)])
     }
-
-    fn radical_inverse(j: usize) -> f32 {
-        let mut j = j;
-        let mut x = 0.0;
-        let mut f = 0.5;
-
-        loop {
-            if j % 2 != 0 {
-                x += f;
-            }
-            j /= 2;
-            f *= 0.5;
-
-            if j == 0 {
-                break;
-            }
-        }
-
-        x
-    }
 }
 
-impl SamplingPatternSet<Point2<f64>> {
-    pub fn hammersley_pattern(num_points: usize) -> SamplingPatternSet<Point2<f64>> {
+impl HammersleyPatternGenerator<f64> for SamplingPatternSet<Point2<f64>> {
+    fn hammersley_pattern(num_points: usize) -> SamplingPatternSet<Point2<f64>> {
         let mut points = vec![Point2::new(0.0, 0.0)];
 
         let x_step = ((num_points - 1) as f64).recip();
 
         for p in 1..num_points {
-            let point = Point2::new((p as f64) * x_step, Self::radical_inverse(p));
+            let point = Point2::new((p as f64) * x_step, f64::radical_inverse(p));
             points.push(point);
         }
 
         SamplingPatternSet::new(vec![SamplingPattern::new(points)])
     }
-
-    fn radical_inverse(j: usize) -> f64 {
-        let mut j = j;
-        let mut x = 0.0;
-        let mut f = 0.5;
-
-        loop {
-            if j % 2 != 0 {
-                x += f;
-            }
-            j /= 2;
-            f *= 0.5;
-
-            if j == 0 {
-                break;
-            }
-        }
-
-        x
-    }
 }
+
+pub trait PatternGenerator<T>:
+    RegularPatternGenerator<T>
+    + RandomPatternGenerator<T>
+    + JitteredPatternGenerator<T>
+    + MultiJitteredPatterGenerator<T>
+    + NRooksPatternGenerator<T>
+    + HammersleyPatternGenerator<T>
+{
+}
+
+impl PatternGenerator<f32> for SamplingPatternSet<Point2<f32>> {}
+
+impl PatternGenerator<f64> for SamplingPatternSet<Point2<f64>> {}
 
 // Holton generator
 // Sobol generator

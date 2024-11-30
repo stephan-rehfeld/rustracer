@@ -44,6 +44,55 @@ macro_rules! implement_one_for {
     )*}
 }
 
+pub trait RadicalInverse {
+    // Should be an Integer
+    fn radical_inverse(p: usize) -> Self;
+}
+
+impl RadicalInverse for f32 {
+    fn radical_inverse(j: usize) -> f32 {
+        let mut j = j;
+        let mut x = 0.0;
+        let mut f = 0.5;
+
+        loop {
+            if j % 2 != 0 {
+                x += f;
+            }
+            j /= 2;
+            f *= 0.5;
+
+            if j == 0 {
+                break;
+            }
+        }
+
+        x
+    }
+}
+
+impl RadicalInverse for f64 {
+    fn radical_inverse(j: usize) -> f64 {
+        let mut j = j;
+        let mut x = 0.0;
+        let mut f = 0.5;
+
+        loop {
+            if j % 2 != 0 {
+                x += f;
+            }
+            j /= 2;
+            f *= 0.5;
+
+            if j == 0 {
+                break;
+            }
+        }
+
+        x
+    }
+}
+
 implement_one_for! { u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize f32 f64 }
 
 pub trait ConvenientNumber: Half + One + Zero {}

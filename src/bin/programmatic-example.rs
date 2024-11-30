@@ -3,13 +3,13 @@ use rustracer::color::{RGB, RGBA};
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
 use rustracer::image::SingleColorImage;
-use rustracer::light::{Light, PointLight, SpotLight};
+use rustracer::light::{AmbientLight, Light, PointLight, SpotLight};
 use rustracer::material::{LambertMaterial, PhongMaterial};
 use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle3};
 use rustracer::math::transform::Transform3;
 use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
 use rustracer::ray_casting::RayCaster;
-use rustracer::sampling::SamplingPatternSet;
+use rustracer::sampling::{RegularPatternGenerator, SamplingPatternSet};
 use rustracer::scene_graph::RenderableGeometry;
 use rustracer::traits::ToRadians;
 use rustracer::units::angle::Degrees;
@@ -92,6 +92,8 @@ fn main() {
         triangle_geometry,
     ];
 
+    let ambient_light = Box::new(AmbientLight::new(RGB::new(0.1, 0.1, 0.1)));
+
     let point_light = Box::new(PointLight::new(
         RGB::new(0.8, 0.8, 0.8),
         Point3::new(Meter::new(0.0), Meter::new(5.0), Meter::new(0.0)),
@@ -104,7 +106,8 @@ fn main() {
         Degrees::new(30.0).to_radians(),
     ));
 
-    let lights: Vec<Box<dyn Light<Meter<f64>, RGB<f64>>>> = vec![point_light, spot_light];
+    let lights: Vec<Box<dyn Light<Meter<f64>, RGB<f64>>>> =
+        vec![ambient_light, point_light, spot_light];
 
     let cam = Box::new(PinholeCamera::new(
         Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),
@@ -119,10 +122,8 @@ fn main() {
         SamplingPatternSet::<Point2<f64>>::regular_pattern(1, 1),
         geometries,
         lights,
-        RGB::new(0.1, 0.1, 0.1),
         RGB::new(0.0, 0.0, 0.0),
         0.0001,
-        None,
     );
 
     let image_data = raytracer

@@ -10,7 +10,7 @@ use crate::camera::{
     SphericalCamera,
 };
 use crate::color::RGB;
-use crate::light::{Light, PointLight, SpotLight};
+use crate::light::{AmbientLight, Light, PointLight, SpotLight};
 use crate::material::Material;
 use crate::math::transform::Transform3;
 use crate::math::{Normal3, Orthonormal3, Point3, Vector3};
@@ -50,11 +50,13 @@ type RenderableTriangle<T> =
 pub enum ParsingError {
     UnexpectedEndOfTokens,
     NumberParsingError(&'static str),
+
     ColorParsingError(Box<ParsingError>),
     Point2ParsingError(Box<ParsingError>),
     Point3ParsingError(Box<ParsingError>),
     VectorParsingError(Box<ParsingError>),
     NormalParsingError(Box<ParsingError>),
+
     UnexpectedToken {
         expected: &'static str,
         found: String,
@@ -64,24 +66,30 @@ pub enum ParsingError {
     SingleColorTextureParsingError(Box<ParsingError>),
     CheckerboardTextureParsingError(Box<ParsingError>),
     GridTextureParsingError(Box<ParsingError>),
+
     UnshadedMaterialParsingError(Box<ParsingError>),
     LambertMaterialParsingError(Box<ParsingError>),
     PhongMaterialParsingError(Box<ParsingError>),
     MaterialParsingError(Box<ParsingError>),
     UnsupportedMaterial(String),
+
     DiscParsingError(Box<ParsingError>),
     SphereParsingError(Box<ParsingError>),
     CylinderParsingError(Box<ParsingError>),
     PlaneParsingError(Box<ParsingError>),
     BoxParsingError(Box<ParsingError>),
     TriangleParsingError(Box<ParsingError>),
+
     PinholeCameraParsingError(Box<ParsingError>),
     PerspectiveCameraParsingError(Box<ParsingError>),
     FisheyeCameraParsingError(Box<ParsingError>),
     OrthographicCameraParsingError(Box<ParsingError>),
     SphericalCameraParsingError(Box<ParsingError>),
+
     PointLightParsingError(Box<ParsingError>),
     SpotLightParsingError(Box<ParsingError>),
+    AmbientOcclusionLightParsingError(Box<ParsingError>),
+
     MissingElement(&'static str),
     UnsupportedElement(String),
     SceneParsingError(Box<ParsingError>),
@@ -132,8 +140,6 @@ where
     let mut lights: Vec<Box<dyn Light<T, RGB<<T as Length>::ValueType>>>> = Vec::new();
     let mut cameras: HashMap<String, Box<dyn RaytracingCamera<T>>> = HashMap::new();
     let mut background_color: RGB<<T as Length>::ValueType> =
-        RGB::new(Zero::zero(), Zero::zero(), Zero::zero());
-    let mut ambient_light: RGB<<T as Length>::ValueType> =
         RGB::new(Zero::zero(), Zero::zero(), Zero::zero());
 
     while let Some(token) = tokens.next() {
@@ -257,7 +263,7 @@ where
             },
             "ambient_light:" => match RGB::from_tokens(&mut tokens) {
                 Ok(ambient) => {
-                    ambient_light = ambient;
+                    lights.push(Box::new(AmbientLight::new(ambient)));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -269,11 +275,5 @@ where
         }
     }
 
-    Ok(Scene::new(
-        background_color,
-        ambient_light,
-        lights,
-        cameras,
-        geometries,
-    ))
+    Ok(Scene::new(background_color, lights, cameras, geometries))
 }

@@ -3,8 +3,10 @@ use std::fmt::Debug;
 use std::str::FromStr;
 
 use crate::color::RGB;
-use crate::light::{PointLight, SpotLight};
-use crate::math::{Point3, Vector3};
+use crate::light::{AmbientOcclusionLight, PointLight, SpotLight};
+use crate::math::{Point2, Point3, Vector3};
+use crate::random::{RandomNumberGenerator, WichmannHillPRNG};
+use crate::sampling::{MultiJitteredPatterGenerator, PatternMapping, SamplingPatternSet};
 use crate::traits::floating_point::ToRadians;
 use crate::traits::{FloatingPoint, SignedNumber, Sqrt, Zero};
 use crate::units::angle::Degrees;
@@ -143,5 +145,91 @@ where
         }
 
         Ok(PointLight::new(color, position))
+    }
+}
+
+impl<T: Length> FromTokens for AmbientOcclusionLight<T, RGB<<T as Length>::ValueType>>
+where
+    <T as Length>::AreaType: Sqrt<Output = T>,
+    <T as Length>::ValueType: SignedNumber,
+    <T as FromStr>::Err: Error + Debug,
+    <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
+    SamplingPatternSet<Point2<T::ValueType>>:
+        MultiJitteredPatterGenerator<T::ValueType> + PatternMapping<T::ValueType>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+{
+    type Err = ParsingError;
+
+    fn from_tokens<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Self, Self::Err> {
+        if let Err(cause) = util::check_next_token(tokens, "{") {
+            return Err(ParsingError::AmbientOcclusionLightParsingError(Box::new(
+                cause,
+            )));
+        }
+
+        let mut color = RGB::new(Zero::zero(), Zero::zero(), Zero::zero());
+        let mut mapping_exponent: T::ValueType = T::ValueType::zero();
+        let mut distance: Option<T> = None;
+
+        while let Some(token) = tokens.next() {
+            match token {
+                "color:" => match RGB::from_tokens(tokens) {
+                    Ok(col) => {
+                        color = col;
+                    }
+                    Err(cause) => {
+                        return Err(ParsingError::AmbientOcclusionLightParsingError(Box::new(
+                            cause,
+                        )));
+                    }
+                },
+
+                "distance:" => match tokens.next() {
+                    Some(distance_string) => match distance_string.parse() {
+                        Ok(d) => distance = Some(d),
+                        Err(_) => {
+                            return Err(ParsingError::NumberParsingError(
+                                "Unable to parse field of number.",
+                            ));
+                        }
+                    },
+                    None => {
+                        return Err(ParsingError::UnexpectedEndOfTokens);
+                    }
+                },
+
+                "mapping_exponent:" => match tokens.next() {
+                    Some(mapping_exponent_string) => match mapping_exponent_string.parse() {
+                        Ok(mp) => mapping_exponent = mp,
+                        Err(_) => {
+                            return Err(ParsingError::NumberParsingError(
+                                "Unable to parse field of number.",
+                            ));
+                        }
+                    },
+                    None => {
+                        return Err(ParsingError::UnexpectedEndOfTokens);
+                    }
+                },
+                "}" => {
+                    break;
+                }
+                token => {
+                    return Err(ParsingError::UnexpectedToken {
+                        expected: "color:, distance:, mapping_exponent, }",
+                        found: token.to_string(),
+                    });
+                }
+            }
+        }
+
+        let mut rnd = WichmannHillPRNG::new_random();
+
+        Ok(AmbientOcclusionLight::new(
+            color,
+            SamplingPatternSet::<Point2<T::ValueType>>::multi_jittered_patterns(10, 5, 5, &mut rnd)
+                .mapped_to_hemisphere(mapping_exponent),
+            distance.unwrap(),
+        ))
     }
 }

@@ -13,7 +13,7 @@ where
         size: Vector2<<T as Div>::Output>,
         p: Point2<<T as Div>::Output>,
         pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
-    ) -> Vec<ParametricLine<Point3<T>, Vector3<T>>>;
+    ) -> Option<ParametricLine<Point3<T>, Vector3<T>>>;
 }
 
 mod fisheye_camera;

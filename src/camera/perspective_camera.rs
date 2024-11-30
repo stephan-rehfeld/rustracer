@@ -2,6 +2,7 @@ use std::ops::{Div, Mul};
 
 use crate::math::geometry::ParametricLine;
 use crate::math::{Point2, Point3, Vector2, Vector3};
+use crate::random::WichmannHillPRNG;
 use crate::sampling::SamplingPattern;
 use crate::traits::{ConvenientNumber, FloatingPoint, Half, Number, SelfMulNumber, Sqrt, Tan};
 use crate::units::angle::Radians;
@@ -64,7 +65,7 @@ where
         size: Vector2<<T as Div>::Output>,
         p: Point2<<T as Div>::Output>,
         pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
-    ) -> Vec<ParametricLine<Point3<T>, Vector3<T>>> {
+    ) -> Option<ParametricLine<Point3<T>, Vector3<T>>> {
         let o = self.e;
 
         let unit_plane_distance = size.y.half() / self.vertical_field_of_view.tan();
@@ -78,19 +79,15 @@ where
         let r = a + b + c;
         let fp = o + r * T::one();
 
-        let mut rays = Vec::new();
+        let mut rnd = WichmannHillPRNG::new_random();
 
-        for i in 0..pattern.len() {
-            let sampling_point = pattern[i];
-            let lo = o
-                + self.u * sampling_point.x * self.lens_radius
-                + self.v * sampling_point.y * self.lens_radius;
+        let sampling_point = pattern.draw_point(&mut rnd);
+        let lo = o
+            + self.u * sampling_point.x * self.lens_radius
+            + self.v * sampling_point.y * self.lens_radius;
 
-            let direction = (fp - lo).normalized() * T::one();
+        let direction = (fp - lo).normalized() * T::one();
 
-            rays.push(ParametricLine::new(lo, direction));
-        }
-
-        rays
+        Some(ParametricLine::new(lo, direction))
     }
 }

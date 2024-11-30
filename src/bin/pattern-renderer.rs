@@ -9,7 +9,11 @@ use rustracer::image::ImageBuffer;
 use rustracer::math::geometry::{Circle, Rectangle2};
 use rustracer::math::{Point2, Point3, Vector2};
 use rustracer::random::WichmannHillPRNG;
-use rustracer::sampling::SamplingPatternSet;
+use rustracer::sampling::{
+    HammersleyPatternGenerator, JitteredPatternGenerator, MultiJitteredPatterGenerator,
+    NRooksPatternGenerator, PatternMapping, RandomPatternGenerator, RegularPatternGenerator,
+    SamplingPatternSet,
+};
 
 type FloatingPointType = f64;
 type ColorType = RGB<FloatingPointType>;

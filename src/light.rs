@@ -3,6 +3,8 @@ use std::ops::{Div, Mul};
 
 use crate::math::geometry::{ParametricLine, SurfacePoint};
 use crate::math::{Point3, Vector3};
+use crate::random::{RandomNumberGenerator, WichmannHillPRNG};
+use crate::sampling::SamplingPatternSet;
 use crate::traits::{Cos, FloatingPoint, SignedNumber, Sqrt, Zero};
 use crate::units::angle::Radians;
 use crate::units::length::Length;
@@ -18,7 +20,10 @@ where
     fn illuminates(
         &self,
         sp: SurfacePoint<T>,
-        shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+        shadow_check: &dyn Fn(
+            ParametricLine<Point3<T>, Vector3<T>>,
+            Option<T>,
+        ) -> Option<<T as Div>::Output>,
     ) -> bool;
 }
 
@@ -56,13 +61,16 @@ where
     fn illuminates(
         &self,
         sp: SurfacePoint<T>,
-        shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+        shadow_check: &dyn Fn(
+            ParametricLine<Point3<T>, Vector3<T>>,
+            Option<T>,
+        ) -> Option<<T as Div>::Output>,
     ) -> bool {
         self.direction.dot(sp.n.as_vector()) > Zero::zero()
-            && shadow_check(ParametricLine::new(
-                sp.p,
-                self.direction_from(sp) * T::one(),
-            ))
+            && shadow_check(
+                ParametricLine::new(sp.p, self.direction_from(sp) * T::one()),
+                None,
+            )
             .is_none()
     }
 }
@@ -96,13 +104,16 @@ where
     fn illuminates(
         &self,
         sp: SurfacePoint<T>,
-        shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+        shadow_check: &dyn Fn(
+            ParametricLine<Point3<T>, Vector3<T>>,
+            Option<T>,
+        ) -> Option<<T as Div>::Output>,
     ) -> bool {
         if self.direction_from(sp).dot(sp.n.as_vector()) > Zero::zero() {
-            let ot = shadow_check(ParametricLine::new(
-                sp.p,
-                self.direction_from(sp) * T::one(),
-            ));
+            let ot = shadow_check(
+                ParametricLine::new(sp.p, self.direction_from(sp) * T::one()),
+                None,
+            );
             match ot {
                 Some(t) => t > ((self.position - sp.p).magnitude() / T::one()),
                 None => true,
@@ -160,14 +171,17 @@ where
     fn illuminates(
         &self,
         sp: SurfacePoint<T>,
-        shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+        shadow_check: &dyn Fn(
+            ParametricLine<Point3<T>, Vector3<T>>,
+            Option<T>,
+        ) -> Option<<T as Div>::Output>,
     ) -> bool {
         let direction = self.direction_from(sp);
 
         if direction.dot(sp.n.as_vector()) > Zero::zero()
             && (-direction).dot(self.direction) > self.angle.cos()
         {
-            let ot = shadow_check(ParametricLine::new(sp.p, direction * T::one()));
+            let ot = shadow_check(ParametricLine::new(sp.p, direction * T::one()), None);
             match ot {
                 Some(t) => t > ((self.position - sp.p).magnitude() / T::one()),
                 None => true,
@@ -202,9 +216,75 @@ where
     fn illuminates(
         &self,
         _sp: SurfacePoint<T>,
-        _shadow_check: &dyn Fn(ParametricLine<Point3<T>, Vector3<T>>) -> Option<<T as Div>::Output>,
+        _shadow_check: &dyn Fn(
+            ParametricLine<Point3<T>, Vector3<T>>,
+            Option<T>,
+        ) -> Option<<T as Div>::Output>,
     ) -> bool {
         true
+    }
+
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+        sp.n.as_vector().normalized()
+    }
+}
+
+pub struct AmbientOcclusionLight<T: Length, C> {
+    color: C,
+    patterns: SamplingPatternSet<Point3<T::ValueType>>,
+    distance: T,
+}
+
+impl<T: Length, C> AmbientOcclusionLight<T, C> {
+    pub fn new(
+        color: C,
+        patterns: SamplingPatternSet<Point3<T::ValueType>>,
+        distance: T,
+    ) -> AmbientOcclusionLight<T, C> {
+        AmbientOcclusionLight {
+            color,
+            patterns,
+            distance,
+        }
+    }
+}
+
+impl<T: Length, C> Light<T, C> for AmbientOcclusionLight<T, C>
+where
+    C: Copy,
+    T: Length,
+    <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
+    <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+{
+    fn get_color(&self) -> C {
+        self.color
+    }
+
+    fn illuminates(
+        &self,
+        sp: SurfacePoint<T>,
+        shadow_check: &dyn Fn(
+            ParametricLine<Point3<T>, Vector3<T>>,
+            Option<T>,
+        ) -> Option<<T as Div>::Output>,
+    ) -> bool {
+        let mut rnd = WichmannHillPRNG::new_random();
+
+        let w = sp.n.as_vector();
+        let rnd_vector: Vector3<T::ValueType> =
+            Vector3::new(rnd.next_random(), rnd.next_random(), rnd.next_random()).normalized();
+        let v = Vector3::cross(w, rnd_vector).normalized();
+        let u = Vector3::cross(v, w);
+
+        let pattern = self.patterns.draw_pattern(&mut rnd);
+
+        let sample = pattern.draw_point(&mut rnd);
+        let direction = (u * sample.x + v * sample.y + w * sample.z).normalized() * T::one();
+
+        let shadow_ray = ParametricLine::new(sp.p, direction);
+
+        shadow_check(shadow_ray, Some(self.distance)).is_none()
     }
 
     fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {

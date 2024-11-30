@@ -185,7 +185,6 @@ mod tests {
             _sp: SurfacePoint<T>,
             _d: Vector3<T>,
             _lights: Vec<&Box<dyn Light<T, RGB<<T as Length>::ValueType>>>>,
-            _ambient_light: RGB<<T as Length>::ValueType>,
         ) -> RGB<<T as Length>::ValueType> {
             self.color
         }

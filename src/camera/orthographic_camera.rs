@@ -53,7 +53,7 @@ where
         size: Vector2<<T as Div>::Output>,
         p: Point2<<T as Div>::Output>,
         _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
-    ) -> Vec<ParametricLine<Point3<T>, Vector3<T>>> {
+    ) -> Option<ParametricLine<Point3<T>, Vector3<T>>> {
         let aspect_ratio = size.x / size.y;
 
         let d = -(self.w * T::one());
@@ -65,7 +65,7 @@ where
             + self.u * T::one() * aspect_ratio * self.scale * x
             + self.v * T::one() * self.scale * y;
 
-        vec![ParametricLine::new(o, d)]
+        Some(ParametricLine::new(o, d))
     }
 }
 
@@ -73,7 +73,7 @@ where
 mod tests {
     use super::*;
 
-    use crate::sampling::SamplingPatternSet;
+    use crate::sampling::{RegularPatternGenerator, SamplingPatternSet};
 
     macro_rules! new_orthographic_camera {
         ($type: ty, $name: ident) => {
@@ -132,23 +132,23 @@ mod tests {
 
                 assert_eq!(
                     orth.ray_for(size, Point2::new(320.0, 240.0), &patterns[0]),
-                    vec![center]
+                    Some(center)
                 );
                 assert_eq!(
                     orth.ray_for(size, Point2::new(0.0, 480.0), &patterns[0]),
-                    vec![upper_left]
+                    Some(upper_left)
                 );
                 assert_eq!(
                     orth.ray_for(size, Point2::new(0.0, 0.0), &patterns[0]),
-                    vec![lower_left]
+                    Some(lower_left)
                 );
                 assert_eq!(
                     orth.ray_for(size, Point2::new(640.0, 0.0), &patterns[0]),
-                    vec![lower_right]
+                    Some(lower_right)
                 );
                 assert_eq!(
                     orth.ray_for(size, Point2::new(640.0, 480.0), &patterns[0]),
-                    vec![upper_right]
+                    Some(upper_right)
                 );
             }
         };

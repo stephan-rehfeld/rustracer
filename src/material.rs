@@ -17,22 +17,19 @@ pub trait Material<T: Length> {
         sp: SurfacePoint<T>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
-        ambient_light: Self::ColorType,
     ) -> Self::ColorType;
 }
 
 impl<T: Length, C: Color> Material<T> for Box<dyn Material<T, ColorType = C>> {
     type ColorType = C;
 
-    // Change parameter to Surface Point
     fn color_for(
         &self,
         sp: SurfacePoint<T>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
-        ambient_light: Self::ColorType,
     ) -> Self::ColorType {
-        self.deref().color_for(sp, d, lights, ambient_light)
+        self.deref().color_for(sp, d, lights)
     }
 }
 
@@ -56,7 +53,6 @@ impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material
         sp: SurfacePoint<T>,
         _d: Vector3<T>,
         _lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
-        _ambient_light: Self::ColorType,
     ) -> Self::ColorType {
         self.texture.get(sp.uv)
     }
@@ -84,17 +80,15 @@ where
         sp: SurfacePoint<T>,
         _d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
-        ambient_light: Self::ColorType,
     ) -> Self::ColorType {
-        self.texture.get(sp.uv) * ambient_light
-            + lights
-                .iter()
-                .map(|light| {
-                    self.texture.get(sp.uv)
-                        * light.get_color()
-                        * light.direction_from(sp).dot(sp.n.as_vector())
-                })
-                .sum()
+        lights
+            .iter()
+            .map(|light| {
+                self.texture.get(sp.uv)
+                    * light.get_color()
+                    * light.direction_from(sp).dot(sp.n.as_vector())
+            })
+            .sum()
     }
 }
 
@@ -132,12 +126,10 @@ where
         sp: SurfacePoint<T>,
         d: Vector3<T>,
         lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
-        ambient_light: Self::ColorType,
     ) -> Self::ColorType {
         lights
             .iter()
             .map(|light| {
-                let ambient_term = self.diffuse_texture.get(sp.uv) * ambient_light;
                 let diffuse_term = self.diffuse_texture.get(sp.uv)
                     * light.get_color()
                     * light.direction_from(sp).dot(sp.n.as_vector());
@@ -148,7 +140,7 @@ where
                         .dot(d.normalized())
                         .max(Zero::zero())
                         .powf(self.exponent);
-                ambient_term + diffuse_term + specular_term
+                diffuse_term + specular_term
             })
             .sum()
     }

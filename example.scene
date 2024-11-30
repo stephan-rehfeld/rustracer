@@ -1,6 +1,6 @@
 background_color: 0.7 0.7 0.7
 
-ambient_light: 0.2 0.2 0.2
+ambient_light: 0.0 0.0 0.0
 
 plane {
     position: 0.0 0.0 0.0
@@ -40,10 +40,14 @@ sphere {
     position: 3.0 1.0 3.0
     scale: 1.0 1.0 1.0
     rotation: 0.0 0.0 0.0
-    material: lambert_material {
-        texture: single_color_texture {
+    material: phong_material {
+        diffuse_texture: single_color_texture {
             color: 0.2 0.2 0.8
         }
+        specular_texture: single_color_texture {
+            color: 1.0 1.0 1.0
+        }
+        exponent: 64
     }
 }
 perspective_camera {

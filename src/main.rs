@@ -4,8 +4,12 @@ use rustracer::image::farbfeld::Encoder;
 use rustracer::image::sampler::Sampler;
 use rustracer::math::{Point2, Vector2};
 use rustracer::random::{RandomNumberGenerator, WichmannHillPRNG};
-use rustracer::ray_casting::{AmbientOcclusion, RayCaster, Scene};
-use rustracer::sampling::SamplingPatternSet;
+use rustracer::ray_casting::{RayCaster, Scene};
+use rustracer::sampling::{
+    HammersleyPatternGenerator, JitteredPatternGenerator, MultiJitteredPatterGenerator,
+    NRooksPatternGenerator, PatternMapping, RandomPatternGenerator, RegularPatternGenerator,
+    SamplingPatternSet,
+};
 use rustracer::units::length::Meter;
 
 use std::env;
@@ -279,26 +283,14 @@ fn main() {
                 return;
             }
 
-            let mut rnd = WichmannHillPRNG::new_random();
-
-            let ambient_occolusion = AmbientOcclusion::new(
-                SamplingPatternSet::<Point2<FloatingPointType>>::multi_jittered_patterns(
-                    25, 10, 10, &mut rnd,
-                )
-                .mapped_to_hemisphere(5.0),
-                LengthType::new(2.0),
-            );
-
             let raytracer = RayCaster::new(
                 config.size,
                 camera.unwrap(),
                 config.camera_sampling_patterns.mapped_to_disc(),
                 scene.geometries,
                 scene.lights,
-                scene.ambient_light,
                 scene.bg_color,
                 0.0001,
-                Some(ambient_occolusion),
             );
 
             let image_data = raytracer

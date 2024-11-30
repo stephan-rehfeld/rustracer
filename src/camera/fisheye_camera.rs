@@ -57,7 +57,7 @@ where
         size: Vector2<<T as Div>::Output>,
         p: Point2<<T as Div>::Output>,
         _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
-    ) -> Vec<ParametricLine<Point3<T>, Vector3<T>>> {
+    ) -> Option<ParametricLine<Point3<T>, Vector3<T>>> {
         let half_size = size.half();
         let centerd_p = p - half_size;
 
@@ -73,9 +73,9 @@ where
             let direction = self.u * psi.sin() * cos_alpha + self.v * psi.sin() * sin_alpha
                 - self.w * psi.cos();
 
-            vec![ParametricLine::new(self.e, direction * T::one())]
+            Some(ParametricLine::new(self.e, direction * T::one()))
         } else {
-            Vec::new()
+            None
         }
     }
 }
