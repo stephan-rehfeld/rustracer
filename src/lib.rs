@@ -1,7 +1,6 @@
 use std::ops::{Div, Mul};
 
 use color::Color;
-use image::Image;
 use material::Material;
 use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::transform::Transform3;
@@ -115,19 +114,6 @@ where
 
         hits
     }
-}
-
-pub trait Raytracer: Image {
-    type ScalarType;
-    type LengthType: Length;
-    type PointType: Point<ValueType = Self::LengthType>;
-    type VectorType: Vector<ValueType = Self::LengthType>;
-    type NormalType: Normal<ValueType = Self::ScalarType>;
-    type ColorType: Color<ChannelType = Self::ScalarType>;
-
-    type Ray;
-
-    type RenderableTraitType: ?Sized;
 }
 
 #[cfg(test)]

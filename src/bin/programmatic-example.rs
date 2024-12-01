@@ -1,5 +1,6 @@
-use rustracer::camera::PinholeCamera;
+use rustracer::camera::{PinholeCamera, RaytracingCamera};
 use rustracer::color::{RGB, RGBA};
+use rustracer::diffuse_ray_tracer::DiffuseRayTracer;
 use rustracer::image::converter::Converter;
 use rustracer::image::farbfeld::Encoder;
 use rustracer::image::SingleColorImage;
@@ -8,18 +9,20 @@ use rustracer::material::{LambertMaterial, PhongMaterial};
 use rustracer::math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle3};
 use rustracer::math::transform::Transform3;
 use rustracer::math::{Normal3, Point2, Point3, Vector2, Vector3};
-use rustracer::ray_casting::RayCaster;
+use rustracer::random::WichmannHillPRNG;
+use rustracer::ray_casting::Scene;
 use rustracer::sampling::{RegularPatternGenerator, SamplingPatternSet};
 use rustracer::scene_graph::RenderableGeometry;
 use rustracer::traits::ToRadians;
 use rustracer::units::angle::Degrees;
 use rustracer::units::length::Meter;
-use rustracer::Raytracer;
+use rustracer::Renderable;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
 fn main() {
-    let size = Vector2::new(640.0, 480.0);
+    let size = Vector2::new(640, 480);
 
     let plane = ImplicitPlane3::new(
         Point3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(0.0)),
@@ -85,7 +88,19 @@ fn main() {
         Transform3::<f64>::ident(),
     ));
 
-    let geometries: Vec<Box<<RayCaster<Meter<f64>, RGB<f64>> as Raytracer>::RenderableTraitType>> = vec![
+    let geometries: Vec<
+        Box<
+            dyn Renderable<
+                Meter<f64>,
+                ScalarType = f64,
+                ColorType = RGB<f64>,
+                LengthType = Meter<f64>,
+                VectorType = Vector3<Meter<f64>>,
+                PointType = Point3<Meter<f64>>,
+                NormalType = Normal3<f64>,
+            >,
+        >,
+    > = vec![
         plane_geometry,
         aab_geometry,
         sphere_geometry,
@@ -116,21 +131,22 @@ fn main() {
         Degrees::<f64>::new(90.0).to_radians(),
     ));
 
-    let raytracer = RayCaster::new(
-        size,
-        cam,
-        SamplingPatternSet::<Point2<f64>>::regular_pattern(1, 1),
-        geometries,
-        lights,
-        RGB::new(0.0, 0.0, 0.0),
-        0.0001,
-    );
+    let mut cameras: HashMap<String, Box<dyn RaytracingCamera<Meter<f64>>>> = HashMap::new();
+    cameras.insert(String::from("main"), cam);
 
-    let image_data = raytracer
+    let diffuse_ray_tracer =
+        DiffuseRayTracer::new(SamplingPatternSet::regular_pattern(1, 1), 0.0001);
+
+    let scene = Scene::new(RGB::new(0.0, 0.0, 0.0), lights, cameras, geometries);
+
+    let rnd = WichmannHillPRNG::new_random();
+
+    let rendered_image = diffuse_ray_tracer.render(scene, "main", size, rnd);
+
+    let image_data = rendered_image
         .clamp_color(RGB::new(0.0, 0.0, 0.0), RGB::new(1.0, 1.0, 1.0))
         .convert_color::<RGBA<f64>>()
         .convert_color::<RGBA<u16>>()
-        .convert_coordinate::<Point2<usize>>()
         .encode();
 
     let f = File::create("output.ff").unwrap();
