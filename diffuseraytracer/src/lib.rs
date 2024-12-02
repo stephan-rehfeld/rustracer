@@ -1,22 +1,18 @@
 use std::ops::{Div, Mul};
 
+use cg_basics::material::Material;
 use colors::Color;
-use material::Material;
 use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::transform::Transform3;
 use math::{Normal, Normal3, Point, Point3, Vector, Vector3};
 use traits::{Number, Sqrt};
 use units::length::Length;
 
-use crate::scene_graph::RenderableGeometry;
+use cg_basics::scene_graph::RenderableGeometry;
 
-pub mod camera;
 pub mod diffuse_ray_tracer;
-pub mod light;
-pub mod material;
 pub mod parser;
 pub mod ray_casting;
-pub mod scene_graph;
 
 type Cylinder<T> = math::geometry::ImplicitCylinder<T>;
 type Disc<T> = math::geometry::ImplicitDisc3<T>;
@@ -119,7 +115,7 @@ mod tests {
     use math::{Normal3, Point2};
     use traits::Zero;
 
-    use crate::light::Light;
+    use cg_basics::light::Light;
     use units::length::Meter;
 
     #[derive(Debug, PartialEq, Clone, Copy)]

@@ -1,7 +1,7 @@
 use std::ops::{AddAssign, DivAssign};
 
-use crate::material::Material;
 use crate::ray_casting::Scene;
+use cg_basics::material::Material;
 use colors::Color;
 use image::{ImageBuffer, WritableImage};
 use math::geometry::SurfacePoint;

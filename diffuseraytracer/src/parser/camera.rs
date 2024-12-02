@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use crate::camera::{
+use cg_basics::camera::{
     FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, SphericalCamera,
 };
 use math::{Point3, Vector3};

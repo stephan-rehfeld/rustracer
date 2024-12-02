@@ -5,15 +5,15 @@ use std::fs;
 use std::ops::Div;
 use std::str::FromStr;
 
-use crate::camera::{
+use crate::ray_casting::Scene;
+use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
+use cg_basics::camera::{
     FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, RaytracingCamera,
     SphericalCamera,
 };
-use crate::light::{AmbientLight, Light, PointLight, SpotLight};
-use crate::material::Material;
-use crate::ray_casting::Scene;
-use crate::scene_graph::RenderableGeometry;
-use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
+use cg_basics::light::{AmbientLight, Light, PointLight, SpotLight};
+use cg_basics::material::Material;
+use cg_basics::scene_graph::RenderableGeometry;
 use colors::RGB;
 use math::transform::Transform3;
 use math::{Normal3, Orthonormal3, Point3, Vector3};

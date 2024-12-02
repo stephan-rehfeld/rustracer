@@ -2,4 +2,4 @@
 
 resolver = "2"
 
-members = ["colors", "diffuseraytracer", "image", "math", "random", "sampling", "traits", "units"]
+members = [ "cg_basics","colors", "diffuseraytracer", "image", "math", "random", "sampling", "traits", "units"]

@@ -1,0 +1,13 @@
+[package]
+name = "cg_basics"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+math = { path = "../math" }
+sampling = { path = "../sampling" }
+traits = { path = "../traits" }
+units = { path = "../units" }
+random = { path = "../random" }
+colors = { path = "../colors" }
+image = { path = "../image" }

@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use crate::light::{AmbientOcclusionLight, PointLight, SpotLight};
+use cg_basics::light::{AmbientOcclusionLight, PointLight, SpotLight};
 use colors::RGB;
 use math::{Point2, Point3, Vector3};
 use random::{RandomNumberGenerator, WichmannHillPRNG};

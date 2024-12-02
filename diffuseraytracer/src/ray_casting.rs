@@ -1,11 +1,21 @@
 use std::collections::HashMap;
 
-use crate::camera::RaytracingCamera;
-use crate::light::Light;
 use crate::Renderable;
+use cg_basics::camera::RaytracingCamera;
+use cg_basics::light::Light;
 use colors::Color;
 use math::{Normal3, Point3, Vector3};
 use units::length::Length;
+
+pub struct NewScene<L> {
+    lights: Vec<L>,
+}
+
+impl<L> NewScene<L> {
+    pub fn new(lights: Vec<L>) -> NewScene<L> {
+        NewScene { lights }
+    }
+}
 
 pub struct Scene<T: Length, C>
 where

@@ -2,9 +2,9 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use crate::material::Material;
-use crate::scene_graph::RenderableGeometry;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
+use cg_basics::material::Material;
+use cg_basics::scene_graph::RenderableGeometry;
 use colors::RGB;
 use math::transform::Transform3;
 use math::{Normal3, Point2, Point3, Vector3};

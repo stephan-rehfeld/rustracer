@@ -3,6 +3,19 @@
 version = 3
 
 [[package]]
+name = "cg_basics"
+version = "0.1.0"
+dependencies = [
+ "colors",
+ "image",
+ "math",
+ "random",
+ "sampling",
+ "traits",
+ "units",
+]
+
+[[package]]
 name = "colors"
 version = "0.1.0"
 dependencies = [
@@ -13,6 +26,7 @@ dependencies = [
 name = "diffuseraytracer"
 version = "0.1.0"
 dependencies = [
+ "cg_basics",
  "colors",
  "image",
  "math",

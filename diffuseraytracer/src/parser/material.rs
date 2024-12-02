@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use crate::material::{LambertMaterial, Material, PhongMaterial, UnshadedMaterial};
+use cg_basics::material::{LambertMaterial, Material, PhongMaterial, UnshadedMaterial};
 use colors::RGB;
 use image::Image;
 use math::Point2;

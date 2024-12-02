@@ -1,10 +1,10 @@
+use cg_basics::camera::{PinholeCamera, RaytracingCamera};
+use cg_basics::light::{AmbientLight, Light, PointLight, SpotLight};
+use cg_basics::material::{LambertMaterial, PhongMaterial};
+use cg_basics::scene_graph::RenderableGeometry;
 use colors::{RGB, RGBA};
-use diffuseraytracer::camera::{PinholeCamera, RaytracingCamera};
 use diffuseraytracer::diffuse_ray_tracer::DiffuseRayTracer;
-use diffuseraytracer::light::{AmbientLight, Light, PointLight, SpotLight};
-use diffuseraytracer::material::{LambertMaterial, PhongMaterial};
-use diffuseraytracer::ray_casting::Scene;
-use diffuseraytracer::scene_graph::RenderableGeometry;
+use diffuseraytracer::ray_casting::{NewScene, Scene};
 use diffuseraytracer::Renderable;
 use image::converter::Converter;
 use image::farbfeld::Encoder;
