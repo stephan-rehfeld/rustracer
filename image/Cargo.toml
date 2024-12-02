@@ -1,0 +1,11 @@
+[package]
+name = "image"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+colors = { path = "../colors" }
+math = { path = "../math" }
+traits = { path = "../traits" }
+random = { path = "../random" }
+sampling = { path = "../sampling" }

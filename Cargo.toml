@@ -1,15 +1,5 @@
-[package]
-name = "rustracer"
-version = "0.1.0"
-edition = "2021"
-default-run = "rustracer"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+resolver = "2"
 
-[dependencies]
-
-[[bin]]
-name = "pattern-renderer"
-
-[[bin]]
-name = "programmatic-example"
+members = ["colors", "diffuseraytracer", "image", "math", "random", "sampling", "traits", "units"]

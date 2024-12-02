@@ -3,5 +3,63 @@
 version = 3
 
 [[package]]
-name = "rustracer"
+name = "colors"
 version = "0.1.0"
+dependencies = [
+ "traits",
+]
+
+[[package]]
+name = "diffuseraytracer"
+version = "0.1.0"
+dependencies = [
+ "colors",
+ "image",
+ "math",
+ "random",
+ "sampling",
+ "traits",
+ "units",
+]
+
+[[package]]
+name = "image"
+version = "0.1.0"
+dependencies = [
+ "colors",
+ "math",
+ "random",
+ "sampling",
+ "traits",
+]
+
+[[package]]
+name = "math"
+version = "0.1.0"
+dependencies = [
+ "traits",
+]
+
+[[package]]
+name = "random"
+version = "0.1.0"
+
+[[package]]
+name = "sampling"
+version = "0.1.0"
+dependencies = [
+ "math",
+ "random",
+ "traits",
+]
+
+[[package]]
+name = "traits"
+version = "0.1.0"
+
+[[package]]
+name = "units"
+version = "0.1.0"
+dependencies = [
+ "traits",
+]

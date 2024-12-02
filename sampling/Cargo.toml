@@ -1,0 +1,9 @@
+[package]
+name = "sampling"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+random = { path = "../random" }
+math = { path = "../math" }
+traits = { path = "../traits" }

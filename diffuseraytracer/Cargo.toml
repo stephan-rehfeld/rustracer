@@ -1,0 +1,22 @@
+[package]
+name = "diffuseraytracer"
+version = "0.1.0"
+edition = "2021"
+default-run = "diffuseraytracer"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+traits = { path = "../traits" }
+units = { path = "../units" }
+math = { path = "../math" }
+colors = { path = "../colors" }
+sampling = { path = "../sampling" }
+random = { path = "../random" }
+image = { path = "../image" }
+
+[[bin]]
+name = "pattern-renderer"
+
+[[bin]]
+name = "programmatic-example"
