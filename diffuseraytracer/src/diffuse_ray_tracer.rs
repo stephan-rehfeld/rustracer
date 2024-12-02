@@ -1,7 +1,9 @@
 use std::ops::{AddAssign, DivAssign};
 
+use crate::light::Light;
+use crate::material::Material;
 use crate::ray_casting::Scene;
-use cg_basics::material::Material;
+use crate::Renderable;
 use colors::Color;
 use image::{ImageBuffer, WritableImage};
 use math::geometry::SurfacePoint;
@@ -28,7 +30,7 @@ impl<T: Length> DiffuseRayTracer<T> {
     }
     pub fn render<C: Color<ChannelType = T::ValueType>>(
         self,
-        mut scene: Scene<T, C>,
+        mut scene: Scene<T, C, Box<dyn Light<T, C>>, Box<dyn Renderable<T, C>>>,
         camera_id: &str,
         size: Vector2<usize>,
         rnd: WichmannHillPRNG,
@@ -36,7 +38,7 @@ impl<T: Length> DiffuseRayTracer<T> {
     where
         C: AddAssign + DivAssign<C::ChannelType>,
         C::ChannelType: Zero + One,
-        i32: Into<T::ValueType>,
+        u16: Into<T::ValueType>,
     {
         let mut rnd = rnd;
 
@@ -45,7 +47,7 @@ impl<T: Length> DiffuseRayTracer<T> {
         let camera = scene.cameras.remove(camera_id).unwrap();
 
         let float_size =
-            Vector2::<T::ValueType>::new((size.x as i32).into(), (size.y as i32).into());
+            Vector2::<T::ValueType>::new((size.x as u16).into(), (size.y as u16).into());
 
         for x in 0..size.x {
             for y in 0..size.y {
@@ -58,8 +60,8 @@ impl<T: Length> DiffuseRayTracer<T> {
 
                 for i in 0..pattern.len() {
                     let sp = Point2::<T::ValueType>::new(
-                        (p.x as i32).into(),
-                        ((size.y - p.y - 1) as i32).into(),
+                        (p.x as u16).into(),
+                        ((size.y - p.y - 1) as u16).into(),
                     ) + pattern[i].as_vector();
 
                     let ray = camera.ray_for(

@@ -1,16 +1,19 @@
 use std::ops::{Div, Mul};
 
-use cg_basics::material::Material;
 use colors::Color;
+use material::Material;
 use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::transform::Transform3;
-use math::{Normal, Normal3, Point, Point3, Vector, Vector3};
+use math::{Point3, Vector3};
 use traits::{Number, Sqrt};
 use units::length::Length;
 
 use cg_basics::scene_graph::RenderableGeometry;
 
+pub mod camera;
 pub mod diffuse_ray_tracer;
+pub mod light;
+pub mod material;
 pub mod parser;
 pub mod ray_casting;
 
@@ -21,25 +24,19 @@ type Sphere<T> = math::geometry::Sphere<T>;
 type AxisAlignedBox<T> = math::geometry::AxisAlignedBox<Point3<T>>;
 type Triangle<T> = math::geometry::Triangle3<T>;
 
-pub trait Renderable<T: Length> {
-    type ScalarType;
-    type LengthType;
-    type VectorType: Vector<ValueType = Self::LengthType>;
-    type PointType: Point<ValueType = Self::LengthType>;
-    type NormalType: Normal<ValueType = Self::ScalarType>;
-    type ColorType: Color<ChannelType = Self::ScalarType>;
-
+pub trait Renderable<T: Length, C: Color<ChannelType = T::ValueType>> {
     fn intersect(
         &self,
-        ray: ParametricLine<Self::PointType, Self::VectorType>,
+        ray: ParametricLine<Point3<T>, Vector3<T>>,
     ) -> Vec<(
-        Self::ScalarType,
+        T::ValueType,
         SurfacePoint<T>,
-        &dyn Material<Self::LengthType, ColorType = Self::ColorType>,
+        &dyn Material<T, ColorType = C>,
     )>;
 }
 
-impl<G, T: Length, M> Renderable<T> for RenderableGeometry<G, M, Transform3<T::ValueType>>
+impl<G, T: Length, M> Renderable<T, <M as Material<T>>::ColorType>
+    for RenderableGeometry<G, M, Transform3<T::ValueType>>
 where
     ParametricLine<Point3<T>, Vector3<T>>:
         Intersect<G, Output = Vec<(<T as Div>::Output, SurfacePoint<T>)>>,
@@ -49,20 +46,13 @@ where
     M: Material<T>,
     <M as Material<T>>::ColorType: Color<ChannelType = <T as Div>::Output>,
 {
-    type ScalarType = <T as Div>::Output;
-    type LengthType = T;
-    type VectorType = Vector3<T>;
-    type PointType = Point3<T>;
-    type NormalType = Normal3<<T as Div>::Output>;
-    type ColorType = <M as Material<T>>::ColorType;
-
     fn intersect(
         &self,
-        ray: ParametricLine<Self::PointType, Self::VectorType>,
+        ray: ParametricLine<Point3<T>, Vector3<T>>,
     ) -> Vec<(
-        Self::ScalarType,
+        T::ValueType,
         SurfacePoint<T>,
-        &dyn Material<T, ColorType = Self::ColorType>,
+        &dyn Material<T, ColorType = <M as Material<T>>::ColorType>,
     )> {
         let transformed_ray = ParametricLine::new(
             self.transform.inverse * ray.origin,
@@ -70,9 +60,9 @@ where
         );
 
         let mut hits: Vec<(
-            Self::ScalarType,
+            T::ValueType,
             SurfacePoint<T>,
-            &dyn Material<T, ColorType = Self::ColorType>,
+            &dyn Material<T, ColorType = <M as Material<T>>::ColorType>,
         )> = transformed_ray
             .intersect(self.geometry)
             .iter()
@@ -80,7 +70,7 @@ where
                 (
                     t.0,
                     t.1,
-                    &self.material as &dyn Material<T, ColorType = Self::ColorType>,
+                    &self.material as &dyn Material<T, ColorType = <M as Material<T>>::ColorType>,
                 )
             })
             .collect();
@@ -114,9 +104,9 @@ mod tests {
     use colors::RGB;
     use math::{Normal3, Point2};
     use traits::Zero;
-
-    use cg_basics::light::Light;
     use units::length::Meter;
+
+    use crate::light::Light;
 
     #[derive(Debug, PartialEq, Clone, Copy)]
     struct MockGeometry<T>

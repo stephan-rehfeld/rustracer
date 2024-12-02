@@ -1,6 +1,8 @@
 use colors::{RGB, RGBA};
 use diffuseraytracer::diffuse_ray_tracer::DiffuseRayTracer;
+use diffuseraytracer::light::Light;
 use diffuseraytracer::ray_casting::Scene;
+use diffuseraytracer::Renderable;
 use image::converter::Converter;
 use image::farbfeld::Encoder;
 use math::{Point2, Vector2};
@@ -15,12 +17,15 @@ use std::env;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
-type FloatingPointType = f64;
+type FloatingPointType = f32;
 type LengthType = Meter<FloatingPointType>;
 type ColorType = RGB<FloatingPointType>;
 
+type LightContainer = Box<dyn Light<LengthType, ColorType>>;
+type GeometryContainer = Box<dyn Renderable<LengthType, ColorType>>;
+
 struct Configuration {
-    scene: Scene<LengthType, ColorType>,
+    scene: Scene<LengthType, ColorType, LightContainer, GeometryContainer>,
     camera_name: String,
     size: Vector2<usize>,
     output: String,
@@ -177,7 +182,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
     _ = args.next();
     let mut size = Vector2::new(640, 480);
     let mut camera_name: String = String::from("main");
-    let mut scene: Option<Scene<LengthType, ColorType>> = None;
+    let mut scene: Option<Scene<LengthType, ColorType, LightContainer, GeometryContainer>> = None;
     let mut output: String = String::from("out.ff");
     let mut rnd = WichmannHillPRNG::new_random();
     let mut sampling_patterns =
@@ -271,7 +276,7 @@ fn main() {
 
             let image_data = rendered_image
                 .clamp_color(RGB::new(0.0, 0.0, 0.0), RGB::new(1.0, 1.0, 1.0))
-                .convert_color::<RGBA<f64>>()
+                .convert_color::<RGBA<FloatingPointType>>()
                 .convert_color::<RGBA<u16>>()
                 .encode();
 

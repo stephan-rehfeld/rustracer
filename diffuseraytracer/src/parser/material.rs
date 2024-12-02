@@ -2,13 +2,14 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use cg_basics::material::{LambertMaterial, Material, PhongMaterial, UnshadedMaterial};
+use cg_basics::material::{LambertMaterial, PhongMaterial, UnshadedMaterial};
 use colors::RGB;
 use image::Image;
 use math::Point2;
 use traits::{ConvenientNumber, FloatingPoint, Number, One, Sqrt};
 use units::length::Length;
 
+use crate::material::Material;
 use crate::parser::texture;
 use crate::parser::util;
 use crate::parser::{FromTokens, ParsingError};

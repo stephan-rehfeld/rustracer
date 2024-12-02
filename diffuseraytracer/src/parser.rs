@@ -5,18 +5,19 @@ use std::fs;
 use std::ops::Div;
 use std::str::FromStr;
 
+use crate::camera::RaytracingCamera;
+use crate::light::Light;
+use crate::material::Material;
 use crate::ray_casting::Scene;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
 use cg_basics::camera::{
-    FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, RaytracingCamera,
-    SphericalCamera,
+    FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, SphericalCamera,
 };
-use cg_basics::light::{AmbientLight, Light, PointLight, SpotLight};
-use cg_basics::material::Material;
+use cg_basics::light::{AmbientLight, PointLight, SpotLight};
 use cg_basics::scene_graph::RenderableGeometry;
 use colors::RGB;
 use math::transform::Transform3;
-use math::{Normal3, Orthonormal3, Point3, Vector3};
+use math::{Normal3, Orthonormal3};
 use traits::{
     ConvenientNumber, Cos, FloatingPoint, Number, SelfMulNumber, SignedNumber, Sin, Sqrt, Zero,
 };
@@ -103,7 +104,15 @@ trait FromTokens: Sized {
 
 pub fn parse_scene<T: Length + SignedNumber<T::ValueType> + ConvenientNumber + 'static>(
     filename: &str,
-) -> Result<Scene<T, RGB<<T as Length>::ValueType>>, ParsingError>
+) -> Result<
+    Scene<
+        T,
+        RGB<<T as Length>::ValueType>,
+        Box<dyn Light<T, RGB<<T as Length>::ValueType>>>,
+        Box<dyn Renderable<T, RGB<T::ValueType>>>,
+    >,
+    ParsingError,
+>
 where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber,
     <<T as Length>::ValueType as FromStr>::Err: Error,
@@ -124,19 +133,7 @@ where
         .split(&[' ', '\t', '\n'])
         .filter(|token| !token.is_empty());
 
-    let mut geometries: Vec<
-        Box<
-            dyn Renderable<
-                T,
-                ScalarType = <T as Length>::ValueType,
-                ColorType = RGB<<T as Length>::ValueType>,
-                LengthType = T,
-                VectorType = Vector3<T>,
-                PointType = Point3<T>,
-                NormalType = Normal3<<T as Length>::ValueType>,
-            >,
-        >,
-    > = Vec::new();
+    let mut geometries: Vec<Box<dyn Renderable<T, RGB<T::ValueType>>>> = Vec::new();
     let mut lights: Vec<Box<dyn Light<T, RGB<<T as Length>::ValueType>>>> = Vec::new();
     let mut cameras: HashMap<String, Box<dyn RaytracingCamera<T>>> = HashMap::new();
     let mut background_color: RGB<<T as Length>::ValueType> =

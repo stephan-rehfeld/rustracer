@@ -1,10 +1,12 @@
-use cg_basics::camera::{PinholeCamera, RaytracingCamera};
-use cg_basics::light::{AmbientLight, Light, PointLight, SpotLight};
+use cg_basics::camera::PinholeCamera;
+use cg_basics::light::{AmbientLight, PointLight, SpotLight};
 use cg_basics::material::{LambertMaterial, PhongMaterial};
 use cg_basics::scene_graph::RenderableGeometry;
 use colors::{RGB, RGBA};
+use diffuseraytracer::camera::RaytracingCamera;
 use diffuseraytracer::diffuse_ray_tracer::DiffuseRayTracer;
-use diffuseraytracer::ray_casting::{NewScene, Scene};
+use diffuseraytracer::light::Light;
+use diffuseraytracer::ray_casting::Scene;
 use diffuseraytracer::Renderable;
 use image::converter::Converter;
 use image::farbfeld::Encoder;
@@ -88,19 +90,7 @@ fn main() {
         Transform3::<f64>::ident(),
     ));
 
-    let geometries: Vec<
-        Box<
-            dyn Renderable<
-                Meter<f64>,
-                ScalarType = f64,
-                ColorType = RGB<f64>,
-                LengthType = Meter<f64>,
-                VectorType = Vector3<Meter<f64>>,
-                PointType = Point3<Meter<f64>>,
-                NormalType = Normal3<f64>,
-            >,
-        >,
-    > = vec![
+    let geometries: Vec<Box<dyn Renderable<Meter<f64>, RGB<f64>>>> = vec![
         plane_geometry,
         aab_geometry,
         sphere_geometry,
