@@ -1,3 +1,27 @@
+use std::collections::HashMap;
+
+pub struct Scene3<C, L, CAM, G> {
+    pub bg_color: C,
+    pub lights: Vec<L>,
+    pub cameras: HashMap<String, CAM>,
+    pub geometries: Vec<G>,
+}
+
+impl<C, L, CAM, G> Scene3<C, L, CAM, G> {
+    pub fn new(
+        bg_color: C,
+        lights: Vec<L>,
+        cameras: HashMap<String, CAM>,
+        geometries: Vec<G>,
+    ) -> Scene3<C, L, CAM, G> {
+        Scene3 {
+            bg_color,
+            lights,
+            cameras,
+            geometries,
+        }
+    }
+}
 pub struct RenderableGeometry<G, M, T> {
     pub geometry: G,
     pub material: M,

@@ -2,11 +2,11 @@ use cg_basics::camera::PinholeCamera;
 use cg_basics::light::{AmbientLight, PointLight, SpotLight};
 use cg_basics::material::{LambertMaterial, PhongMaterial};
 use cg_basics::scene_graph::RenderableGeometry;
+use cg_basics::scene_graph::Scene3;
 use colors::{RGB, RGBA};
 use diffuseraytracer::camera::RaytracingCamera;
 use diffuseraytracer::diffuse_ray_tracer::DiffuseRayTracer;
 use diffuseraytracer::light::Light;
-use diffuseraytracer::ray_casting::Scene;
 use diffuseraytracer::Renderable;
 use image::converter::Converter;
 use image::farbfeld::Encoder;
@@ -127,7 +127,7 @@ fn main() {
     let diffuse_ray_tracer =
         DiffuseRayTracer::new(SamplingPatternSet::regular_pattern(1, 1), 0.0001);
 
-    let scene = Scene::new(RGB::new(0.0, 0.0, 0.0), lights, cameras, geometries);
+    let scene = Scene3::new(RGB::new(0.0, 0.0, 0.0), lights, cameras, geometries);
 
     let rnd = WichmannHillPRNG::new_random();
 

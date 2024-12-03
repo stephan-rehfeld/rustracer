@@ -1,9 +1,10 @@
 use std::ops::{AddAssign, DivAssign};
 
+use crate::camera::RaytracingCamera;
 use crate::light::Light;
 use crate::material::Material;
-use crate::ray_casting::Scene;
 use crate::Renderable;
+use cg_basics::scene_graph::Scene3;
 use colors::Color;
 use image::{ImageBuffer, WritableImage};
 use math::geometry::SurfacePoint;
@@ -30,7 +31,12 @@ impl<T: Length> DiffuseRayTracer<T> {
     }
     pub fn render<C: Color<ChannelType = T::ValueType>>(
         self,
-        mut scene: Scene<T, C, Box<dyn Light<T, C>>, Box<dyn Renderable<T, C>>>,
+        mut scene: Scene3<
+            C,
+            Box<dyn Light<T, C>>,
+            Box<dyn RaytracingCamera<T>>,
+            Box<dyn Renderable<T, C>>,
+        >,
         camera_id: &str,
         size: Vector2<usize>,
         rnd: WichmannHillPRNG,

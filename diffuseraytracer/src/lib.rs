@@ -15,7 +15,6 @@ pub mod diffuse_ray_tracer;
 pub mod light;
 pub mod material;
 pub mod parser;
-pub mod ray_casting;
 
 type Cylinder<T> = math::geometry::ImplicitCylinder<T>;
 type Disc<T> = math::geometry::ImplicitDisc3<T>;

@@ -8,13 +8,13 @@ use std::str::FromStr;
 use crate::camera::RaytracingCamera;
 use crate::light::Light;
 use crate::material::Material;
-use crate::ray_casting::Scene;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
 use cg_basics::camera::{
     FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, SphericalCamera,
 };
 use cg_basics::light::{AmbientLight, PointLight, SpotLight};
 use cg_basics::scene_graph::RenderableGeometry;
+use cg_basics::scene_graph::Scene3;
 use colors::RGB;
 use math::transform::Transform3;
 use math::{Normal3, Orthonormal3};
@@ -105,10 +105,10 @@ trait FromTokens: Sized {
 pub fn parse_scene<T: Length + SignedNumber<T::ValueType> + ConvenientNumber + 'static>(
     filename: &str,
 ) -> Result<
-    Scene<
-        T,
+    Scene3<
         RGB<<T as Length>::ValueType>,
         Box<dyn Light<T, RGB<<T as Length>::ValueType>>>,
+        Box<dyn RaytracingCamera<T>>,
         Box<dyn Renderable<T, RGB<T::ValueType>>>,
     >,
     ParsingError,
@@ -272,5 +272,5 @@ where
         }
     }
 
-    Ok(Scene::new(background_color, lights, cameras, geometries))
+    Ok(Scene3::new(background_color, lights, cameras, geometries))
 }

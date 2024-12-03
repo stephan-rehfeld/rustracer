@@ -1,7 +1,8 @@
+use cg_basics::scene_graph::Scene3;
 use colors::{RGB, RGBA};
+use diffuseraytracer::camera::RaytracingCamera;
 use diffuseraytracer::diffuse_ray_tracer::DiffuseRayTracer;
 use diffuseraytracer::light::Light;
-use diffuseraytracer::ray_casting::Scene;
 use diffuseraytracer::Renderable;
 use image::converter::Converter;
 use image::farbfeld::Encoder;
@@ -17,15 +18,18 @@ use std::env;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
-type FloatingPointType = f32;
+type FloatingPointType = f64;
 type LengthType = Meter<FloatingPointType>;
 type ColorType = RGB<FloatingPointType>;
 
 type LightContainer = Box<dyn Light<LengthType, ColorType>>;
+type CameraContainer = Box<dyn RaytracingCamera<LengthType>>;
 type GeometryContainer = Box<dyn Renderable<LengthType, ColorType>>;
 
+type SceneType = Scene3<ColorType, LightContainer, CameraContainer, GeometryContainer>;
+
 struct Configuration {
-    scene: Scene<LengthType, ColorType, LightContainer, GeometryContainer>,
+    scene: SceneType,
     camera_name: String,
     size: Vector2<usize>,
     output: String,
@@ -182,7 +186,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
     _ = args.next();
     let mut size = Vector2::new(640, 480);
     let mut camera_name: String = String::from("main");
-    let mut scene: Option<Scene<LengthType, ColorType, LightContainer, GeometryContainer>> = None;
+    let mut scene: Option<SceneType> = None;
     let mut output: String = String::from("out.ff");
     let mut rnd = WichmannHillPRNG::new_random();
     let mut sampling_patterns =
