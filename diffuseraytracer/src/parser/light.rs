@@ -4,9 +4,7 @@ use std::str::FromStr;
 
 use cg_basics::light::{AmbientOcclusionLight, PointLight, SpotLight};
 use colors::RGB;
-use math::{Point2, Point3, Vector3};
-use random::{RandomNumberGenerator, WichmannHillPRNG};
-use sampling::{MultiJitteredPatterGenerator, PatternMapping, SamplingPatternSet};
+use math::{Point3, Vector3};
 use traits::floating_point::ToRadians;
 use traits::{FloatingPoint, SignedNumber, Sqrt, Zero};
 use units::angle::Degrees;
@@ -154,9 +152,6 @@ where
     <T as Length>::ValueType: SignedNumber,
     <T as FromStr>::Err: Error + Debug,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
-    SamplingPatternSet<Point2<T::ValueType>>:
-        MultiJitteredPatterGenerator<T::ValueType> + PatternMapping<T::ValueType>,
-    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
 {
     type Err = ParsingError;
 
@@ -168,7 +163,7 @@ where
         }
 
         let mut color = RGB::new(Zero::zero(), Zero::zero(), Zero::zero());
-        let mut mapping_exponent: T::ValueType = T::ValueType::zero();
+        let mut e: T::ValueType = T::ValueType::zero();
         let mut distance: Option<T> = None;
 
         while let Some(token) = tokens.next() {
@@ -198,9 +193,9 @@ where
                     }
                 },
 
-                "mapping_exponent:" => match tokens.next() {
-                    Some(mapping_exponent_string) => match mapping_exponent_string.parse() {
-                        Ok(mp) => mapping_exponent = mp,
+                "e:" => match tokens.next() {
+                    Some(e_string) => match e_string.parse() {
+                        Ok(mp) => e = mp,
                         Err(_) => {
                             return Err(ParsingError::NumberParsingError(
                                 "Unable to parse field of number.",
@@ -223,13 +218,6 @@ where
             }
         }
 
-        let mut rnd = WichmannHillPRNG::new_random();
-
-        Ok(AmbientOcclusionLight::new(
-            color,
-            SamplingPatternSet::<Point2<T::ValueType>>::multi_jittered_patterns(10, 5, 5, &mut rnd)
-                .mapped_to_hemisphere(mapping_exponent),
-            distance.unwrap(),
-        ))
+        Ok(AmbientOcclusionLight::new(color, e, distance.unwrap()))
     }
 }

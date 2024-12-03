@@ -5,7 +5,7 @@ use math::{Point2, Point3};
 use random::RandomNumberGenerator;
 use traits::RadicalInverse;
 
-use super::SamplingPattern;
+use super::{PatternMapping, SamplingPattern};
 
 pub struct SamplingPatternSet<T> {
     patterns: Vec<SamplingPattern<T>>,
@@ -34,12 +34,12 @@ impl<T> Index<usize> for SamplingPatternSet<T> {
     }
 }
 
-pub trait PatternMapping<T> {
+pub trait PatternSetMapping<T> {
     fn mapped_to_disc(&self) -> SamplingPatternSet<Point2<T>>;
     fn mapped_to_hemisphere(&self, e: T) -> SamplingPatternSet<Point3<T>>;
 }
 
-impl PatternMapping<f32> for SamplingPatternSet<Point2<f32>> {
+impl PatternSetMapping<f32> for SamplingPatternSet<Point2<f32>> {
     fn mapped_to_disc(&self) -> SamplingPatternSet<Point2<f32>> {
         let patterns = self
             .patterns
@@ -61,7 +61,7 @@ impl PatternMapping<f32> for SamplingPatternSet<Point2<f32>> {
     }
 }
 
-impl PatternMapping<f64> for SamplingPatternSet<Point2<f64>> {
+impl PatternSetMapping<f64> for SamplingPatternSet<Point2<f64>> {
     fn mapped_to_disc(&self) -> SamplingPatternSet<Point2<f64>> {
         let patterns = self
             .patterns

@@ -53,8 +53,13 @@ impl<T> Index<usize> for SamplingPattern<T> {
     }
 }
 
-impl SamplingPattern<Point2<f32>> {
-    pub fn mapped_to_disc(&self) -> SamplingPattern<Point2<f32>> {
+pub trait PatternMapping<T> {
+    fn mapped_to_disc(&self) -> SamplingPattern<Point2<T>>;
+    fn mapped_to_hemisphere(&self, e: T) -> SamplingPattern<Point3<T>>;
+}
+
+impl PatternMapping<f32> for SamplingPattern<Point2<f32>> {
+    fn mapped_to_disc(&self) -> SamplingPattern<Point2<f32>> {
         let points = self
             .points
             .iter()
@@ -94,7 +99,7 @@ impl SamplingPattern<Point2<f32>> {
         SamplingPattern::new(points)
     }
 
-    pub fn mapped_to_hemisphere(&self, e: f32) -> SamplingPattern<Point3<f32>> {
+    fn mapped_to_hemisphere(&self, e: f32) -> SamplingPattern<Point3<f32>> {
         let points = self
             .points
             .iter()
@@ -117,8 +122,8 @@ impl SamplingPattern<Point2<f32>> {
     }
 }
 
-impl SamplingPattern<Point2<f64>> {
-    pub fn mapped_to_disc(&self) -> SamplingPattern<Point2<f64>> {
+impl PatternMapping<f64> for SamplingPattern<Point2<f64>> {
+    fn mapped_to_disc(&self) -> SamplingPattern<Point2<f64>> {
         let points = self
             .points
             .iter()
@@ -158,7 +163,7 @@ impl SamplingPattern<Point2<f64>> {
         SamplingPattern::new(points)
     }
 
-    pub fn mapped_to_hemisphere(&self, e: f64) -> SamplingPattern<Point3<f64>> {
+    fn mapped_to_hemisphere(&self, e: f64) -> SamplingPattern<Point3<f64>> {
         let points = self
             .points
             .iter()

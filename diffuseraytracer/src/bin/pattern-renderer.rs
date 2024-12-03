@@ -11,7 +11,7 @@ use math::{Point2, Point3, Vector2};
 use random::WichmannHillPRNG;
 use sampling::{
     HammersleyPatternGenerator, JitteredPatternGenerator, MultiJitteredPatterGenerator,
-    NRooksPatternGenerator, PatternMapping, RandomPatternGenerator, RegularPatternGenerator,
+    NRooksPatternGenerator, PatternSetMapping, RandomPatternGenerator, RegularPatternGenerator,
     SamplingPatternSet,
 };
 

@@ -1,7 +1,6 @@
 use std::ops::Div;
 
 use math::{Point3, Vector3};
-use sampling::SamplingPatternSet;
 use units::angle::Radians;
 use units::length::Length;
 
@@ -74,21 +73,13 @@ impl<C> AmbientLight<C> {
 
 pub struct AmbientOcclusionLight<T: Length, C> {
     pub color: C,
-    pub patterns: SamplingPatternSet<Point3<T::ValueType>>,
+    pub e: T::ValueType,
     pub distance: T,
 }
 
 impl<T: Length, C> AmbientOcclusionLight<T, C> {
-    pub fn new(
-        color: C,
-        patterns: SamplingPatternSet<Point3<T::ValueType>>,
-        distance: T,
-    ) -> AmbientOcclusionLight<T, C> {
-        AmbientOcclusionLight {
-            color,
-            patterns,
-            distance,
-        }
+    pub fn new(color: C, e: T::ValueType, distance: T) -> AmbientOcclusionLight<T, C> {
+        AmbientOcclusionLight { color, e, distance }
     }
 }
 

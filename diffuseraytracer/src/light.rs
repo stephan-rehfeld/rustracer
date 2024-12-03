@@ -5,8 +5,9 @@ use cg_basics::light::{
     AmbientLight, AmbientOcclusionLight, DirectionalLight, PointLight, SpotLight,
 };
 use math::geometry::{ParametricLine, SurfacePoint};
-use math::{Point3, Vector3};
+use math::{Point2, Point3, Vector3};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
+use sampling::{PatternMapping, SamplingPattern};
 use traits::{Cos, FloatingPoint, SignedNumber, Sqrt, Zero};
 use units::length::Length;
 
@@ -25,6 +26,8 @@ where
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
         ) -> Option<<T as Div>::Output>,
+        pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        rnd: &mut WichmannHillPRNG,
     ) -> bool;
 }
 
@@ -49,6 +52,8 @@ where
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
         ) -> Option<<T as Div>::Output>,
+        _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        _rnd: &mut WichmannHillPRNG,
     ) -> bool {
         self.direction.dot(sp.n.as_vector()) > Zero::zero()
             && shadow_check(
@@ -81,6 +86,8 @@ where
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
         ) -> Option<<T as Div>::Output>,
+        _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        _rnd: &mut WichmannHillPRNG,
     ) -> bool {
         if self.direction_from(sp).dot(sp.n.as_vector()) > Zero::zero() {
             let ot = shadow_check(
@@ -119,6 +126,8 @@ where
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
         ) -> Option<<T as Div>::Output>,
+        _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        _rnd: &mut WichmannHillPRNG,
     ) -> bool {
         let direction = self.direction_from(sp);
 
@@ -154,6 +163,8 @@ where
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
         ) -> Option<<T as Div>::Output>,
+        _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        _rnd: &mut WichmannHillPRNG,
     ) -> bool {
         true
     }
@@ -170,6 +181,7 @@ where
     <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
     <T as Length>::AreaType: Sqrt<Output = T>,
     WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
     fn get_color(&self) -> C {
         self.color
@@ -182,23 +194,24 @@ where
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
         ) -> Option<<T as Div>::Output>,
+        pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        rnd: &mut WichmannHillPRNG,
     ) -> bool {
-        let mut rnd = WichmannHillPRNG::new_random();
-
         let w = sp.n.as_vector();
         let rnd_vector: Vector3<T::ValueType> =
             Vector3::new(rnd.next_random(), rnd.next_random(), rnd.next_random()).normalized();
         let v = Vector3::cross(w, rnd_vector).normalized();
         let u = Vector3::cross(v, w);
 
-        let pattern = self.patterns.draw_pattern(&mut rnd);
-
-        let sample = pattern.draw_point(&mut rnd);
+        let mapped = pattern.mapped_to_hemisphere(self.e);
+        let sample = mapped.draw_point(rnd);
         let direction = (u * sample.x + v * sample.y + w * sample.z).normalized() * T::one();
 
         let shadow_ray = ParametricLine::new(sp.p, direction);
 
-        shadow_check(shadow_ray, Some(self.distance)).is_none()
+        let hits = shadow_check(shadow_ray, Some(self.distance)).is_none();
+
+        hits
     }
 
     fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {

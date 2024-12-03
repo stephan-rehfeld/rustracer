@@ -12,12 +12,14 @@ use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle}
 use cg_basics::camera::{
     FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, SphericalCamera,
 };
-use cg_basics::light::{AmbientLight, PointLight, SpotLight};
+use cg_basics::light::{AmbientLight, AmbientOcclusionLight, PointLight, SpotLight};
 use cg_basics::scene_graph::RenderableGeometry;
 use cg_basics::scene_graph::Scene3;
 use colors::RGB;
 use math::transform::Transform3;
-use math::{Normal3, Orthonormal3};
+use math::{Normal3, Orthonormal3, Point2};
+use random::{RandomNumberGenerator, WichmannHillPRNG};
+use sampling::{PatternMapping, SamplingPattern};
 use traits::{
     ConvenientNumber, Cos, FloatingPoint, Number, SelfMulNumber, SignedNumber, Sin, Sqrt, Zero,
 };
@@ -126,6 +128,8 @@ where
     Normal3<<T as Length>::ValueType>: Orthonormal3,
     Radians<<T as Div>::Output>:
         Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
 {
     let file_content = fs::read_to_string(filename).expect("Unable to read file");
 
@@ -237,6 +241,14 @@ where
             "point_light" => match PointLight::from_tokens(&mut tokens) {
                 Ok(point_light) => {
                     lights.push(Box::new(point_light));
+                }
+                Err(cause) => {
+                    return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                }
+            },
+            "ambient_occlusion_light" => match AmbientOcclusionLight::from_tokens(&mut tokens) {
+                Ok(ambient_occlusion_light) => {
+                    lights.push(Box::new(ambient_occlusion_light));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));

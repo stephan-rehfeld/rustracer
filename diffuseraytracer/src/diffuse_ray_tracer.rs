@@ -100,24 +100,29 @@ impl<T: Length> DiffuseRayTracer<T> {
                                 .lights
                                 .iter()
                                 .filter(|light| {
-                                    light.illuminates(sp, &|shadow_ray, min_distance| {
-                                        let mut hits: Vec<T::ValueType> = scene
-                                            .geometries
-                                            .iter()
-                                            .flat_map(|g| g.intersect(shadow_ray))
-                                            .map(|(t, _, _)| t)
-                                            .filter(|t| *t > self.shadow_tolerance)
-                                            .filter(|t| {
-                                                if let Some(min_d) = min_distance {
-                                                    *t > min_d / T::one()
-                                                } else {
-                                                    true
-                                                }
-                                            })
-                                            .collect();
-                                        hits.sort_by(|t1, t2| t1.partial_cmp(t2).unwrap());
-                                        hits.first().copied()
-                                    })
+                                    light.illuminates(
+                                        sp,
+                                        &|shadow_ray, min_distance| {
+                                            let mut hits: Vec<T::ValueType> = scene
+                                                .geometries
+                                                .iter()
+                                                .flat_map(|g| g.intersect(shadow_ray))
+                                                .map(|(t, _, _)| t)
+                                                .filter(|t| *t > self.shadow_tolerance)
+                                                .filter(|t| {
+                                                    if let Some(min_d) = min_distance {
+                                                        *t < min_d / T::one()
+                                                    } else {
+                                                        true
+                                                    }
+                                                })
+                                                .collect();
+                                            hits.sort_by(|t1, t2| t1.partial_cmp(t2).unwrap());
+                                            hits.first().copied()
+                                        },
+                                        self.sampling_patterns.draw_pattern(&mut rnd),
+                                        &mut rnd,
+                                    )
                                 })
                                 .collect();
 
