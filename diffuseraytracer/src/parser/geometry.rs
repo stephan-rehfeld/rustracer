@@ -4,10 +4,12 @@ use std::str::FromStr;
 
 use crate::material::Material;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
-use cg_basics::scene_graph::RenderableGeometry;
 use colors::RGB;
 use math::transform::Transform3;
 use math::{Normal3, Point2, Point3, Vector3};
+use random::{RandomNumberGenerator, WichmannHillPRNG};
+use sampling::{PatternMapping, SamplingPattern};
+use scene_graph::RenderableGeometry;
 use traits::{ConvenientNumber, FloatingPoint, One, SignedNumber, Sqrt, Zero};
 use units::angle::Degrees;
 use units::length::Length;
@@ -25,6 +27,8 @@ where
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
     <T as FromStr>::Err: Error,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
     type Err = ParsingError;
 
@@ -237,6 +241,8 @@ where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
     type Err = ParsingError;
 
@@ -330,6 +336,8 @@ where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
     type Err = ParsingError;
 
@@ -425,6 +433,8 @@ where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
     type Err = ParsingError;
 
@@ -519,6 +529,8 @@ where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
     type Err = ParsingError;
 
@@ -611,6 +623,8 @@ where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
     type Err = ParsingError;
 

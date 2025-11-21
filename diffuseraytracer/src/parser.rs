@@ -6,20 +6,19 @@ use std::ops::Div;
 use std::str::FromStr;
 
 use crate::camera::RaytracingCamera;
-use crate::light::Light;
 use crate::material::Material;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
 use cg_basics::camera::{
     FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, SphericalCamera,
 };
 use cg_basics::light::{AmbientLight, AmbientOcclusionLight, PointLight, SpotLight};
-use cg_basics::scene_graph::RenderableGeometry;
-use cg_basics::scene_graph::Scene3;
 use colors::RGB;
 use math::transform::Transform3;
 use math::{Normal3, Orthonormal3, Point2};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
+use scene_graph::Light;
+use scene_graph::{RenderableGeometry, Scene3};
 use traits::{
     ConvenientNumber, Cos, FloatingPoint, Number, SelfMulNumber, SignedNumber, Sin, Sqrt, Zero,
 };
@@ -108,8 +107,8 @@ pub fn parse_scene<T: Length + SignedNumber<T::ValueType> + ConvenientNumber + '
     filename: &str,
 ) -> Result<
     Scene3<
+        T,
         RGB<<T as Length>::ValueType>,
-        Box<dyn Light<T, RGB<<T as Length>::ValueType>>>,
         Box<dyn RaytracingCamera<T>>,
         Box<dyn Renderable<T, RGB<T::ValueType>>>,
     >,
@@ -138,7 +137,7 @@ where
         .filter(|token| !token.is_empty());
 
     let mut geometries: Vec<Box<dyn Renderable<T, RGB<T::ValueType>>>> = Vec::new();
-    let mut lights: Vec<Box<dyn Light<T, RGB<<T as Length>::ValueType>>>> = Vec::new();
+    let mut lights: Vec<Light<T, RGB<<T as Length>::ValueType>>> = Vec::new();
     let mut cameras: HashMap<String, Box<dyn RaytracingCamera<T>>> = HashMap::new();
     let mut background_color: RGB<<T as Length>::ValueType> =
         RGB::new(Zero::zero(), Zero::zero(), Zero::zero());
@@ -240,7 +239,7 @@ where
             },
             "point_light" => match PointLight::from_tokens(&mut tokens) {
                 Ok(point_light) => {
-                    lights.push(Box::new(point_light));
+                    lights.push(scene_graph::Light::PointLight(point_light));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -248,7 +247,9 @@ where
             },
             "ambient_occlusion_light" => match AmbientOcclusionLight::from_tokens(&mut tokens) {
                 Ok(ambient_occlusion_light) => {
-                    lights.push(Box::new(ambient_occlusion_light));
+                    lights.push(scene_graph::Light::AmbientOcclusionLight(
+                        ambient_occlusion_light,
+                    ));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -256,7 +257,7 @@ where
             },
             "spot_light" => match SpotLight::from_tokens(&mut tokens) {
                 Ok(spot_light) => {
-                    lights.push(Box::new(spot_light));
+                    lights.push(scene_graph::Light::SpotLight(spot_light));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -272,7 +273,7 @@ where
             },
             "ambient_light:" => match RGB::from_tokens(&mut tokens) {
                 Ok(ambient) => {
-                    lights.push(Box::new(AmbientLight::new(ambient)));
+                    lights.push(scene_graph::Light::AmbientLight(AmbientLight::new(ambient)));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));

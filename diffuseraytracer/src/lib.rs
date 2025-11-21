@@ -8,7 +8,7 @@ use math::{Point3, Vector3};
 use traits::{Number, Sqrt};
 use units::length::Length;
 
-use cg_basics::scene_graph::RenderableGeometry;
+use scene_graph::RenderableGeometry;
 
 pub mod camera;
 pub mod diffuse_ray_tracer;
@@ -105,8 +105,6 @@ mod tests {
     use traits::Zero;
     use units::length::Meter;
 
-    use crate::light::Light;
-
     #[derive(Debug, PartialEq, Clone, Copy)]
     struct MockGeometry<T>
     where
@@ -149,7 +147,7 @@ mod tests {
             &self,
             _sp: SurfacePoint<T>,
             _d: Vector3<T>,
-            _lights: Vec<&Box<dyn Light<T, RGB<<T as Length>::ValueType>>>>,
+            _lights: Vec<&scene_graph::Light<T, Self::ColorType>>,
         ) -> RGB<<T as Length>::ValueType> {
             self.color
         }

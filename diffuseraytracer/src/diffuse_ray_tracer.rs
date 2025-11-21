@@ -1,17 +1,18 @@
 use std::ops::{AddAssign, DivAssign};
 
 use crate::camera::RaytracingCamera;
-use crate::light::Light;
+use crate::light::DiffuseRayTracerLight;
 use crate::material::Material;
 use crate::Renderable;
-use cg_basics::scene_graph::Scene3;
 use colors::Color;
 use image::{ImageBuffer, WritableImage};
 use math::geometry::SurfacePoint;
 use math::{Point2, Vector2};
-use random::WichmannHillPRNG;
+use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::SamplingPatternSet;
-use traits::{One, Zero};
+use sampling::{PatternMapping, SamplingPattern};
+use scene_graph::Scene3;
+use traits::{FloatingPoint, One, Sqrt, Zero};
 use units::length::Length;
 
 pub struct DiffuseRayTracer<T: Length> {
@@ -19,7 +20,13 @@ pub struct DiffuseRayTracer<T: Length> {
     shadow_tolerance: T::ValueType,
 }
 
-impl<T: Length> DiffuseRayTracer<T> {
+impl<T: Length> DiffuseRayTracer<T>
+where
+    T::ValueType: FloatingPoint,
+    <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
+{
     pub fn new(
         sampling_patterns: SamplingPatternSet<Point2<T::ValueType>>,
         shadow_tolerance: T::ValueType,
@@ -31,12 +38,7 @@ impl<T: Length> DiffuseRayTracer<T> {
     }
     pub fn render<C: Color<ChannelType = T::ValueType>>(
         self,
-        mut scene: Scene3<
-            C,
-            Box<dyn Light<T, C>>,
-            Box<dyn RaytracingCamera<T>>,
-            Box<dyn Renderable<T, C>>,
-        >,
+        mut scene: Scene3<T, C, Box<dyn RaytracingCamera<T>>, Box<dyn Renderable<T, C>>>,
         camera_id: &str,
         size: Vector2<usize>,
         rnd: WichmannHillPRNG,
@@ -100,26 +102,27 @@ impl<T: Length> DiffuseRayTracer<T> {
                                 .lights
                                 .iter()
                                 .filter(|light| {
+                                    let shadow_function = |shadow_ray, min_distance| {
+                                        let mut hits: Vec<T::ValueType> = scene
+                                            .geometries
+                                            .iter()
+                                            .flat_map(|g| g.intersect(shadow_ray))
+                                            .map(|(t, _, _)| t)
+                                            .filter(|t| *t > self.shadow_tolerance)
+                                            .filter(|t| {
+                                                if let Some(min_d) = min_distance {
+                                                    *t < min_d / T::one()
+                                                } else {
+                                                    true
+                                                }
+                                            })
+                                            .collect();
+                                        hits.sort_by(|t1, t2| t1.partial_cmp(t2).unwrap());
+                                        hits.first().copied()
+                                    };
                                     light.illuminates(
                                         sp,
-                                        &|shadow_ray, min_distance| {
-                                            let mut hits: Vec<T::ValueType> = scene
-                                                .geometries
-                                                .iter()
-                                                .flat_map(|g| g.intersect(shadow_ray))
-                                                .map(|(t, _, _)| t)
-                                                .filter(|t| *t > self.shadow_tolerance)
-                                                .filter(|t| {
-                                                    if let Some(min_d) = min_distance {
-                                                        *t < min_d / T::one()
-                                                    } else {
-                                                        true
-                                                    }
-                                                })
-                                                .collect();
-                                            hits.sort_by(|t1, t2| t1.partial_cmp(t2).unwrap());
-                                            hits.first().copied()
-                                        },
+                                        &shadow_function,
                                         self.sampling_patterns.draw_pattern(&mut rnd),
                                         &mut rnd,
                                     )

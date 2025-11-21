@@ -8,10 +8,11 @@ use math::geometry::{ParametricLine, SurfacePoint};
 use math::{Point2, Point3, Vector3};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
+use scene_graph::Light;
 use traits::{Cos, FloatingPoint, SignedNumber, Sqrt, Zero};
 use units::length::Length;
 
-pub trait Light<T, C>
+pub trait DiffuseRayTracerLight<T, C>
 where
     T: Div + Copy + Debug,
     <T as Div>::Output: Copy + Debug + PartialEq,
@@ -31,7 +32,58 @@ where
     ) -> bool;
 }
 
-impl<T, C> Light<T, C> for DirectionalLight<T, C>
+impl<T, C> DiffuseRayTracerLight<T, C> for Light<T, C>
+where
+    C: Copy,
+    T: Length,
+    <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
+    <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
+{
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+        match self {
+            Light::AmbientLight(l) => l.direction_from(sp),
+            Light::AmbientOcclusionLight(l) => l.direction_from(sp),
+            Light::DirectionalLight(l) => l.direction_from(sp),
+            Light::PointLight(l) => l.direction_from(sp),
+            Light::SpotLight(l) => l.direction_from(sp),
+        }
+    }
+
+    fn get_color(&self) -> C {
+        match self {
+            Light::AmbientLight(l) => {
+                <cg_basics::light::AmbientLight<C> as DiffuseRayTracerLight<T, C>>::get_color(l)
+            }
+            Light::AmbientOcclusionLight(l) => l.get_color(),
+            Light::DirectionalLight(l) => l.get_color(),
+            Light::PointLight(l) => l.get_color(),
+            Light::SpotLight(l) => l.get_color(),
+        }
+    }
+
+    fn illuminates(
+        &self,
+        sp: SurfacePoint<T>,
+        shadow_check: &dyn Fn(
+            ParametricLine<Point3<T>, Vector3<T>>,
+            Option<T>,
+        ) -> Option<<T as Div>::Output>,
+        pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        rnd: &mut WichmannHillPRNG,
+    ) -> bool {
+        match self {
+            Light::AmbientLight(l) => l.illuminates(sp, shadow_check, pattern, rnd),
+            Light::AmbientOcclusionLight(l) => l.illuminates(sp, shadow_check, pattern, rnd),
+            Light::DirectionalLight(l) => l.illuminates(sp, shadow_check, pattern, rnd),
+            Light::PointLight(l) => l.illuminates(sp, shadow_check, pattern, rnd),
+            Light::SpotLight(l) => l.illuminates(sp, shadow_check, pattern, rnd),
+        }
+    }
+}
+
+impl<T, C> DiffuseRayTracerLight<T, C> for DirectionalLight<T, C>
 where
     C: Copy,
     T: Length,
@@ -64,7 +116,7 @@ where
     }
 }
 
-impl<T, C> Light<T, C> for PointLight<T, C>
+impl<T, C> DiffuseRayTracerLight<T, C> for PointLight<T, C>
 where
     C: Copy,
     T: Length,
@@ -104,7 +156,7 @@ where
     }
 }
 
-impl<T, C> Light<T, C> for SpotLight<T, C>
+impl<T, C> DiffuseRayTracerLight<T, C> for SpotLight<T, C>
 where
     C: Copy,
     T: Length,
@@ -145,7 +197,7 @@ where
     }
 }
 
-impl<T, C> Light<T, C> for AmbientLight<C>
+impl<T, C> DiffuseRayTracerLight<T, C> for AmbientLight<C>
 where
     C: Copy,
     T: Length,
@@ -174,7 +226,7 @@ where
     }
 }
 
-impl<T: Length, C> Light<T, C> for AmbientOcclusionLight<T, C>
+impl<T: Length, C> DiffuseRayTracerLight<T, C> for AmbientOcclusionLight<T, C>
 where
     C: Copy,
     T: Length,

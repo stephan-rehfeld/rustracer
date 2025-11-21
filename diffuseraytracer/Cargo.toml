@@ -15,6 +15,7 @@ sampling = { path = "../sampling" }
 random = { path = "../random" }
 image = { path = "../image" }
 cg_basics = { path = "../cg_basics" }
+scene_graph = { path = "../scene_graph" }
 
 [[bin]]
 name = "pattern-renderer"

@@ -6,6 +6,8 @@ use cg_basics::material::{LambertMaterial, PhongMaterial, UnshadedMaterial};
 use colors::RGB;
 use image::Image;
 use math::Point2;
+use random::{RandomNumberGenerator, WichmannHillPRNG};
+use sampling::{PatternMapping, SamplingPattern};
 use traits::{ConvenientNumber, FloatingPoint, Number, One, Sqrt};
 use units::length::Length;
 
@@ -21,6 +23,8 @@ where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
     <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
     match tokens.next() {
         Some("unshaded_material") => match UnshadedMaterial::from_tokens(tokens) {

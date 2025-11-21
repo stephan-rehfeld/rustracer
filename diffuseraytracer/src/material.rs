@@ -1,11 +1,13 @@
-use std::ops::Deref;
+use std::ops::{Deref, Mul};
 
-use crate::light::Light;
+use crate::light::DiffuseRayTracerLight;
 use cg_basics::material::{LambertMaterial, PhongMaterial, UnshadedMaterial};
 use colors::Color;
 use image::Image;
 use math::geometry::SurfacePoint;
 use math::{Point2, Vector3};
+use random::{RandomNumberGenerator, WichmannHillPRNG};
+use sampling::{PatternMapping, SamplingPattern};
 use traits::floating_point::{Max, Powf, Sqrt};
 use traits::{FloatingPoint, Zero};
 use units::length::Length;
@@ -17,7 +19,7 @@ pub trait Material<T: Length> {
         &self,
         sp: SurfacePoint<T>,
         d: Vector3<T>,
-        lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
+        lights: Vec<&scene_graph::Light<T, Self::ColorType>>,
     ) -> Self::ColorType;
 }
 
@@ -28,7 +30,7 @@ impl<T: Length, C: Color> Material<T> for Box<dyn Material<T, ColorType = C>> {
         &self,
         sp: SurfacePoint<T>,
         d: Vector3<T>,
-        lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
+        lights: Vec<&scene_graph::Light<T, Self::ColorType>>,
     ) -> Self::ColorType {
         self.deref().color_for(sp, d, lights)
     }
@@ -43,7 +45,7 @@ impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material
         &self,
         sp: SurfacePoint<T>,
         _d: Vector3<T>,
-        _lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
+        _lights: Vec<&scene_graph::Light<T, Self::ColorType>>,
     ) -> Self::ColorType {
         self.texture.get(sp.uv)
     }
@@ -52,6 +54,10 @@ impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material
 impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
     for LambertMaterial<I>
 where
+    <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
+    <T as Length>::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
     <I as Image>::ColorType: Color<ChannelType = <T as Length>::ValueType>,
 {
     type ColorType = <I as Image>::ColorType;
@@ -60,7 +66,7 @@ where
         &self,
         sp: SurfacePoint<T>,
         _d: Vector3<T>,
-        lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
+        lights: Vec<&scene_graph::Light<T, Self::ColorType>>,
     ) -> Self::ColorType {
         lights
             .iter()
@@ -79,6 +85,8 @@ where
     <T as Length>::ValueType: FloatingPoint + Sqrt<Output = <T as Length>::ValueType>,
     <T as Length>::AreaType: Sqrt<Output = T>,
     <I as Image>::ColorType: Color<ChannelType = <T as Length>::ValueType>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
     type ColorType = <I as Image>::ColorType;
 
@@ -86,7 +94,7 @@ where
         &self,
         sp: SurfacePoint<T>,
         d: Vector3<T>,
-        lights: Vec<&Box<dyn Light<T, Self::ColorType>>>,
+        lights: Vec<&scene_graph::Light<T, Self::ColorType>>,
     ) -> Self::ColorType {
         lights
             .iter()

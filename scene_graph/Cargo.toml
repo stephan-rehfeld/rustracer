@@ -1,0 +1,8 @@
+[package]
+name = "scene_graph"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cg_basics = { path = "../cg_basics" }
+units = { path = "../units" }

@@ -1,12 +1,9 @@
 use cg_basics::camera::PinholeCamera;
 use cg_basics::light::{AmbientLight, PointLight, SpotLight};
 use cg_basics::material::{LambertMaterial, PhongMaterial};
-use cg_basics::scene_graph::RenderableGeometry;
-use cg_basics::scene_graph::Scene3;
 use colors::{RGB, RGBA};
 use diffuseraytracer::camera::RaytracingCamera;
 use diffuseraytracer::diffuse_ray_tracer::DiffuseRayTracer;
-use diffuseraytracer::light::Light;
 use diffuseraytracer::Renderable;
 use image::converter::Converter;
 use image::farbfeld::Encoder;
@@ -16,6 +13,9 @@ use math::transform::Transform3;
 use math::{Normal3, Point2, Point3, Vector2, Vector3};
 use random::WichmannHillPRNG;
 use sampling::{RegularPatternGenerator, SamplingPatternSet};
+use scene_graph::Light;
+use scene_graph::RenderableGeometry;
+use scene_graph::Scene3;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -97,22 +97,25 @@ fn main() {
         triangle_geometry,
     ];
 
-    let ambient_light = Box::new(AmbientLight::new(RGB::new(0.1, 0.1, 0.1)));
+    let ambient_light = AmbientLight::new(RGB::new(0.1, 0.1, 0.1));
 
-    let point_light = Box::new(PointLight::new(
+    let point_light = PointLight::new(
         RGB::new(0.8, 0.8, 0.8),
         Point3::new(Meter::new(0.0), Meter::new(5.0), Meter::new(0.0)),
-    ));
+    );
 
-    let spot_light = Box::new(SpotLight::new(
+    let spot_light = SpotLight::new(
         RGB::new(0.5, 0.5, 0.5),
         Point3::new(Meter::new(0.0), Meter::new(4.0), Meter::new(0.0)),
         Vector3::new(0.0, -1.0, 0.0),
         Degrees::new(30.0).to_radians(),
-    ));
+    );
 
-    let lights: Vec<Box<dyn Light<Meter<f64>, RGB<f64>>>> =
-        vec![ambient_light, point_light, spot_light];
+    let lights: Vec<Light<Meter<f64>, RGB<f64>>> = vec![
+        Light::AmbientLight(ambient_light),
+        Light::PointLight(point_light),
+        Light::SpotLight(spot_light),
+    ];
 
     let cam = Box::new(PinholeCamera::new(
         Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),

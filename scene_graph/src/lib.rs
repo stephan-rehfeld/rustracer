@@ -1,19 +1,32 @@
 use std::collections::HashMap;
 
-pub struct Scene3<C, L, CAM, G> {
+use cg_basics::light::{
+    AmbientLight, AmbientOcclusionLight, DirectionalLight, PointLight, SpotLight,
+};
+use units::length::Length;
+
+pub struct Scene3<T: Length, C, CAM, G> {
     pub bg_color: C,
-    pub lights: Vec<L>,
+    pub lights: Vec<Light<T, C>>,
     pub cameras: HashMap<String, CAM>,
     pub geometries: Vec<G>,
 }
 
-impl<C, L, CAM, G> Scene3<C, L, CAM, G> {
+pub enum Light<T: Length, C> {
+    DirectionalLight(DirectionalLight<T, C>),
+    PointLight(PointLight<T, C>),
+    SpotLight(SpotLight<T, C>),
+    AmbientLight(AmbientLight<C>),
+    AmbientOcclusionLight(AmbientOcclusionLight<T, C>),
+}
+
+impl<T: Length, C, CAM, G> Scene3<T, C, CAM, G> {
     pub fn new(
         bg_color: C,
-        lights: Vec<L>,
+        lights: Vec<Light<T, C>>,
         cameras: HashMap<String, CAM>,
         geometries: Vec<G>,
-    ) -> Scene3<C, L, CAM, G> {
+    ) -> Scene3<T, C, CAM, G> {
         Scene3 {
             bg_color,
             lights,
