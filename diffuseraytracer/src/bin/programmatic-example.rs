@@ -2,7 +2,6 @@ use cg_basics::camera::PinholeCamera;
 use cg_basics::light::{AmbientLight, PointLight, SpotLight};
 use cg_basics::material::{LambertMaterial, PhongMaterial};
 use colors::{RGB, RGBA};
-use diffuseraytracer::camera::RaytracingCamera;
 use diffuseraytracer::diffuse_ray_tracer::DiffuseRayTracer;
 use diffuseraytracer::Renderable;
 use image::converter::Converter;
@@ -13,7 +12,7 @@ use math::transform::Transform3;
 use math::{Normal3, Point2, Point3, Vector2, Vector3};
 use random::WichmannHillPRNG;
 use sampling::{RegularPatternGenerator, SamplingPatternSet};
-use scene_graph::Light;
+use scene_graph::{Camera, Light};
 use scene_graph::RenderableGeometry;
 use scene_graph::Scene3;
 use std::collections::HashMap;
@@ -117,15 +116,15 @@ fn main() {
         Light::SpotLight(spot_light),
     ];
 
-    let cam = Box::new(PinholeCamera::new(
+    let cam = PinholeCamera::new(
         Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(5.0)),
         Vector3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(-1.0)),
         Vector3::new(Meter::new(0.0), Meter::new(1.0), Meter::new(0.0)),
         Degrees::<f64>::new(90.0).to_radians(),
-    ));
+    );
 
-    let mut cameras: HashMap<String, Box<dyn RaytracingCamera<Meter<f64>>>> = HashMap::new();
-    cameras.insert(String::from("main"), cam);
+    let mut cameras: HashMap<String, Camera<Meter<f64>>> = HashMap::new();
+    cameras.insert(String::from("main"), Camera::PinholeCamera(cam));
 
     let diffuse_ray_tracer =
         DiffuseRayTracer::new(SamplingPatternSet::regular_pattern(1, 1), 0.0001);

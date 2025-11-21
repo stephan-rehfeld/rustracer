@@ -1,14 +1,20 @@
 use std::collections::HashMap;
+use std::ops::Div;
 
+use cg_basics::camera::{FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, SphericalCamera};
 use cg_basics::light::{
     AmbientLight, AmbientOcclusionLight, DirectionalLight, PointLight, SpotLight,
 };
+use cg_basics::material::{
+    UnshadedMaterial, LambertMaterial, PhongMaterial,
+};
+use image::Image;
 use units::length::Length;
 
-pub struct Scene3<T: Length, C, CAM, G> {
+pub struct Scene3<T: Length, C, G> {
     pub bg_color: C,
     pub lights: Vec<Light<T, C>>,
-    pub cameras: HashMap<String, CAM>,
+    pub cameras: HashMap<String, Camera<T>>,
     pub geometries: Vec<G>,
 }
 
@@ -20,13 +26,27 @@ pub enum Light<T: Length, C> {
     AmbientOcclusionLight(AmbientOcclusionLight<T, C>),
 }
 
-impl<T: Length, C, CAM, G> Scene3<T, C, CAM, G> {
+pub enum Camera<T: Div> {
+    FisheyeCamera(FisheyeCamera<T>),
+    OrthigraphicCamera(OrthographicCamera<T>),
+    PerspectiveCamera(PerspectiveCamera<T>),
+    PinholeCamera(PinholeCamera<T>),
+    SphericalCamera(SphericalCamera<T>),
+}
+
+pub enum Material<I: Image> {
+    UnshadedMaterial(UnshadedMaterial<I>),
+    LambertMaterial(LambertMaterial<I>),
+    PhongMaterial(PhongMaterial<I>),
+}
+
+impl<T: Length, C, G> Scene3<T, C, G> {
     pub fn new(
         bg_color: C,
         lights: Vec<Light<T, C>>,
-        cameras: HashMap<String, CAM>,
+        cameras: HashMap<String, Camera<T>>,
         geometries: Vec<G>,
-    ) -> Scene3<T, C, CAM, G> {
+    ) -> Scene3<T, C, G> {
         Scene3 {
             bg_color,
             lights,

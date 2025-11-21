@@ -1,4 +1,4 @@
-use std::ops::{AddAssign, DivAssign};
+use std::ops::{AddAssign, Div, DivAssign, Mul, Neg};
 
 use crate::camera::RaytracingCamera;
 use crate::light::DiffuseRayTracerLight;
@@ -12,8 +12,9 @@ use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::SamplingPatternSet;
 use sampling::{PatternMapping, SamplingPattern};
 use scene_graph::Scene3;
-use traits::{FloatingPoint, One, Sqrt, Zero};
+use traits::{ConvenientNumber, SelfMulNumber, Number, Sin, Cos, FloatingPoint, One, Sqrt, Zero};
 use units::length::Length;
+use units::angle::{Angle, Radians};
 
 pub struct DiffuseRayTracer<T: Length> {
     sampling_patterns: SamplingPatternSet<Point2<T::ValueType>>,
@@ -22,6 +23,12 @@ pub struct DiffuseRayTracer<T: Length> {
 
 impl<T: Length> DiffuseRayTracer<T>
 where
+    T : ConvenientNumber + Neg<Output = T> + SelfMulNumber<<T as Div>::Output>,
+    <T as Div>::Output: FloatingPoint + ConvenientNumber,
+    <T as Mul>::Output: Number<<T as Div>::Output> + ConvenientNumber + Sqrt<Output = T>,
+    T: Number<<T as Div>::Output> + ConvenientNumber,
+    <T as Div>::Output: FloatingPoint + ConvenientNumber + Mul<T, Output = T>,
+    Radians<<T as Div>::Output>: Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
     T::ValueType: FloatingPoint,
     <T as Length>::AreaType: Sqrt<Output = T>,
     WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
@@ -38,7 +45,7 @@ where
     }
     pub fn render<C: Color<ChannelType = T::ValueType>>(
         self,
-        mut scene: Scene3<T, C, Box<dyn RaytracingCamera<T>>, Box<dyn Renderable<T, C>>>,
+        mut scene: Scene3<T, C, Box<dyn Renderable<T, C>>>,
         camera_id: &str,
         size: Vector2<usize>,
         rnd: WichmannHillPRNG,

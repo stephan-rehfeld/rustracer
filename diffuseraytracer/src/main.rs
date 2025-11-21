@@ -1,5 +1,4 @@
 use colors::{RGB, RGBA};
-use diffuseraytracer::camera::RaytracingCamera;
 use diffuseraytracer::diffuse_ray_tracer::DiffuseRayTracer;
 use scene_graph::Scene3;
 
@@ -22,10 +21,9 @@ type FloatingPointType = f64;
 type LengthType = Meter<FloatingPointType>;
 type ColorType = RGB<FloatingPointType>;
 
-type CameraContainer = Box<dyn RaytracingCamera<LengthType>>;
 type GeometryContainer = Box<dyn Renderable<LengthType, ColorType>>;
 
-type SceneType = Scene3<LengthType, ColorType, CameraContainer, GeometryContainer>;
+type SceneType = Scene3<LengthType, ColorType, GeometryContainer>;
 
 struct Configuration {
     scene: SceneType,

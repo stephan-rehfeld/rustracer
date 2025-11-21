@@ -5,7 +5,6 @@ use std::fs;
 use std::ops::Div;
 use std::str::FromStr;
 
-use crate::camera::RaytracingCamera;
 use crate::material::Material;
 use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
 use cg_basics::camera::{
@@ -17,7 +16,7 @@ use math::transform::Transform3;
 use math::{Normal3, Orthonormal3, Point2};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
-use scene_graph::Light;
+use scene_graph::{Camera, Light};
 use scene_graph::{RenderableGeometry, Scene3};
 use traits::{
     ConvenientNumber, Cos, FloatingPoint, Number, SelfMulNumber, SignedNumber, Sin, Sqrt, Zero,
@@ -109,7 +108,6 @@ pub fn parse_scene<T: Length + SignedNumber<T::ValueType> + ConvenientNumber + '
     Scene3<
         T,
         RGB<<T as Length>::ValueType>,
-        Box<dyn RaytracingCamera<T>>,
         Box<dyn Renderable<T, RGB<T::ValueType>>>,
     >,
     ParsingError,
@@ -138,7 +136,7 @@ where
 
     let mut geometries: Vec<Box<dyn Renderable<T, RGB<T::ValueType>>>> = Vec::new();
     let mut lights: Vec<Light<T, RGB<<T as Length>::ValueType>>> = Vec::new();
-    let mut cameras: HashMap<String, Box<dyn RaytracingCamera<T>>> = HashMap::new();
+    let mut cameras: HashMap<String, Camera<T>> = HashMap::new();
     let mut background_color: RGB<<T as Length>::ValueType> =
         RGB::new(Zero::zero(), Zero::zero(), Zero::zero());
 
@@ -195,7 +193,7 @@ where
             },
             "pinhole_camera" => match <(String, PinholeCamera<T>)>::from_tokens(&mut tokens) {
                 Ok((id, camera)) => {
-                    cameras.insert(id, Box::new(camera));
+                    cameras.insert(id, Camera::PinholeCamera(camera));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -204,7 +202,7 @@ where
             "perspective_camera" => {
                 match <(String, PerspectiveCamera<T>)>::from_tokens(&mut tokens) {
                     Ok((id, camera)) => {
-                        cameras.insert(id, Box::new(camera));
+                        cameras.insert(id, Camera::PerspectiveCamera(camera));
                     }
                     Err(cause) => {
                         return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -214,7 +212,7 @@ where
             "orthographic_camera" => {
                 match <(String, OrthographicCamera<T>)>::from_tokens(&mut tokens) {
                     Ok((id, camera)) => {
-                        cameras.insert(id, Box::new(camera));
+                        cameras.insert(id, Camera::OrthigraphicCamera(camera));
                     }
                     Err(cause) => {
                         return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -223,7 +221,7 @@ where
             }
             "fisheye_camera" => match <(String, FisheyeCamera<T>)>::from_tokens(&mut tokens) {
                 Ok((id, camera)) => {
-                    cameras.insert(id, Box::new(camera));
+                    cameras.insert(id, Camera::FisheyeCamera(camera));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -231,7 +229,7 @@ where
             },
             "spherical_camera" => match <(String, SphericalCamera<T>)>::from_tokens(&mut tokens) {
                 Ok((id, camera)) => {
-                    cameras.insert(id, Box::new(camera));
+                    cameras.insert(id, Camera::SphericalCamera(camera));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
