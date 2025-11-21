@@ -3,3 +3,8 @@
 roadmap.md
 *.swp
 out.ff
+*.ff
+.DS_Store
+*.jpg
+*.tif
+*.bmp
