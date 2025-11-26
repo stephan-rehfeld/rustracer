@@ -2,19 +2,19 @@ use std::ops::{AddAssign, Div, DivAssign, Mul, Neg};
 
 use crate::camera::RaytracingCamera;
 use crate::light::DiffuseRayTracerLight;
-use crate::material::Material;
-use crate::Renderable;
+use crate::material::DiffuseRayTracerMaterial;
+use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
 use colors::Color;
-use image::{ImageBuffer, WritableImage};
-use math::geometry::SurfacePoint;
-use math::{Point2, Vector2};
+use image::{Image, ImageBuffer, WritableImage};
+use math::geometry::{Intersect, ParametricLine, SurfacePoint};
+use math::{Point2, Point3, Vector2, Vector3};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::SamplingPatternSet;
 use sampling::{PatternMapping, SamplingPattern};
 use scene_graph::Scene3;
-use traits::{ConvenientNumber, SelfMulNumber, Number, Sin, Cos, FloatingPoint, One, Sqrt, Zero};
-use units::length::Length;
+use traits::{ConvenientNumber, Cos, FloatingPoint, Number, One, SelfMulNumber, Sin, Sqrt, Zero};
 use units::angle::{Angle, Radians};
+use units::length::Length;
 
 pub struct DiffuseRayTracer<T: Length> {
     sampling_patterns: SamplingPatternSet<Point2<T::ValueType>>,
@@ -23,16 +23,23 @@ pub struct DiffuseRayTracer<T: Length> {
 
 impl<T: Length> DiffuseRayTracer<T>
 where
-    T : ConvenientNumber + Neg<Output = T> + SelfMulNumber<<T as Div>::Output>,
+    T: ConvenientNumber + Neg<Output = T> + SelfMulNumber<<T as Div>::Output>,
     <T as Div>::Output: FloatingPoint + ConvenientNumber,
     <T as Mul>::Output: Number<<T as Div>::Output> + ConvenientNumber + Sqrt<Output = T>,
     T: Number<<T as Div>::Output> + ConvenientNumber,
     <T as Div>::Output: FloatingPoint + ConvenientNumber + Mul<T, Output = T>,
-    Radians<<T as Div>::Output>: Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
+    Radians<<T as Div>::Output>:
+        Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
     T::ValueType: FloatingPoint,
     <T as Length>::AreaType: Sqrt<Output = T>,
     WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
     SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
+    ParametricLine<Point3<T>, Vector3<T>>: Intersect<AxisAlignedBox<T>, Output = Vec<(T::ValueType, SurfacePoint<T>)>>
+        + Intersect<Cylinder<T>, Output = Vec<(T::ValueType, SurfacePoint<T>)>>
+        + Intersect<Disc<T>, Output = Vec<(T::ValueType, SurfacePoint<T>)>>
+        + Intersect<Plane<T>, Output = Vec<(T::ValueType, SurfacePoint<T>)>>
+        + Intersect<Sphere<T>, Output = Vec<(T::ValueType, SurfacePoint<T>)>>
+        + Intersect<Triangle<T>, Output = Vec<(T::ValueType, SurfacePoint<T>)>>,
 {
     pub fn new(
         sampling_patterns: SamplingPatternSet<Point2<T::ValueType>>,
@@ -45,7 +52,7 @@ where
     }
     pub fn render<C: Color<ChannelType = T::ValueType>>(
         self,
-        mut scene: Scene3<T, C, Box<dyn Renderable<T, C>>>,
+        mut scene: Scene3<T, C>,
         camera_id: &str,
         size: Vector2<usize>,
         rnd: WichmannHillPRNG,
@@ -89,7 +96,9 @@ where
                         let mut hits: Vec<(
                             T::ValueType,
                             SurfacePoint<T>,
-                            &dyn Material<T, ColorType = C>,
+                            &scene_graph::Material<
+                                Box<dyn Image<ColorType = C, PointType = Point2<T::ValueType>>>,
+                            >,
                         )> = scene
                             .geometries
                             .iter()

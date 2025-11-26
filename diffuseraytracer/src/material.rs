@@ -1,4 +1,4 @@
-use std::ops::{Deref, Mul};
+use std::ops::Mul;
 
 use crate::light::DiffuseRayTracerLight;
 use cg_basics::material::{LambertMaterial, PhongMaterial, UnshadedMaterial};
@@ -8,11 +8,12 @@ use math::geometry::SurfacePoint;
 use math::{Point2, Vector3};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
+use scene_graph::Material;
 use traits::floating_point::{Max, Powf, Sqrt};
 use traits::{FloatingPoint, Zero};
 use units::length::Length;
 
-pub trait Material<T: Length> {
+pub trait DiffuseRayTracerMaterial<T: Length> {
     type ColorType: Color;
 
     fn color_for(
@@ -23,7 +24,14 @@ pub trait Material<T: Length> {
     ) -> Self::ColorType;
 }
 
-impl<T: Length, C: Color> Material<T> for Box<dyn Material<T, ColorType = C>> {
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerMaterial<T>
+    for Material<Box<dyn Image<ColorType = C, PointType = Point2<T::ValueType>>>>
+where
+    T::ValueType: FloatingPoint,
+    T::AreaType: Sqrt<Output = T>,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
+{
     type ColorType = C;
 
     fn color_for(
@@ -32,11 +40,15 @@ impl<T: Length, C: Color> Material<T> for Box<dyn Material<T, ColorType = C>> {
         d: Vector3<T>,
         lights: Vec<&scene_graph::Light<T, Self::ColorType>>,
     ) -> Self::ColorType {
-        self.deref().color_for(sp, d, lights)
+        match self {
+            Material::UnshadedMaterial(mat) => mat.color_for(sp, d, lights),
+            Material::LambertMaterial(mat) => mat.color_for(sp, d, lights),
+            Material::PhongMaterial(mat) => mat.color_for(sp, d, lights),
+        }
     }
 }
 
-impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
+impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> DiffuseRayTracerMaterial<T>
     for UnshadedMaterial<I>
 {
     type ColorType = <I as Image>::ColorType;
@@ -51,7 +63,7 @@ impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material
     }
 }
 
-impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
+impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> DiffuseRayTracerMaterial<T>
     for LambertMaterial<I>
 where
     <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
@@ -79,7 +91,7 @@ where
     }
 }
 
-impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> Material<T>
+impl<T: Length, I: Image<PointType = Point2<<T as Length>::ValueType>>> DiffuseRayTracerMaterial<T>
     for PhongMaterial<I>
 where
     <T as Length>::ValueType: FloatingPoint + Sqrt<Output = <T as Length>::ValueType>,

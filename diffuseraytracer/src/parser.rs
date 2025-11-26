@@ -5,18 +5,17 @@ use std::fs;
 use std::ops::Div;
 use std::str::FromStr;
 
-use crate::material::Material;
-use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Renderable, Sphere, Triangle};
 use cg_basics::camera::{
     FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, SphericalCamera,
 };
 use cg_basics::light::{AmbientLight, AmbientOcclusionLight, PointLight, SpotLight};
 use colors::RGB;
+use image::Image;
 use math::transform::Transform3;
 use math::{Normal3, Orthonormal3, Point2};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
-use scene_graph::{Camera, Light};
+use scene_graph::{Camera, Geometry, Light, Material};
 use scene_graph::{RenderableGeometry, Scene3};
 use traits::{
     ConvenientNumber, Cos, FloatingPoint, Number, SelfMulNumber, SignedNumber, Sin, Sqrt, Zero,
@@ -31,21 +30,6 @@ mod material;
 mod misc;
 mod texture;
 mod util;
-
-type MaterialType<T> = Box<dyn Material<T, ColorType = RGB<<T as Length>::ValueType>>>;
-
-type RenderableAxisAlignedBox<T> =
-    RenderableGeometry<AxisAlignedBox<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
-type RenderableCylinder<T> =
-    RenderableGeometry<Cylinder<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
-type RenderableDisc<T> =
-    RenderableGeometry<Disc<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
-type RenderablePlane<T> =
-    RenderableGeometry<Plane<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
-type RenderableSphere<T> =
-    RenderableGeometry<Sphere<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
-type RenderableTriangle<T> =
-    RenderableGeometry<Triangle<T>, MaterialType<T>, Transform3<<T as Length>::ValueType>>;
 
 #[derive(Debug)]
 pub enum ParsingError {
@@ -104,14 +88,7 @@ trait FromTokens: Sized {
 
 pub fn parse_scene<T: Length + SignedNumber<T::ValueType> + ConvenientNumber + 'static>(
     filename: &str,
-) -> Result<
-    Scene3<
-        T,
-        RGB<<T as Length>::ValueType>,
-        Box<dyn Renderable<T, RGB<T::ValueType>>>,
-    >,
-    ParsingError,
->
+) -> Result<Scene3<T, RGB<<T as Length>::ValueType>>, ParsingError>
 where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber,
     <<T as Length>::ValueType as FromStr>::Err: Error,
@@ -134,7 +111,15 @@ where
         .split(&[' ', '\t', '\n'])
         .filter(|token| !token.is_empty());
 
-    let mut geometries: Vec<Box<dyn Renderable<T, RGB<T::ValueType>>>> = Vec::new();
+    let mut geometries: Vec<
+        RenderableGeometry<
+            Geometry<T>,
+            Material<
+                Box<dyn Image<ColorType = RGB<T::ValueType>, PointType = Point2<T::ValueType>>>,
+            >,
+            Transform3<T::ValueType>,
+        >,
+    > = Vec::new();
     let mut lights: Vec<Light<T, RGB<<T as Length>::ValueType>>> = Vec::new();
     let mut cameras: HashMap<String, Camera<T>> = HashMap::new();
     let mut background_color: RGB<<T as Length>::ValueType> =
@@ -142,50 +127,50 @@ where
 
     while let Some(token) = tokens.next() {
         match token {
-            "sphere" => match RenderableSphere::<T>::from_tokens(&mut tokens) {
+            "sphere" => match geometry::parse_sphere(&mut tokens) {
                 Ok(sphere) => {
-                    geometries.push(Box::new(sphere));
+                    geometries.push(sphere);
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
             },
-            "cylinder" => match RenderableCylinder::<T>::from_tokens(&mut tokens) {
+            "cylinder" => match geometry::parse_cylinder(&mut tokens) {
                 Ok(cylinder) => {
-                    geometries.push(Box::new(cylinder));
+                    geometries.push(cylinder);
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
             },
-            "disc" => match RenderableDisc::<T>::from_tokens(&mut tokens) {
+            "disc" => match geometry::parse_disc(&mut tokens) {
                 Ok(disc) => {
-                    geometries.push(Box::new(disc));
+                    geometries.push(disc);
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
             },
 
-            "plane" => match RenderablePlane::<T>::from_tokens(&mut tokens) {
+            "plane" => match geometry::parse_plane(&mut tokens) {
                 Ok(plane) => {
-                    geometries.push(Box::new(plane));
+                    geometries.push(plane);
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
             },
-            "box" => match RenderableAxisAlignedBox::<T>::from_tokens(&mut tokens) {
+            "box" => match geometry::parse_axis_aligned_box(&mut tokens) {
                 Ok(aab) => {
-                    geometries.push(Box::new(aab));
+                    geometries.push(aab);
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
             },
-            "triangle" => match RenderableTriangle::<T>::from_tokens(&mut tokens) {
+            "triangle" => match geometry::parse_triangle(&mut tokens) {
                 Ok(triangle) => {
-                    geometries.push(Box::new(triangle));
+                    geometries.push(triangle);
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));

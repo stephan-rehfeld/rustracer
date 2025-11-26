@@ -73,7 +73,9 @@ name = "scene_graph"
 version = "0.1.0"
 dependencies = [
  "cg_basics",
+ "colors",
  "image",
+ "math",
  "units",
 ]
 

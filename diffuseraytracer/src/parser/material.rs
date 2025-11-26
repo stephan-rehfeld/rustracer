@@ -8,17 +8,20 @@ use image::Image;
 use math::Point2;
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
+use scene_graph::Material;
 use traits::{ConvenientNumber, FloatingPoint, Number, One, Sqrt};
 use units::length::Length;
 
-use crate::material::Material;
 use crate::parser::texture;
 use crate::parser::util;
 use crate::parser::{FromTokens, ParsingError};
 
 pub fn parse_material<'a, T: Length>(
     tokens: &mut impl Iterator<Item = &'a str>,
-) -> Result<Box<dyn Material<T, ColorType = RGB<<T as Length>::ValueType>>>, ParsingError>
+) -> Result<
+    Material<Box<dyn Image<ColorType = RGB<T::ValueType>, PointType = Point2<T::ValueType>>>>,
+    ParsingError,
+>
 where
     <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
     <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
@@ -28,15 +31,15 @@ where
 {
     match tokens.next() {
         Some("unshaded_material") => match UnshadedMaterial::from_tokens(tokens) {
-            Ok(material) => Ok(Box::new(material)),
+            Ok(material) => Ok(Material::UnshadedMaterial(material)),
             Err(cause) => Err(ParsingError::MaterialParsingError(Box::new(cause))),
         },
         Some("lambert_material") => match LambertMaterial::from_tokens(tokens) {
-            Ok(material) => Ok(Box::new(material)),
+            Ok(material) => Ok(Material::LambertMaterial(material)),
             Err(cause) => Err(ParsingError::MaterialParsingError(Box::new(cause))),
         },
         Some("phong_material") => match PhongMaterial::from_tokens(tokens) {
-            Ok(material) => Ok(Box::new(material)),
+            Ok(material) => Ok(Material::PhongMaterial(material)),
             Err(cause) => Err(ParsingError::MaterialParsingError(Box::new(cause))),
         },
         Some(material) => Err(ParsingError::UnsupportedMaterial(material.to_string())),

@@ -3,18 +3,17 @@ use cg_basics::light::{AmbientLight, PointLight, SpotLight};
 use cg_basics::material::{LambertMaterial, PhongMaterial};
 use colors::{RGB, RGBA};
 use diffuseraytracer::diffuse_ray_tracer::DiffuseRayTracer;
-use diffuseraytracer::Renderable;
 use image::converter::Converter;
 use image::farbfeld::Encoder;
-use image::SingleColorImage;
+use image::{Image, SingleColorImage};
 use math::geometry::{AxisAlignedBox, ImplicitNSphere, ImplicitPlane3, Triangle3};
 use math::transform::Transform3;
 use math::{Normal3, Point2, Point3, Vector2, Vector3};
 use random::WichmannHillPRNG;
 use sampling::{RegularPatternGenerator, SamplingPatternSet};
-use scene_graph::{Camera, Light};
 use scene_graph::RenderableGeometry;
 use scene_graph::Scene3;
+use scene_graph::{Camera, Geometry, Light, Material};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -22,31 +21,68 @@ use traits::ToRadians;
 use units::angle::Degrees;
 use units::length::Meter;
 
+type FloatingPointType = f64;
+type LengthType = Meter<FloatingPointType>;
+type ColorType = RGB<FloatingPointType>;
+type RenderableGeometryType = RenderableGeometry<
+    Geometry<LengthType>,
+    Material<Box<dyn Image<ColorType = ColorType, PointType = Point2<FloatingPointType>>>>,
+    Transform3<FloatingPointType>,
+>;
+
 fn main() {
     let size = Vector2::new(640, 480);
 
     let plane = ImplicitPlane3::new(
-        Point3::new(Meter::new(0.0), Meter::new(0.0), Meter::new(0.0)),
+        Point3::new(
+            LengthType::new(0.0),
+            LengthType::new(0.0),
+            LengthType::new(0.0),
+        ),
         Normal3::new(0.0, 1.0, 0.0),
         Vector3::new(1.0, 0.0, 0.0),
     );
 
     let sphere = ImplicitNSphere::new(
-        Point3::new(Meter::new(0.0), Meter::new(2.0), Meter::new(-4.0)),
+        Point3::new(
+            LengthType::new(0.0),
+            LengthType::new(2.0),
+            LengthType::new(-4.0),
+        ),
         Meter::new(1.0),
     );
 
     let aab = AxisAlignedBox::new(
-        Point3::new(Meter::new(-0.5), Meter::new(0.5), Meter::new(-0.5)),
-        Point3::new(Meter::new(0.5), Meter::new(1.5), Meter::new(0.5)),
+        Point3::new(
+            LengthType::new(-0.5),
+            LengthType::new(0.5),
+            LengthType::new(-0.5),
+        ),
+        Point3::new(
+            LengthType::new(0.5),
+            LengthType::new(1.5),
+            LengthType::new(0.5),
+        ),
     );
 
     let n = Normal3::new(0.0, 0.0, 1.0);
 
     let triangle = Triangle3::new(
-        Point3::new(Meter::new(-3.0), Meter::new(3.0), Meter::new(-3.0)),
-        Point3::new(Meter::new(-1.0), Meter::new(3.0), Meter::new(-3.0)),
-        Point3::new(Meter::new(-1.0), Meter::new(1.0), Meter::new(-3.0)),
+        Point3::new(
+            LengthType::new(-3.0),
+            LengthType::new(3.0),
+            LengthType::new(-3.0),
+        ),
+        Point3::new(
+            LengthType::new(-1.0),
+            LengthType::new(3.0),
+            LengthType::new(-3.0),
+        ),
+        Point3::new(
+            LengthType::new(-1.0),
+            LengthType::new(1.0),
+            LengthType::new(-3.0),
+        ),
         n,
         n,
         n,
@@ -55,41 +91,47 @@ fn main() {
         Point2::new(0.0, 1.0),
     );
 
-    let plane_geometry = Box::new(RenderableGeometry::new(
-        plane,
-        LambertMaterial::new(SingleColorImage::new(
-            RGB::new(1.0, 0.0, 0.0),
+    let plane_geometry = RenderableGeometryType::new(
+        Geometry::Plane(plane),
+        Material::LambertMaterial(LambertMaterial::new(Box::new(SingleColorImage::new(
+            ColorType::new(1.0, 0.0, 0.0),
             Vector2::new(1.0, 1.0),
+        )))),
+        Transform3::ident(),
+    );
+    let sphere_geometry = RenderableGeometryType::new(
+        Geometry::Sphere(sphere),
+        Material::PhongMaterial(PhongMaterial::new(
+            Box::new(SingleColorImage::new(
+                RGB::new(0.0, 1.0, 0.0),
+                Vector2::new(1.0, 1.0),
+            )),
+            Box::new(SingleColorImage::new(
+                RGB::new(1.0, 1.0, 1.0),
+                Vector2::new(1.0, 1.0),
+            )),
+            64.0,
         )),
         Transform3::<f64>::ident(),
-    ));
-    let sphere_geometry = Box::new(RenderableGeometry::new(
-        sphere,
-        PhongMaterial::new(
-            SingleColorImage::new(RGB::new(0.0, 1.0, 0.0), Vector2::new(1.0, 1.0)),
-            SingleColorImage::new(RGB::new(1.0, 1.0, 1.0), Vector2::new(1.0, 1.0)),
-            64.0,
-        ),
-        Transform3::<f64>::ident(),
-    ));
-    let aab_geometry = Box::new(RenderableGeometry::new(
-        aab,
-        LambertMaterial::new(SingleColorImage::new(
+    );
+    let aab_geometry = RenderableGeometryType::new(
+        Geometry::AxisAlignedBox(aab),
+        Material::LambertMaterial(LambertMaterial::new(Box::new(SingleColorImage::new(
             RGB::new(0.0, 0.0, 1.0),
             Vector2::new(1.0, 1.0),
-        )),
-        Transform3::<f64>::ident(),
-    ));
-    let triangle_geometry = Box::new(RenderableGeometry::new(
-        triangle,
-        LambertMaterial::new(SingleColorImage::new(
+        )))),
+        Transform3::ident(),
+    );
+    let triangle_geometry = RenderableGeometryType::new(
+        Geometry::Triangle(triangle),
+        Material::LambertMaterial(LambertMaterial::new(Box::new(SingleColorImage::new(
             RGB::new(1.0, 1.0, 0.0),
             Vector2::new(1.0, 1.0),
-        )),
-        Transform3::<f64>::ident(),
-    ));
+        )))),
+        Transform3::ident(),
+    );
 
-    let geometries: Vec<Box<dyn Renderable<Meter<f64>, RGB<f64>>>> = vec![
+    let geometries: Vec<RenderableGeometryType> = vec![
         plane_geometry,
         aab_geometry,
         sphere_geometry,

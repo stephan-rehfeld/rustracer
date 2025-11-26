@@ -9,7 +9,7 @@ pub struct Splitter<'a, T: Image> {
 }
 
 impl<T: Image> Splitter<'_, T> {
-    pub fn new(source: &T, channel: usize) -> Splitter<T> {
+    pub fn new(source: &T, channel: usize) -> Splitter<'_, T> {
         Splitter { source, channel }
     }
 }

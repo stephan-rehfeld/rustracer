@@ -5,5 +5,7 @@ edition = "2024"
 
 [dependencies]
 cg_basics = { path = "../cg_basics" }
+colors = { path = "../colors" }
 units = { path = "../units" }
 image = { path = "../image" }
+math = { path = "../math" }

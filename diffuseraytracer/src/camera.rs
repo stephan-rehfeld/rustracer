@@ -5,7 +5,7 @@ use math::{Point2, Point3, Vector2, Vector3};
 
 use sampling::SamplingPattern;
 use scene_graph::Camera;
-use traits::{ConvenientNumber, Sqrt, SelfMulNumber, Number, FloatingPoint, Sin, Cos};
+use traits::{ConvenientNumber, Cos, FloatingPoint, Number, SelfMulNumber, Sin, Sqrt};
 use units::angle::{Angle, Radians};
 
 pub trait RaytracingCamera<T>
@@ -22,12 +22,13 @@ where
 
 impl<T> RaytracingCamera<T> for Camera<T>
 where
-    T : ConvenientNumber + Neg<Output = T> + SelfMulNumber<<T as Div>::Output>,
+    T: ConvenientNumber + Neg<Output = T> + SelfMulNumber<<T as Div>::Output>,
     <T as Div>::Output: FloatingPoint + ConvenientNumber,
     <T as Mul>::Output: Number<<T as Div>::Output> + ConvenientNumber + Sqrt<Output = T>,
     T: Number<<T as Div>::Output> + ConvenientNumber,
     <T as Div>::Output: FloatingPoint + ConvenientNumber + Mul<T, Output = T>,
-    Radians<<T as Div>::Output>: Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
+    Radians<<T as Div>::Output>:
+        Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
 {
     fn ray_for(
         &self,
