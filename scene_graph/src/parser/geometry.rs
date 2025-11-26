@@ -4,7 +4,7 @@ use std::ops::Neg;
 use std::str::FromStr;
 
 use crate::{Geometry, Material, RenderableGeometry};
-use cg_basics::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
+use cg_basics::geometry::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
 use colors::RGB;
 use image::Image;
 use math::transform::Transform3;

@@ -1,6 +1,6 @@
 use std::ops::Mul;
 
-use cg_basics::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
+use cg_basics::geometry::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
 use colors::Color;
 use image::Image;
 use math::geometry::{Intersect, ParametricLine, SurfacePoint};
