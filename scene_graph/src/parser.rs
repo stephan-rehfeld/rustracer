@@ -15,8 +15,8 @@ use math::transform::Transform3;
 use math::{Normal3, Orthonormal3, Point2};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
-use scene_graph::{Camera, Geometry, Light, Material};
-use scene_graph::{RenderableGeometry, Scene3};
+use crate::{Camera, Geometry, Light, Material};
+use crate::{RenderableGeometry, Scene3};
 use traits::{
     ConvenientNumber, Cos, FloatingPoint, Number, SelfMulNumber, SignedNumber, Sin, Sqrt, Zero,
 };
@@ -222,7 +222,7 @@ where
             },
             "point_light" => match PointLight::from_tokens(&mut tokens) {
                 Ok(point_light) => {
-                    lights.push(scene_graph::Light::PointLight(point_light));
+                    lights.push(Light::PointLight(point_light));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -230,7 +230,7 @@ where
             },
             "ambient_occlusion_light" => match AmbientOcclusionLight::from_tokens(&mut tokens) {
                 Ok(ambient_occlusion_light) => {
-                    lights.push(scene_graph::Light::AmbientOcclusionLight(
+                    lights.push(Light::AmbientOcclusionLight(
                         ambient_occlusion_light,
                     ));
                 }
@@ -240,7 +240,7 @@ where
             },
             "spot_light" => match SpotLight::from_tokens(&mut tokens) {
                 Ok(spot_light) => {
-                    lights.push(scene_graph::Light::SpotLight(spot_light));
+                    lights.push(Light::SpotLight(spot_light));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
@@ -256,7 +256,7 @@ where
             },
             "ambient_light:" => match RGB::from_tokens(&mut tokens) {
                 Ok(ambient) => {
-                    lights.push(scene_graph::Light::AmbientLight(AmbientLight::new(ambient)));
+                    lights.push(Light::AmbientLight(AmbientLight::new(ambient)));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));

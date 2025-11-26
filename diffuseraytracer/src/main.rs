@@ -234,7 +234,7 @@ fn parse_configuration(mut args: impl Iterator<Item = String>) -> Result<Configu
                 }
             },
 
-            filename => match diffuseraytracer::parser::parse_scene::<LengthType>(filename) {
+            filename => match scene_graph::parser::parse_scene::<LengthType>(filename) {
                 Ok(s) => {
                     scene = Some(s);
                 }

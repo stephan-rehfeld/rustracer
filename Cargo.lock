@@ -76,6 +76,9 @@ dependencies = [
  "colors",
  "image",
  "math",
+ "random",
+ "sampling",
+ "traits",
  "units",
 ]
 

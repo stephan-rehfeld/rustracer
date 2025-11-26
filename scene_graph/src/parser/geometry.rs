@@ -3,14 +3,14 @@ use std::fmt::Debug;
 use std::ops::Neg;
 use std::str::FromStr;
 
-use crate::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
+use cg_basics::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
 use colors::RGB;
 use image::Image;
 use math::transform::Transform3;
 use math::{Normal3, Point2, Point3, Vector3};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
-use scene_graph::{Geometry, Material, RenderableGeometry};
+use crate::{Geometry, Material, RenderableGeometry};
 use traits::{ConvenientNumber, FloatingPoint, One, Sqrt, Zero};
 use units::angle::Degrees;
 use units::length::Length;

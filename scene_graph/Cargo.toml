@@ -9,3 +9,6 @@ colors = { path = "../colors" }
 units = { path = "../units" }
 image = { path = "../image" }
 math = { path = "../math" }
+sampling = { path = "../sampling" }
+random = { path = "../random" }
+traits = { path = "../traits" }

@@ -8,6 +8,8 @@ use math::{Point2, Point3, Vector3};
 use scene_graph::Geometry;
 use traits::{Number, Sqrt};
 use units::length::Length;
+use cg_basics::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
+
 
 use scene_graph::RenderableGeometry;
 
@@ -15,14 +17,6 @@ pub mod camera;
 pub mod diffuse_ray_tracer;
 pub mod light;
 pub mod material;
-pub mod parser;
-
-type Cylinder<T> = math::geometry::ImplicitCylinder<T>;
-type Disc<T> = math::geometry::ImplicitDisc3<T>;
-type Plane<T> = math::geometry::ImplicitPlane3<T>;
-type Sphere<T> = math::geometry::Sphere<T>;
-type AxisAlignedBox<T> = math::geometry::AxisAlignedBox<Point3<T>>;
-type Triangle<T> = math::geometry::Triangle3<T>;
 
 pub trait Renderable<T: Length, C: Color<ChannelType = T::ValueType>> {
     fn intersect(

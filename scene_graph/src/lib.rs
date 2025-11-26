@@ -17,6 +17,8 @@ use math::transform::Transform3;
 use math::{Point2, Point3};
 use units::length::Length;
 
+pub mod parser;
+
 pub struct Scene3<T: Length, C: Color> {
     pub bg_color: C,
     pub lights: Vec<Light<T, C>>,

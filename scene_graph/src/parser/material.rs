@@ -8,7 +8,7 @@ use image::Image;
 use math::Point2;
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
-use scene_graph::Material;
+use crate::Material;
 use traits::{ConvenientNumber, FloatingPoint, Number, One, Sqrt};
 use units::length::Length;
 
