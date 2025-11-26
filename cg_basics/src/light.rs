@@ -2,7 +2,6 @@ use std::ops::Div;
 
 use math::{Point3, Vector3};
 use units::angle::Radians;
-use units::length::Length;
 
 pub struct DirectionalLight<T, C>
 where
@@ -71,14 +70,14 @@ impl<C> AmbientLight<C> {
     }
 }
 
-pub struct AmbientOcclusionLight<T: Length, C> {
+pub struct AmbientOcclusionLight<T: Div, C> {
     pub color: C,
-    pub e: T::ValueType,
+    pub e: T::Output,
     pub distance: T,
 }
 
-impl<T: Length, C> AmbientOcclusionLight<T, C> {
-    pub fn new(color: C, e: T::ValueType, distance: T) -> AmbientOcclusionLight<T, C> {
+impl<T: Div, C> AmbientOcclusionLight<T, C> {
+    pub fn new(color: C, e: T::Output, distance: T) -> AmbientOcclusionLight<T, C> {
         AmbientOcclusionLight { color, e, distance }
     }
 }
