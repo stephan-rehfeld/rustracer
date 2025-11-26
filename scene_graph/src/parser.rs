@@ -5,6 +5,8 @@ use std::fs;
 use std::ops::Div;
 use std::str::FromStr;
 
+use crate::{Camera, Geometry, Light, Material};
+use crate::{RenderableGeometry, Scene3};
 use cg_basics::camera::{
     FisheyeCamera, OrthographicCamera, PerspectiveCamera, PinholeCamera, SphericalCamera,
 };
@@ -15,8 +17,6 @@ use math::transform::Transform3;
 use math::{Normal3, Orthonormal3, Point2};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
-use crate::{Camera, Geometry, Light, Material};
-use crate::{RenderableGeometry, Scene3};
 use traits::{
     ConvenientNumber, Cos, FloatingPoint, Number, SelfMulNumber, SignedNumber, Sin, Sqrt, Zero,
 };
@@ -230,9 +230,7 @@ where
             },
             "ambient_occlusion_light" => match AmbientOcclusionLight::from_tokens(&mut tokens) {
                 Ok(ambient_occlusion_light) => {
-                    lights.push(Light::AmbientOcclusionLight(
-                        ambient_occlusion_light,
-                    ));
+                    lights.push(Light::AmbientOcclusionLight(ambient_occlusion_light));
                 }
                 Err(cause) => {
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));

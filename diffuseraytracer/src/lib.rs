@@ -1,5 +1,6 @@
 use std::ops::Mul;
 
+use cg_basics::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
 use colors::Color;
 use image::Image;
 use math::geometry::{Intersect, ParametricLine, SurfacePoint};
@@ -8,8 +9,6 @@ use math::{Point2, Point3, Vector3};
 use scene_graph::Geometry;
 use traits::{Number, Sqrt};
 use units::length::Length;
-use cg_basics::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
-
 
 use scene_graph::RenderableGeometry;
 

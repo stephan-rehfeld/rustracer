@@ -86,8 +86,7 @@ where
                 }
                 token => {
                     return Err(ParsingError::UnexpectedToken {
-                        expected:
-                            "id:, eye_position:, gaze_direction:, up_vector:, field_of_view:, }",
+                        expected: "id:, eye_position:, gaze_direction:, up_vector:, field_of_view:, }",
                         found: token.to_string(),
                     });
                 }
@@ -205,8 +204,7 @@ where
                 }
                 token => {
                     return Err(ParsingError::UnexpectedToken {
-                        expected:
-                            "id:, eye_position:, gaze_direction:, up_vector:, field_of_view:, lens_radius, focal_length }",
+                        expected: "id:, eye_position:, gaze_direction:, up_vector:, field_of_view:, lens_radius, focal_length }",
                         found: token.to_string(),
                     });
                 }
@@ -305,8 +303,7 @@ where
                 }
                 token => {
                     return Err(ParsingError::UnexpectedToken {
-                        expected:
-                            "id:, eye_position:, gaze_direction:, up_vector:, field_of_view:, }",
+                        expected: "id:, eye_position:, gaze_direction:, up_vector:, field_of_view:, }",
                         found: token.to_string(),
                     });
                 }
@@ -476,8 +473,7 @@ where
                 }
                 token => {
                     return Err(ParsingError::UnexpectedToken {
-                        expected:
-                            "id:, eye_position:, gaze_direction:, up_vector:, field_of_view:, }",
+                        expected: "id:, eye_position:, gaze_direction:, up_vector:, field_of_view:, }",
                         found: token.to_string(),
                     });
                 }

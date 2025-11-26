@@ -2,13 +2,13 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::str::FromStr;
 
+use crate::Material;
 use cg_basics::material::{LambertMaterial, PhongMaterial, UnshadedMaterial};
 use colors::RGB;
 use image::Image;
 use math::Point2;
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
-use crate::Material;
 use traits::{ConvenientNumber, FloatingPoint, Number, One, Sqrt};
 use units::length::Length;
 
