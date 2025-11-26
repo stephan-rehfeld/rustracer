@@ -3,9 +3,9 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 
 use colors::{RGB, RGBA};
+use image::ImageBuffer;
 use image::converter::Converter;
 use image::farbfeld::Encoder;
-use image::ImageBuffer;
 use math::geometry::{Circle, Rectangle2};
 use math::{Point2, Point3, Vector2};
 use random::WichmannHillPRNG;
