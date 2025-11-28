@@ -4,8 +4,8 @@ use super::prefix::None;
 use crate::area::{Area, SquareMeter};
 use crate::second_moment_of_area::{MeterToThePowerOfFour, SecondMomentOfArea};
 use crate::volume::{CubicMeter, Volume};
-use traits::{ConvenientNumber, Sqrt};
 use traits::number::{Number, SelfMulNumber};
+use traits::{ConvenientNumber, Sqrt};
 
 use std::ops::{Div, Mul};
 

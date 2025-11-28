@@ -1,4 +1,3 @@
-
 use cg_basics::light::{
     AmbientLight, AmbientOcclusionLight, DirectionalLight, PointLight, SpotLight,
 };
@@ -9,8 +8,7 @@ use scene_graph::Light;
 use traits::{Cos, FloatingPoint, SignedNumber, Zero};
 use units::length::Length;
 
-pub trait RaycasterLight<T: Length, C: Color<ChannelType = T::ValueType>>
-{
+pub trait RaycasterLight<T: Length, C: Color<ChannelType = T::ValueType>> {
     fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<T::ValueType>;
     fn get_color(&self) -> C;
 
@@ -56,7 +54,7 @@ where
         shadow_check: &dyn Fn(
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
-        ) -> Option<T::ValueType>
+        ) -> Option<T::ValueType>,
     ) -> bool {
         match self {
             Light::AmbientLight(l) => l.illuminates(sp, shadow_check),
@@ -68,7 +66,8 @@ where
     }
 }
 
-impl<T: Length, C: Color<ChannelType = T::ValueType>> RaycasterLight<T, C> for DirectionalLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> RaycasterLight<T, C>
+    for DirectionalLight<T, C>
 where
     T::ValueType: SignedNumber,
 {
@@ -192,7 +191,8 @@ where
     }
 }
 
-impl<T: Length, C: Color<ChannelType = T::ValueType>> RaycasterLight<T, C> for AmbientOcclusionLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> RaycasterLight<T, C>
+    for AmbientOcclusionLight<T, C>
 where
     <T as Length>::ValueType: FloatingPoint,
 {
@@ -206,7 +206,7 @@ where
         _shadow_check: &dyn Fn(
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
-        ) -> Option<T::ValueType>
+        ) -> Option<T::ValueType>,
     ) -> bool {
         false
     }

@@ -10,8 +10,7 @@ use scene_graph::Light;
 use traits::{Cos, FloatingPoint, SignedNumber, Zero};
 use units::length::Length;
 
-pub trait DiffuseRayTracerLight<T: Length, C: Color<ChannelType = T::ValueType>>
-{
+pub trait DiffuseRayTracerLight<T: Length, C: Color<ChannelType = T::ValueType>> {
     fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<T::ValueType>;
     fn get_color(&self) -> C;
 
@@ -75,7 +74,8 @@ where
     }
 }
 
-impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for DirectionalLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C>
+    for DirectionalLight<T, C>
 where
     T::ValueType: SignedNumber,
 {
@@ -106,7 +106,8 @@ where
     }
 }
 
-impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for PointLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C>
+    for PointLight<T, C>
 where
     T::ValueType: SignedNumber,
 {
@@ -143,7 +144,8 @@ where
     }
 }
 
-impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for SpotLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C>
+    for SpotLight<T, C>
 where
     T::ValueType: FloatingPoint,
 {
@@ -181,9 +183,10 @@ where
     }
 }
 
-impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for AmbientLight<C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C>
+    for AmbientLight<C>
 where
-    T::ValueType: FloatingPoint
+    T::ValueType: FloatingPoint,
 {
     fn get_color(&self) -> C {
         self.color
@@ -207,7 +210,8 @@ where
     }
 }
 
-impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for AmbientOcclusionLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C>
+    for AmbientOcclusionLight<T, C>
 where
     T::ValueType: FloatingPoint,
     WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,

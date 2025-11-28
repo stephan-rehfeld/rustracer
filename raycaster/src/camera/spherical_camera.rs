@@ -3,7 +3,7 @@ use crate::camera::RaycasterCamera;
 use cg_basics::camera::SphericalCamera;
 use math::geometry::ParametricLine;
 use math::{Point2, Point3, Vector2, Vector3};
-use traits::{ConvenientNumber, Cos, FloatingPoint, Min, Half, Sin};
+use traits::{ConvenientNumber, Cos, FloatingPoint, Half, Min, Sin};
 use units::angle::{Angle, Radians};
 use units::length::Length;
 

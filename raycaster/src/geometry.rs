@@ -5,7 +5,7 @@ use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::transform::Transform3;
 use math::{Point2, Point3, Vector3};
 use scene_graph::Geometry;
-use traits::{FloatingPoint};
+use traits::FloatingPoint;
 use units::length::Length;
 
 use scene_graph::RenderableGeometry;

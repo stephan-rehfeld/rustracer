@@ -1,11 +1,11 @@
 use std::ops::{AddAssign, Div, DivAssign, Neg};
 
 use crate::camera::RaytracingCamera;
+use crate::geometry::Renderable;
 use crate::light::DiffuseRayTracerLight;
 use crate::material::DiffuseRayTracerMaterial;
-use crate::geometry::Renderable;
-use colors::Color;
 use cg_basics::geometry::{AxisAlignedBox, Cylinder, Disc, Plane, Sphere, Triangle};
+use colors::Color;
 use image::{Image, ImageBuffer, WritableImage};
 use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::{Point2, Point3, Vector2, Vector3};
@@ -25,7 +25,7 @@ pub struct DiffuseRayTracer<T: Length> {
 impl<T: Length> DiffuseRayTracer<T>
 where
     T: ConvenientNumber + Neg<Output = T> + SelfMulNumber<<T as Div>::Output>,
-    T::ValueType: FloatingPoint+ ConvenientNumber,
+    T::ValueType: FloatingPoint + ConvenientNumber,
     Radians<<T as Div>::Output>:
         Angle + Cos<Output = <T as Div>::Output> + Sin<Output = <T as Div>::Output>,
     WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
