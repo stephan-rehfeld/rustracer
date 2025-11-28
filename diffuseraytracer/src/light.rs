@@ -7,7 +7,7 @@ use math::{Point2, Point3, Vector3};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
 use scene_graph::Light;
-use traits::{Cos, FloatingPoint, SignedNumber, Sqrt, Zero};
+use traits::{Cos, FloatingPoint, SignedNumber, Zero};
 use units::length::Length;
 
 pub trait DiffuseRayTracerLight<T: Length, C: Color<ChannelType = T::ValueType>>

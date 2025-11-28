@@ -1,4 +1,4 @@
-use std::ops::{AddAssign, Div, DivAssign, Mul, Neg};
+use std::ops::{AddAssign, Div, DivAssign, Neg};
 
 use crate::camera::RaytracingCamera;
 use crate::light::DiffuseRayTracerLight;
@@ -13,7 +13,7 @@ use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::SamplingPatternSet;
 use sampling::{PatternMapping, SamplingPattern};
 use scene_graph::Scene3;
-use traits::{ConvenientNumber, Cos, FloatingPoint, Number, One, SelfMulNumber, Sin, Sqrt, Zero};
+use traits::{ConvenientNumber, Cos, FloatingPoint, One, SelfMulNumber, Sin, Zero};
 use units::angle::{Angle, Radians};
 use units::length::Length;
 
