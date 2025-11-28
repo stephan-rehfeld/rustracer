@@ -3,8 +3,8 @@ use traits::{
     ToDegrees, ToRadians,
 };
 
-use super::prefix::None;
 use super::ValueWithPrefixAndUnit;
+use super::prefix::None;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct DegreesUnit;

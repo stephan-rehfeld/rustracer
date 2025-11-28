@@ -1,9 +1,7 @@
-use std::fmt::Debug;
-use std::ops::{Div, Mul};
-
 use cg_basics::light::{
     AmbientLight, AmbientOcclusionLight, DirectionalLight, PointLight, SpotLight,
 };
+use colors::Color;
 use math::geometry::{ParametricLine, SurfacePoint};
 use math::{Point2, Point3, Vector3};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
@@ -12,12 +10,9 @@ use scene_graph::Light;
 use traits::{Cos, FloatingPoint, SignedNumber, Sqrt, Zero};
 use units::length::Length;
 
-pub trait DiffuseRayTracerLight<T, C>
-where
-    T: Div + Copy + Debug,
-    <T as Div>::Output: Copy + Debug + PartialEq,
+pub trait DiffuseRayTracerLight<T: Length, C: Color<ChannelType = T::ValueType>>
 {
-    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output>;
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<T::ValueType>;
     fn get_color(&self) -> C;
 
     fn illuminates(
@@ -26,22 +21,19 @@ where
         shadow_check: &dyn Fn(
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
-        ) -> Option<<T as Div>::Output>,
-        pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        ) -> Option<T::ValueType>,
+        pattern: &SamplingPattern<Point2<T::ValueType>>,
         rnd: &mut WichmannHillPRNG,
     ) -> bool;
 }
 
-impl<T, C> DiffuseRayTracerLight<T, C> for Light<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for Light<T, C>
 where
-    C: Copy,
-    T: Length,
-    <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
-    <T as Length>::AreaType: Sqrt<Output = T>,
+    T::ValueType: FloatingPoint,
     WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
     SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
-    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<T::ValueType> {
         match self {
             Light::AmbientLight(l) => l.direction_from(sp),
             Light::AmbientOcclusionLight(l) => l.direction_from(sp),
@@ -69,8 +61,8 @@ where
         shadow_check: &dyn Fn(
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
-        ) -> Option<<T as Div>::Output>,
-        pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        ) -> Option<T::ValueType>,
+        pattern: &SamplingPattern<Point2<T::ValueType>>,
         rnd: &mut WichmannHillPRNG,
     ) -> bool {
         match self {
@@ -83,13 +75,11 @@ where
     }
 }
 
-impl<T, C> DiffuseRayTracerLight<T, C> for DirectionalLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for DirectionalLight<T, C>
 where
-    C: Copy,
-    T: Length,
-    <T as Length>::ValueType: SignedNumber + Mul<T, Output = T>,
+    T::ValueType: SignedNumber,
 {
-    fn direction_from(&self, _sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+    fn direction_from(&self, _sp: SurfacePoint<T>) -> Vector3<T::ValueType> {
         -self.direction
     }
 
@@ -103,8 +93,8 @@ where
         shadow_check: &dyn Fn(
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
-        ) -> Option<<T as Div>::Output>,
-        _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        ) -> Option<T::ValueType>,
+        _pattern: &SamplingPattern<Point2<T::ValueType>>,
         _rnd: &mut WichmannHillPRNG,
     ) -> bool {
         self.direction.dot(sp.n.as_vector()) > Zero::zero()
@@ -116,14 +106,11 @@ where
     }
 }
 
-impl<T, C> DiffuseRayTracerLight<T, C> for PointLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for PointLight<T, C>
 where
-    C: Copy,
-    T: Length,
-    <T as Length>::ValueType: SignedNumber + Mul<T, Output = T>,
-    <T as Length>::AreaType: Sqrt<Output = T>,
+    T::ValueType: SignedNumber,
 {
-    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<T::ValueType> {
         (self.position - sp.p).normalized()
     }
 
@@ -137,8 +124,8 @@ where
         shadow_check: &dyn Fn(
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
-        ) -> Option<<T as Div>::Output>,
-        _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        ) -> Option<T::ValueType>,
+        _pattern: &SamplingPattern<Point2<T::ValueType>>,
         _rnd: &mut WichmannHillPRNG,
     ) -> bool {
         if self.direction_from(sp).dot(sp.n.as_vector()) > Zero::zero() {
@@ -156,14 +143,11 @@ where
     }
 }
 
-impl<T, C> DiffuseRayTracerLight<T, C> for SpotLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for SpotLight<T, C>
 where
-    C: Copy,
-    T: Length,
-    <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
-    <T as Length>::AreaType: Sqrt<Output = T>,
+    T::ValueType: FloatingPoint,
 {
-    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<T::ValueType> {
         (self.position - sp.p).normalized()
     }
 
@@ -177,8 +161,8 @@ where
         shadow_check: &dyn Fn(
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
-        ) -> Option<<T as Div>::Output>,
-        _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        ) -> Option<T::ValueType>,
+        _pattern: &SamplingPattern<Point2<T::ValueType>>,
         _rnd: &mut WichmannHillPRNG,
     ) -> bool {
         let direction = self.direction_from(sp);
@@ -197,12 +181,9 @@ where
     }
 }
 
-impl<T, C> DiffuseRayTracerLight<T, C> for AmbientLight<C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for AmbientLight<C>
 where
-    C: Copy,
-    T: Length,
-    <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
-    <T as Length>::AreaType: Sqrt<Output = T>,
+    T::ValueType: FloatingPoint
 {
     fn get_color(&self) -> C {
         self.color
@@ -214,24 +195,21 @@ where
         _shadow_check: &dyn Fn(
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
-        ) -> Option<<T as Div>::Output>,
-        _pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        ) -> Option<T::ValueType>,
+        _pattern: &SamplingPattern<Point2<T::ValueType>>,
         _rnd: &mut WichmannHillPRNG,
     ) -> bool {
         true
     }
 
-    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<T::ValueType> {
         sp.n.as_vector().normalized()
     }
 }
 
-impl<T: Length, C> DiffuseRayTracerLight<T, C> for AmbientOcclusionLight<T, C>
+impl<T: Length, C: Color<ChannelType = T::ValueType>> DiffuseRayTracerLight<T, C> for AmbientOcclusionLight<T, C>
 where
-    C: Copy,
-    T: Length,
-    <T as Length>::ValueType: FloatingPoint + Mul<T, Output = T>,
-    <T as Length>::AreaType: Sqrt<Output = T>,
+    T::ValueType: FloatingPoint,
     WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
     SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
 {
@@ -245,8 +223,8 @@ where
         shadow_check: &dyn Fn(
             ParametricLine<Point3<T>, Vector3<T>>,
             Option<T>,
-        ) -> Option<<T as Div>::Output>,
-        pattern: &SamplingPattern<Point2<<T as Div>::Output>>,
+        ) -> Option<T::ValueType>,
+        pattern: &SamplingPattern<Point2<T::ValueType>>,
         rnd: &mut WichmannHillPRNG,
     ) -> bool {
         let w = sp.n.as_vector();
@@ -266,7 +244,7 @@ where
         hits
     }
 
-    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<<T as Div>::Output> {
+    fn direction_from(&self, sp: SurfacePoint<T>) -> Vector3<T::ValueType> {
         sp.n.as_vector().normalized()
     }
 }

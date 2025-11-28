@@ -3,8 +3,8 @@ use std::iter::Sum;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul};
 
 use super::Color;
-use super::YCbCr;
 use super::RGBA;
+use super::YCbCr;
 
 use traits::Number;
 

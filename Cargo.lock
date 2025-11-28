@@ -60,6 +60,19 @@ name = "random"
 version = "0.1.0"
 
 [[package]]
+name = "raycaster"
+version = "0.1.0"
+dependencies = [
+ "cg_basics",
+ "colors",
+ "image",
+ "math",
+ "scene_graph",
+ "traits",
+ "units",
+]
+
+[[package]]
 name = "sampling"
 version = "0.1.0"
 dependencies = [

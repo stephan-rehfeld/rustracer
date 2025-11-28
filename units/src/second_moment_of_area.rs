@@ -1,5 +1,5 @@
-use super::prefix::None;
 use super::ValueWithPrefixAndUnit;
+use super::prefix::None;
 
 use std::ops::{Div, Mul};
 
@@ -17,20 +17,20 @@ pub trait SecondMomentOfArea:
 {
     type ValueType: Number + Mul<Self, Output = Self>;
     type LengthType: Length<
-        ValueType = Self::ValueType,
-        AreaType = Self::AreaType,
-        VolumeType = Self::VolumeType,
-    >;
+            ValueType = Self::ValueType,
+            AreaType = Self::AreaType,
+            VolumeType = Self::VolumeType,
+        >;
     type AreaType: Area<
-        ValueType = Self::ValueType,
-        LengthType = Self::LengthType,
-        VolumeType = Self::VolumeType,
-    >;
+            ValueType = Self::ValueType,
+            LengthType = Self::LengthType,
+            VolumeType = Self::VolumeType,
+        >;
     type VolumeType: Volume<
-        ValueType = Self::ValueType,
-        LengthType = Self::LengthType,
-        AreaType = Self::AreaType,
-    >;
+            ValueType = Self::ValueType,
+            LengthType = Self::LengthType,
+            AreaType = Self::AreaType,
+        >;
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
@@ -73,7 +73,8 @@ where
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
         + Mul<CubicMeter<T>, Output = CubicMeter<T>>
-        + Mul<MeterToThePowerOfFour<T>, Output = MeterToThePowerOfFour<T>>,
+        + Mul<MeterToThePowerOfFour<T>, Output = MeterToThePowerOfFour<T>>
+        + Sqrt<Output = T>,
 {
     type ValueType = T;
     type LengthType = Meter<T>;

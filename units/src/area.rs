@@ -1,6 +1,6 @@
+use super::ValueWithPrefixAndUnit;
 use super::prefix::None;
 use super::second_moment_of_area::SecondMomentOfArea;
-use super::ValueWithPrefixAndUnit;
 
 use std::ops::{Div, Mul};
 
@@ -16,26 +16,27 @@ pub trait Area:
     + Mul<Output = Self::SecondMomentOfAreaType>
     + Div<Self::LengthType, Output = Self::LengthType>
     + Div<Output = Self::ValueType>
+    + Sqrt<Output = Self::LengthType>
 {
     type ValueType: Number + Mul<Self, Output = Self>;
     type LengthType: Length<
-        ValueType = Self::ValueType,
-        AreaType = Self,
-        VolumeType = Self::VolumeType,
-        SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
-    >;
+            ValueType = Self::ValueType,
+            AreaType = Self,
+            VolumeType = Self::VolumeType,
+            SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
+        >;
     type VolumeType: Volume<
-        ValueType = Self::ValueType,
-        LengthType = Self::LengthType,
-        AreaType = Self,
-        SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
-    >;
+            ValueType = Self::ValueType,
+            LengthType = Self::LengthType,
+            AreaType = Self,
+            SecondMomentOfAreaType = Self::SecondMomentOfAreaType,
+        >;
     type SecondMomentOfAreaType: SecondMomentOfArea<
-        ValueType = Self::ValueType,
-        LengthType = Self::LengthType,
-        AreaType = Self,
-        VolumeType = Self::VolumeType,
-    >;
+            ValueType = Self::ValueType,
+            LengthType = Self::LengthType,
+            AreaType = Self,
+            VolumeType = Self::VolumeType,
+        >;
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
@@ -88,7 +89,8 @@ where
         + Mul<Meter<T>, Output = Meter<T>>
         + Mul<SquareMeter<T>, Output = SquareMeter<T>>
         + Mul<CubicMeter<T>, Output = CubicMeter<T>>
-        + Mul<MeterToThePowerOfFour<T>, Output = MeterToThePowerOfFour<T>>,
+        + Mul<MeterToThePowerOfFour<T>, Output = MeterToThePowerOfFour<T>>
+        + Sqrt<Output = T>,
 {
     type ValueType = T;
     type LengthType = Meter<T>;

@@ -1,0 +1,13 @@
+[package]
+name = "raycaster"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cg_basics = { path = "../cg_basics" }
+colors = { path = "../colors" }
+image = { path = "../image" }
+math = { path = "../math" }
+scene_graph = { path = "../scene_graph" }
+traits = { path = "../traits" }
+units = { path = "../units" }
