@@ -73,14 +73,6 @@ impl<T: AddAssign> AddAssign for RGB<T> {
     }
 }
 
-impl<T: Div<Output = T> + Copy + Clone> Div<T> for RGB<T> {
-    type Output = RGB<T>;
-
-    fn div(self, rhs: T) -> Self::Output {
-        RGB::new(self.red / rhs, self.green / rhs, self.blue / rhs)
-    }
-}
-
 impl<T: DivAssign + Copy> DivAssign<T> for RGB<T> {
     fn div_assign(&mut self, rhs: T) {
         self.red /= rhs;

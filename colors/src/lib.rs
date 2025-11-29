@@ -1,5 +1,5 @@
 use std::iter::Sum;
-use std::ops::{Add, Index, Mul};
+use std::ops::{Add, Div, Index, Mul};
 
 use traits::Number;
 
@@ -7,6 +7,7 @@ pub trait Color:
     Add<Output = Self>
     + Mul<Self::ChannelType, Output = Self>
     + Mul<Output = Self>
+    + Div<Self::ChannelType, Output = Self>
     + Sum
     + Default
     + Clone
@@ -87,6 +88,15 @@ macro_rules! create_color_type {
                 $name::new( $( self.$channel * rhs.$channel, )* )
             }
         }
+
+        impl<T: Div<Output=T> + Copy> Div<T> for $name<T> {
+            type Output = $name<T>;
+
+            fn div(self, rhs: T) -> Self::Output {
+                $name::new( $( self.$channel / rhs, )* )
+            }
+        }
+
 
         impl<T: Eq> Eq for $name<T> {
         }
