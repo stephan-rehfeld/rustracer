@@ -8,34 +8,30 @@ use traits::{ConvenientNumber, FloatingPoint, Number, One, SelfMulNumber, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Triangle3<T: Div>
-where
-    <T as Div>::Output: Copy + Debug + PartialEq,
 {
     a: Point3<T>,
     b: Point3<T>,
     c: Point3<T>,
-    na: Normal3<<T as Div>::Output>,
-    nb: Normal3<<T as Div>::Output>,
-    nc: Normal3<<T as Div>::Output>,
-    uva: Point2<<T as Div>::Output>,
-    uvb: Point2<<T as Div>::Output>,
-    uvc: Point2<<T as Div>::Output>,
+    na: Normal3<T::Output>,
+    nb: Normal3<T::Output>,
+    nc: Normal3<T::Output>,
+    uva: Point2<T::Output>,
+    uvb: Point2<T::Output>,
+    uvc: Point2<T::Output>,
 }
 
 impl<T: Div> Triangle3<T>
-where
-    <T as Div>::Output: Copy + Debug + PartialEq,
 {
     pub fn new(
         a: Point3<T>,
         b: Point3<T>,
         c: Point3<T>,
-        na: Normal3<<T as Div>::Output>,
-        nb: Normal3<<T as Div>::Output>,
-        nc: Normal3<<T as Div>::Output>,
-        uva: Point2<<T as Div>::Output>,
-        uvb: Point2<<T as Div>::Output>,
-        uvc: Point2<<T as Div>::Output>,
+        na: Normal3<T::Output>,
+        nb: Normal3<T::Output>,
+        nc: Normal3<T::Output>,
+        uva: Point2<T::Output>,
+        uvb: Point2<T::Output>,
+        uvc: Point2<T::Output>,
     ) -> Triangle3<T> {
         Triangle3 {
             a,
@@ -153,16 +149,16 @@ impl Face3 {
 
 pub struct Triangle3Mesh<T: Div> {
     vertices: Vec<Point3<T>>,
-    normals: Vec<Normal3<<T as Div>::Output>>,
-    uvs: Vec<Point2<<T as Div>::Output>>,
+    normals: Vec<Normal3<T::Output>>,
+    uvs: Vec<Point2<T::Output>>,
     faces: Vec<Face3>,
 }
 
 impl<T: Div> Triangle3Mesh<T> {
     pub fn new(
         vertices: Vec<Point3<T>>,
-        normals: Vec<Normal3<<T as Div>::Output>>,
-        uvs: Vec<Point2<<T as Div>::Output>>,
+        normals: Vec<Normal3<T::Output>>,
+        uvs: Vec<Point2<T::Output>>,
         faces: Vec<Face3>,
     ) -> Triangle3Mesh<T> {
         Triangle3Mesh {
@@ -171,6 +167,30 @@ impl<T: Div> Triangle3Mesh<T> {
             uvs,
             faces,
         }
+    }
+
+    pub const fn len(&self) -> usize {
+        self.faces.len()
+    }
+
+    pub fn get_triangle(&self, index: usize) -> Triangle3<T> where 
+        T: Copy,
+        T::Output: Copy,
+    {
+        let face = self.faces[index];
+
+        let triangle = Triangle3::new(
+            self.vertices[face.a],
+            self.vertices[face.b],
+            self.vertices[face.c],
+            self.normals[face.na],
+            self.normals[face.nb],
+            self.normals[face.nc],
+            self.uvs[face.uva],
+            self.uvs[face.uvb],
+            self.uvs[face.uvc],);
+
+        triangle
     }
 }
 
