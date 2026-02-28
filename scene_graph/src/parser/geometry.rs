@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt::Debug;
+use std::fs;
 use std::ops::Neg;
 use std::str::FromStr;
 
@@ -9,6 +10,7 @@ use colors::RGB;
 use image::Image;
 use math::transform::Transform3;
 use math::{Normal3, Point2, Point3, Vector3};
+use obj_loader::{NormalCreation, NormalType, WindingOrder};
 use random::{RandomNumberGenerator, WichmannHillPRNG};
 use sampling::{PatternMapping, SamplingPattern};
 use traits::{ConvenientNumber, FloatingPoint, One, Sqrt, Zero};
@@ -745,4 +747,187 @@ where
     );
 
     Ok(cylinder_geometry)
+}
+
+pub fn parse_triangle_mesh<'a, T: Length>(
+    tokens: &mut impl Iterator<Item = &'a str>,
+) -> Result<
+    RenderableGeometry<
+        Geometry<T>,
+        Material<Box<dyn Image<ColorType = RGB<T::ValueType>, PointType = Point2<T::ValueType>>>>,
+        Transform3<T::ValueType>,
+    >,
+    ParsingError,
+>
+where
+    <T as Length>::ValueType: FloatingPoint + ConvenientNumber + FromStr + 'static,
+    <<T as Length>::ValueType as FromStr>::Err: Error + Debug,
+    <T as Length>::AreaType: Sqrt<Output = T>,
+    <T as FromStr>::Err: Debug,
+    WichmannHillPRNG: RandomNumberGenerator<T::ValueType>,
+    SamplingPattern<Point2<T::ValueType>>: PatternMapping<T::ValueType>,
+{
+    if let Err(cause) = util::check_next_token(tokens, "{") {
+        return Err(ParsingError::SphereParsingError(Box::new(cause)));
+    }
+
+    let mut material: Option<
+        Material<Box<dyn Image<ColorType = RGB<T::ValueType>, PointType = Point2<T::ValueType>>>>,
+    > = None;
+    let transform = Transform3::ident();
+
+    let mut position: Vector3<T::ValueType> =
+        Vector3::new(Zero::zero(), Zero::zero(), Zero::zero());
+    let mut scale: Vector3<T::ValueType> = Vector3::new(One::one(), One::one(), One::one());
+    let mut rotation: Vector3<Degrees<T::ValueType>> =
+        Vector3::new(Zero::zero(), Zero::zero(), Zero::zero());
+
+    let mut file: Option<String> = None;
+    let mut normal_creation = NormalCreation::None;
+
+    while let Some(token) = tokens.next() {
+        match token {
+            "material:" => match material::parse_material::<T>(tokens) {
+                Ok(mat) => {
+                    material = Some(mat);
+                }
+                Err(cause) => {
+                    return Err(ParsingError::TriangleMeshParsingError(Box::new(cause)));
+                }
+            },
+            "position:" => match Vector3::from_tokens(tokens) {
+                Ok(vec) => {
+                    position = vec;
+                }
+                Err(cause) => {
+                    return Err(ParsingError::TriangleMeshParsingError(Box::new(cause)));
+                }
+            },
+            "scale:" => match Vector3::from_tokens(tokens) {
+                Ok(vec) => {
+                    scale = vec;
+                }
+                Err(cause) => {
+                    return Err(ParsingError::TriangleMeshParsingError(Box::new(cause)));
+                }
+            },
+            "rotation:" => match Vector3::from_tokens(tokens) {
+                Ok(vec) => {
+                    rotation = vec;
+                }
+                Err(cause) => {
+                    return Err(ParsingError::TriangleMeshParsingError(Box::new(cause)));
+                }
+            },
+            "file:" => match tokens.next() {
+                Some(filename) => file = Some(String::from(filename)),
+                None => {
+                    return Err(ParsingError::UnexpectedEndOfTokens);
+                }
+            },
+            "normal_creation:" => match parse_normal_creation(tokens) {
+                Ok(nc) => {
+                    normal_creation = nc;
+                }
+                Err(cause) => {
+                    return Err(ParsingError::TriangleMeshParsingError(Box::new(cause)));
+                }
+            },
+            "}" => {
+                break;
+            }
+            token => {
+                return Err(ParsingError::UnexpectedToken {
+                    expected: "material:, position:, scale:, rotation:, file:, normal_creation:}",
+                    found: token.to_string(),
+                });
+            }
+        }
+    }
+
+    if let None = material {
+        return Err(ParsingError::MissingElement("material"));
+    }
+
+    let obj = fs::read_to_string(file.unwrap());
+    let triangle_mesh = obj_loader::parse_obj(&obj.unwrap(), normal_creation);
+
+    let triangle_mesh_geometry = RenderableGeometry::new(
+        Geometry::TriangleMesh(triangle_mesh),
+        material.unwrap(),
+        transform
+            .translate(position.x, position.y, position.z)
+            .rotate_z(rotation.z)
+            .rotate_x(rotation.x)
+            .rotate_y(rotation.y)
+            .scale(scale.x, scale.y, scale.z),
+    );
+
+    Ok(triangle_mesh_geometry)
+}
+
+pub fn parse_normal_creation<'a>(
+    tokens: &mut impl Iterator<Item = &'a str>,
+) -> Result<NormalCreation, ParsingError> {
+    if let Err(cause) = util::check_next_token(tokens, "{") {
+        return Err(ParsingError::TriangleMeshParsingError(Box::new(cause)));
+    }
+
+    let mut winding_order: Option<WindingOrder> = None;
+    let mut normal_type: Option<NormalType> = None;
+
+    while let Some(token) = tokens.next() {
+        match token {
+            "winding:" => match tokens.next() {
+                Some("clockwise") => winding_order = Some(WindingOrder::ClockWise),
+                Some("counterclockwise") => winding_order = Some(WindingOrder::CounterClockWise),
+                Some(order) => {
+                    return Err(ParsingError::TriangleMeshParsingError(Box::new(
+                        ParsingError::UnsupportedElement(String::from(order)),
+                    )));
+                }
+                None => {
+                    return Err(ParsingError::TriangleMeshParsingError(Box::new(
+                        ParsingError::UnexpectedEndOfTokens,
+                    )));
+                }
+            },
+            "type:" => match tokens.next() {
+                Some("orthogonal") => normal_type = Some(NormalType::Orthogonal),
+                Some("smoothed") => normal_type = Some(NormalType::Smoothed),
+                Some(order) => {
+                    return Err(ParsingError::TriangleMeshParsingError(Box::new(
+                        ParsingError::UnsupportedElement(String::from(order)),
+                    )));
+                }
+                None => {
+                    return Err(ParsingError::TriangleMeshParsingError(Box::new(
+                        ParsingError::UnexpectedEndOfTokens,
+                    )));
+                }
+            },
+            "}" => {
+                break;
+            }
+            token => {
+                return Err(ParsingError::UnexpectedToken {
+                    expected: "winding:, type:, }",
+                    found: token.to_string(),
+                });
+            }
+        }
+    }
+
+    if let None = winding_order {
+        return Err(ParsingError::MissingElement("winding"));
+    }
+
+    if let None = normal_type {
+        return Err(ParsingError::MissingElement("type"));
+    }
+
+    Ok(NormalCreation::Config(
+        winding_order.unwrap(),
+        normal_type.unwrap(),
+    ))
 }

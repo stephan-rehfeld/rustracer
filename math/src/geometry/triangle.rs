@@ -7,8 +7,7 @@ use crate::{Mat3x3, Normal3, Point2, Point3, Vector3};
 use traits::{ConvenientNumber, FloatingPoint, Number, One, SelfMulNumber, Zero};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Triangle3<T: Div>
-{
+pub struct Triangle3<T: Div> {
     a: Point3<T>,
     b: Point3<T>,
     c: Point3<T>,
@@ -20,8 +19,7 @@ pub struct Triangle3<T: Div>
     uvc: Point2<T::Output>,
 }
 
-impl<T: Div> Triangle3<T>
-{
+impl<T: Div> Triangle3<T> {
     pub fn new(
         a: Point3<T>,
         b: Point3<T>,
@@ -148,10 +146,10 @@ impl Face3 {
 }
 
 pub struct Triangle3Mesh<T: Div> {
-    vertices: Vec<Point3<T>>,
-    normals: Vec<Normal3<T::Output>>,
-    uvs: Vec<Point2<T::Output>>,
-    faces: Vec<Face3>,
+    pub vertices: Vec<Point3<T>>,
+    pub normals: Vec<Normal3<T::Output>>,
+    pub uvs: Vec<Point2<T::Output>>,
+    pub faces: Vec<Face3>,
 }
 
 impl<T: Div> Triangle3Mesh<T> {
@@ -173,7 +171,8 @@ impl<T: Div> Triangle3Mesh<T> {
         self.faces.len()
     }
 
-    pub fn get_triangle(&self, index: usize) -> Triangle3<T> where 
+    pub fn get_triangle(&self, index: usize) -> Triangle3<T>
+    where
         T: Copy,
         T::Output: Copy,
     {
@@ -188,7 +187,8 @@ impl<T: Div> Triangle3Mesh<T> {
             self.normals[face.nc],
             self.uvs[face.uva],
             self.uvs[face.uvb],
-            self.uvs[face.uvc],);
+            self.uvs[face.uvc],
+        );
 
         triangle
     }

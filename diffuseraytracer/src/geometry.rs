@@ -5,7 +5,7 @@ use math::geometry::{Intersect, ParametricLine, SurfacePoint};
 use math::transform::Transform3;
 use math::{Point2, Point3, Vector3};
 use scene_graph::Geometry;
-use traits::FloatingPoint;
+use traits::{ConvenientNumber, FloatingPoint};
 use units::length::Length;
 
 use scene_graph::RenderableGeometry;
@@ -28,7 +28,7 @@ impl<T: Length, C: Color<ChannelType = T::ValueType>> Renderable<T, C>
         Transform3<T::ValueType>,
     >
 where
-    T::ValueType: FloatingPoint,
+    T::ValueType: FloatingPoint + ConvenientNumber,
     ParametricLine<Point3<T>, Vector3<T>>: Intersect<AxisAlignedBox<T>, Output = Vec<(T::ValueType, SurfacePoint<T>)>>
         + Intersect<Cylinder<T>, Output = Vec<(T::ValueType, SurfacePoint<T>)>>
         + Intersect<Disc<T>, Output = Vec<(T::ValueType, SurfacePoint<T>)>>
@@ -53,13 +53,14 @@ where
             T::ValueType,
             SurfacePoint<T>,
             &scene_graph::Material<Box<dyn Image<ColorType = C, PointType = Point2<T::ValueType>>>>,
-        )> = match self.geometry {
-            Geometry::AxisAlignedBox(g) => transformed_ray.intersect(g),
-            Geometry::Cylinder(g) => transformed_ray.intersect(g),
-            Geometry::Disc(g) => transformed_ray.intersect(g),
-            Geometry::Plane(g) => transformed_ray.intersect(g),
-            Geometry::Sphere(g) => transformed_ray.intersect(g),
-            Geometry::Triangle(g) => transformed_ray.intersect(g),
+        )> = match &self.geometry {
+            Geometry::AxisAlignedBox(g) => transformed_ray.intersect(*g),
+            Geometry::Cylinder(g) => transformed_ray.intersect(*g),
+            Geometry::Disc(g) => transformed_ray.intersect(*g),
+            Geometry::Plane(g) => transformed_ray.intersect(*g),
+            Geometry::Sphere(g) => transformed_ray.intersect(*g),
+            Geometry::Triangle(g) => transformed_ray.intersect(*g),
+            Geometry::TriangleMesh(g) => transformed_ray.intersect(g),
         }
         .iter()
         .map(|t| (t.0, t.1, &self.material))

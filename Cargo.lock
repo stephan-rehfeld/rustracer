@@ -56,6 +56,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "obj_loader"
+version = "0.1.0"
+dependencies = [
+ "math",
+ "traits",
+]
+
+[[package]]
 name = "random"
 version = "0.1.0"
 
@@ -89,6 +97,7 @@ dependencies = [
  "colors",
  "image",
  "math",
+ "obj_loader",
  "random",
  "sampling",
  "traits",

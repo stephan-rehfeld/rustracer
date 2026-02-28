@@ -49,49 +49,30 @@ pub trait RadicalInverse {
     fn radical_inverse(p: usize) -> Self;
 }
 
-impl RadicalInverse for f32 {
-    fn radical_inverse(j: usize) -> f32 {
-        let mut j = j;
-        let mut x = 0.0;
-        let mut f = 0.5;
+macro_rules! implement_radical_inverse {
+    ($($type: ty)*) => {
+        $(
+        impl RadicalInverse for $type {
+            fn radical_inverse(j: usize) -> $type {
+                let mut j = j as $type;
+                let mut x = 0.0 as $type;
+                let mut f = 0.5 as $type;
 
-        loop {
-            if j % 2 != 0 {
-                x += f;
-            }
-            j /= 2;
-            f *= 0.5;
-
-            if j == 0 {
-                break;
-            }
-        }
-
-        x
-    }
-}
-
-impl RadicalInverse for f64 {
-    fn radical_inverse(j: usize) -> f64 {
-        let mut j = j;
-        let mut x = 0.0;
-        let mut f = 0.5;
-
-        loop {
-            if j % 2 != 0 {
-                x += f;
-            }
-            j /= 2;
-            f *= 0.5;
-
-            if j == 0 {
-                break;
+                while j > 0.0 {
+                    if (j % 2.0) != 0.0 {
+                        x += f;
+                    }
+                    j /= 2.0;
+                    f *= 0.5;
+                }
+                x
             }
         }
-
-        x
-    }
+        )*
+    };
 }
+
+implement_radical_inverse! { f32 f64 }
 
 implement_one_for! { u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize f32 f64 }
 
@@ -139,7 +120,7 @@ mod tests {
     implement_half_test! { 100, half_i128, i128 }
     implement_half_test! { 2, half_isize, isize }
     implement_half_test! { 5.0, half_f32, f32 }
-    implement_half_test! { 7.0, half_f64, u8 }
+    implement_half_test! { 7.0, half_f64, f64 }
 
     macro_rules! implement_zero_test {
         ($testName: ident, $type: ty) => {
@@ -163,7 +144,7 @@ mod tests {
     implement_zero_test! { zero_i128, i128 }
     implement_zero_test! { zero_isize, isize }
     implement_zero_test! { zero_f32, f32 }
-    implement_zero_test! { zero_f64, u8 }
+    implement_zero_test! { zero_f64, f64 }
 
     macro_rules! implement_one_test {
         ($testName: ident, $type: ty) => {
@@ -187,5 +168,5 @@ mod tests {
     implement_one_test! { one_i128, i128 }
     implement_one_test! { one_isize, isize }
     implement_one_test! { one_f32, f32 }
-    implement_one_test! { one_f64, u8 }
+    implement_one_test! { one_f64, f64 }
 }

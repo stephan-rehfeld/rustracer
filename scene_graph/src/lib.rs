@@ -10,6 +10,7 @@ use cg_basics::light::{
 use cg_basics::material::{LambertMaterial, PhongMaterial, UnshadedMaterial};
 use colors::Color;
 use image::Image;
+use math::geometry::triangle::Triangle3Mesh;
 use math::geometry::{
     AxisAlignedBox, ImplicitCylinder, ImplicitDisc3, ImplicitPlane3, Sphere, Triangle3,
 };
@@ -62,6 +63,7 @@ pub enum Geometry<T: Length> {
     Sphere(Sphere<T>),
     Plane(ImplicitPlane3<T>),
     Triangle(Triangle3<T>),
+    TriangleMesh(Triangle3Mesh<T>),
 }
 
 impl<T: Length, C: Color> Scene3<T, C> {

@@ -64,6 +64,7 @@ pub enum ParsingError {
     PlaneParsingError(Box<ParsingError>),
     BoxParsingError(Box<ParsingError>),
     TriangleParsingError(Box<ParsingError>),
+    TriangleMeshParsingError(Box<ParsingError>),
 
     PinholeCameraParsingError(Box<ParsingError>),
     PerspectiveCameraParsingError(Box<ParsingError>),
@@ -176,6 +177,14 @@ where
                     return Err(ParsingError::SceneParsingError(Box::new(cause)));
                 }
             },
+            "triangle_mesh" => match geometry::parse_triangle_mesh(&mut tokens) {
+                            Ok(triangle) => {
+                                geometries.push(triangle);
+                            }
+                            Err(cause) => {
+                                return Err(ParsingError::SceneParsingError(Box::new(cause)));
+                            }
+                        },
             "pinhole_camera" => match <(String, PinholeCamera<T>)>::from_tokens(&mut tokens) {
                 Ok((id, camera)) => {
                     cameras.insert(id, Camera::PinholeCamera(camera));

@@ -9,6 +9,7 @@ colors = { path = "../colors" }
 units = { path = "../units" }
 image = { path = "../image" }
 math = { path = "../math" }
+obj_loader = { path = "../obj_loader"}
 sampling = { path = "../sampling" }
 random = { path = "../random" }
 traits = { path = "../traits" }
